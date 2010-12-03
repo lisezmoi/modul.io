@@ -1,0 +1,6 @@
+body,html{margin:0;padding:0;background:#000;}
+#world,h1{width:800px;margin:0 auto;font:bold 20px sans-serif;}
+h1{font:bold 20px/40px sans-serif;color:#EEE;}
+#world{display:block;height:600px;border:1px solid #555;}
+#actions{width:800px;margin:0 auto;line-height:40px;}
+#actions button{margin-right:5px;}

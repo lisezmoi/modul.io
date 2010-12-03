@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+<head>
+	<title>modul.io</title>
+	<link rel="stylesheet" href="http://192.168.1.29:3000/styles/mio.css" />
+</head>
+<body>
+	<h1>modul.io</h1>
+	<canvas id="world" width="800" height="600"></canvas>
+	<p id="actions"></p>
+	<script src="http://192.168.1.29:3000/socket.io/socket.io.js"></script>
+	<script src="http://192.168.1.29:3000/scripts/mio.util.js"></script>
+	<script src="http://192.168.1.29:3000/scripts/mio.ws.js"></script>
+	<script src="http://192.168.1.29:3000/scripts/mio.ui.js"></script>
+	<script src="http://192.168.1.29:3000/scripts/mio.actions.js"></script>
+	<script src="http://192.168.1.29:3000/scripts/mio.modul.js"></script>
+	<script src="http://192.168.1.29:3000/scripts/mio.world.js"></script>
+	<script src="http://192.168.1.29:3000/scripts/mio.main.js"></script>
+	<script>
+		mio.main({
+			domain: "192.168.1.29",
+			url: "http://192.168.1.29:3000/",
+			modulId: "<%- user %>/<%- modul %>"
+		});
+	</script>
+</body>
+</html>

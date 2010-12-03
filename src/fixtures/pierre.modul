@@ -1,0 +1,41 @@
+var ctx = modul.getCanvas();
+
+ctx.antiAlias = "none";
+
+ctx.beginPath();
+ctx.strokeStyle = "black";
+ctx.moveTo(0, 0);
+ctx.lineTo(50, 50);
+ctx.stroke();
+
+ctx.fillStyle = "rgb(30,66,95)";
+ctx.beginPath();
+ctx.arc(25, 40, 25, 0, Math.PI*2, true);
+ctx.fill();
+
+ctx.fillStyle = "rgb(50,50,50)";
+ctx.beginPath();
+ctx.arc(25, 50, 10, 0, Math.PI*2, true);
+ctx.fill();
+
+ctx.fillStyle = "rgb(0,0,0)";
+ctx.font = 'bold 9px Arial';
+ctx.fillText("_PIER", 0, 10);
+
+modul.actions = {
+    right: function() {
+        modul.move("right");
+    },
+    left: function() {
+        modul.move("left");
+    },
+    top: function() {
+        modul.move("top");
+    },
+    bottom: function() {
+        modul.move("bottom");
+    },
+    test: function() {
+        
+    }
+};
