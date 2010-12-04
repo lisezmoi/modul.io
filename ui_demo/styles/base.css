@@ -171,7 +171,7 @@ margin:0px 0 0 0;
 border-right:1px #324B6B solid;
 }
 
-/*  MISC   */
+/*  BUTTONS   */
 
 button{
 color:#dbe3e2;
@@ -181,6 +181,43 @@ cursor:pointer;
 width:48.2%;
 margin:0 0 4px 0;
 }
+.moving{
+width:48.2%;
+height:70px;
+position:relative;
+}
+.keyLeft, .keyTop, .keyBottom ,.keyRight {
+position:absolute;
+display:block;
+width:30%;
+}
+.keyLeft,.keyRight {
+height:64px;
+}
+.keyLeft{
+top:0;
+left:0;
+}
+.keyTop, .keyBottom{
+height:30px;
+}
+.keyTop{
+top:0;
+left:50px;
+}
+.keyBottom{
+top:34px;
+left:50px;
+}
+.keyRight{
+top:0;
+left:100px;
+float:right;
+}
+
+
+/*  MISC   */
+
 .inside{
 display:none;
 overflow:hidden;
