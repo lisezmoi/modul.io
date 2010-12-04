@@ -1,0 +1,77 @@
+
+*{
+font-family: inconsolata, courier new, monospace;
+font-size:20px;
+letter-spacing:0.04em;
+}
+
+/*  MENU BOXES   */
+
+.bottom.box{
+bottom:7px;
+}
+
+/*  MY MODULE   */
+
+.blue{
+color:#324b6b;
+}
+.blue dd{
+color:#657397;
+padding:0 0 0 0px;
+}
+
+/*  CODE PAD   */
+
+.turquoise{
+border-bottom:1px solid #7ADF9A;
+color:#7ADF9A;
+}
+
+/*  PACKS   */
+
+.yellow{
+border-top:1px solid #FFD513;
+color:#FFD513;
+}
+.yellow button{
+color:#956f13;
+border:solid 1px #956f13;
+}
+.yellow button:hover{
+color:#FFD513;
+border:solid 1px #FFD513;
+}
+
+/*  ACTIONS   */
+
+.red{
+border-top:1px solid #ff2323;
+color:#ff2323;
+}
+.red button{
+color:#881717;
+border:solid 1px #881717;
+}
+.red button:hover, .red .keyActive{
+color:#ff2323;
+border:solid 1px #ff2323;
+}
+
+/*  ENERGY  */
+
+.green{
+border-top:1px solid #9BFB00;
+color:#9BFB00;
+}
+
+/*  MISC  */
+
+.inside{
+background:rgba(0, 5, 20, .5);
+}
+@font-face {
+	font-family: slkscr;
+	src: url('../font/slkscr.ttf');
+}
+

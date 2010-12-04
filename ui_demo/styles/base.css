@@ -1,0 +1,212 @@
+/*RESET*/
+html{color:#000;background:#FFF;}body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,code,form,fieldset,legend,input,textarea,p,blockquote,th,td{margin:0;padding:0;}table{border-collapse:collapse;border-spacing:0;}fieldset,img{border:0;}address,caption,cite,code,dfn,em,strong,th,var{font-style:normal;font-weight:normal;}li{list-style:none;}caption,th{text-align:left;}h1,h2,h3,h4,h5,h6{font-size:100%;font-weight:normal;}q:before,q:after{content:'';}abbr,acronym{border:0;font-variant:normal;}sup{vertical-align:text-top;}sub{vertical-align:text-bottom;}input,textarea,select{font-family:inherit;font-size:inherit;font-weight:inherit;}input,textarea,select{*font-size:100%;}legend{color:#000;}
+/* Buttons reset */
+button{position:relative;overflow:visible;margin:0;padding:0;background:transparent;border:0;cursor:pointer;} /* "overflow:visible;" removes extra side padding in IE */
+button::-moz-focus-inner{padding:0;border:0;} /* overrides extra padding in Firefox */
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+button span{margin-top:-1px;} /* Safari and Google Chrome only - fix margins */
+}
+
+
+*{
+font-family:courier new, monospace;
+font-size:20px;
+letter-spacing:0.04em;
+}
+body{
+color:#dbe3e2;
+width:100%;
+position:absolute; 
+height:100%;
+overflow:auto;
+background:#0b1728 url(i/bg3.gif);
+}
+#playground{
+height100%;
+width:100%;
+}
+
+#alert{
+color:red;
+position:absolute;
+left:20px;
+padding:5px 0;
+border-bottom:1px solid #FF0000;
+}
+#alert a{
+color:red;
+font-style:italic;
+border-bottom:none;
+}
+
+/*  MY MODULE   */
+
+#myModul{
+position:absolute;
+left: 50%;  
+top: 50%; 
+width: 50px; 
+height: 50px; 
+margin-top: -26px; /* moiti? de la hauteur */ 
+margin-left: -26px; /* moiti? de la largeur */ 
+border:1px dotted transparent;
+cursor:pointer;
+}
+#myModul:hover{
+border:1px dotted #0340ff;
+}
+#modulArea{
+display:none;
+position:absolute;
+left: 50%;  
+top: 50%; 
+width: 500px; 
+height: 500px; 
+margin-top: -250px; /* moiti? de la hauteur */ 
+margin-left: -250px; /* moiti? de la largeur */ 
+}
+#modulInfo{
+display:none;
+position:absolute;
+left: 50%;
+top: 50%;
+width: 250px;
+margin-top: -60px; /* moiti? de la hauteur */ 
+margin-left: -225px; /* moiti? de la largeur */ 
+}
+#modulInfo dd{
+color:#dbe3e2;
+padding:0 0 0 20px;
+}
+
+
+/*  MENU BOXES   */
+
+.box{
+position:absolute;
+width:300px;
+}
+.bottom.box{
+bottom:0;
+}
+.top.box{
+top:0;
+}
+
+
+/*  CODE PAD   */
+
+#codepad{
+right:10px;
+}
+#codepad .inside{
+height:400px;
+}
+
+/*  PACKS   */
+
+#packs{
+right:630px;
+}
+#packs .inside{
+padding:0 0 4px 0;
+}
+
+/*  ENERGY   */
+
+#energy{
+right:320px;
+}
+#energy .inside{
+padding:0 0 4px 0;
+}
+
+/*  ACTIONS   */
+
+#actions{
+right:10px;
+}
+#actions .inside{
+padding:0 0 4px 0;
+}
+
+/*  LOGO MENU   */
+
+#menu .open.logo{
+opacity:0.8;
+font-family:dejavubold, futura, verdana;
+font-weight:bold;
+text-transform:none;
+font-size:20px;
+position:absolute;
+bottom:10px;
+left:20px;
+}
+#menu .open.logo:hover{
+opacity:1;
+}
+#menu .inside{
+background:none;
+position:absolute;
+bottom:40px;
+left:20px;
+border-top:1px #324B6B solid;
+}
+#menu li{
+padding:2px 0;
+border-bottom:1px #324B6B solid;
+}
+#menu li li{
+padding:2px 0 2px 20px;
+border-bottom:0px;
+}
+#menu ul>li>.inside{
+border-top:0px;
+position:static;
+}
+#menu .arrow{
+width:60px;
+height:20px;
+margin:0px 0 0 0;
+border-right:1px #324B6B solid;
+}
+
+/*  MISC   */
+
+button{
+color:#dbe3e2;
+border:solid 1px #dbe3e2;
+background:transparent;
+cursor:pointer;
+width:48.2%;
+margin:0 0 4px 0;
+}
+.inside{
+display:none;
+overflow:hidden;
+}
+.open{
+cursor:pointer;
+padding:5px 0;
+}
+a{
+color:#dbe3e2;
+border-bottom:1px dashed #dbe3e2;
+text-decoration:none;
+}
+a:hover{
+border-bottom:1px solid;
+}
+::selection {
+background: #000;
+}
+::-moz-selection {
+background: #000;
+}
+@font-face {
+	font-family: dejavubold;
+	src: url('../font/DejaVuSans-Bold.ttf');
+}
+
+
+s

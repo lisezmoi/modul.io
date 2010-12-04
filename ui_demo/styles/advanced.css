@@ -1,0 +1,83 @@
+
+
+*{
+font-family:envy, inconsolata, courier new, monospace;
+font-size:10pt;
+letter-spacing:0.04em;
+}
+
+#alert{
+color:#EB7C7C;
+position:absolute;
+left:20px;
+padding:5px 0;
+border-bottom:1px solid #EB7C7C;
+}
+#alert a{
+color:#EB7C7C;
+}
+
+/*  MENU BOXES   */
+
+
+.bottom.box{
+bottom:0;
+border-top:1px solid #ccc;
+border-right:1px solid #333;
+}
+.top.box{
+border-bottom:1px solid #777;
+border-right:1px solid #333;
+}
+
+/*  MY MODULE   */
+
+#modulInfo{
+margin-top: -31px; 
+margin-left: -220px; 
+border-top:1px solid #ccc;
+border-right:1px solid #333;
+color:#dbe3e2; 
+}
+
+/*  PACKS   */
+
+#packs{
+color:#dbe3e2;
+}
+
+/*  CODE PAD   */
+
+#codepad{
+color:#dbe3e2;
+}
+
+
+/*  ACTIONS   */
+
+#actions{
+color:#dbe3e2;
+}
+
+/*  MISC  */
+
+
+button{
+color:#777;
+width:142px;
+border:solid 1px #777;
+padding:0 0 3px 0;
+background:transparent;
+cursor:pointer;
+}
+button:hover, .keyActive{
+color:#dbe3e2;
+border:solid 1px #dbe3e2;
+}
+
+@font-face {
+	font-family: envy;
+	src: url('../font/Envy.ttf');
+}
+
+
