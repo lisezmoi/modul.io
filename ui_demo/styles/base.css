@@ -92,6 +92,9 @@ bottom:0;
 .top.box{
 top:0;
 }
+.box.bottom .inside{
+padding:0 0 4px 0;
+}
 
 
 /*  CODE PAD   */
@@ -108,26 +111,17 @@ height:400px;
 #packs{
 right:630px;
 }
-#packs .inside{
-padding:0 0 4px 0;
-}
 
 /*  ENERGY   */
 
 #energy{
 right:320px;
 }
-#energy .inside{
-padding:0 0 4px 0;
-}
 
 /*  ACTIONS   */
 
 #actions{
 right:10px;
-}
-#actions .inside{
-padding:0 0 4px 0;
 }
 
 /*  LOGO MENU   */
@@ -180,6 +174,7 @@ background:transparent;
 cursor:pointer;
 width:48.2%;
 margin:0 0 4px 0;
+cursor:pointer;
 }
 .moving{
 width:48.2%;
