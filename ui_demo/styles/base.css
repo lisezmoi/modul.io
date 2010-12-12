@@ -10,7 +10,7 @@ button span{margin-top:-1px;} /* Safari and Google Chrome only - fix margins */
 
 *{
 font-family:courier new, monospace;
-font-size:20px;
+font-size:10px;
 letter-spacing:0.04em;
 }
 body{
@@ -65,16 +65,38 @@ height: 500px;
 margin-top: -250px; /* moiti? de la hauteur */ 
 margin-left: -250px; /* moiti? de la largeur */ 
 }
-#modulInfo{
+#modulSelected{
+background:none;
 display:none;
 position:absolute;
 left: 50%;
-top: 50%;
-width: 250px;
+top: 35%;
+width: 500px;
+height: 400px;
 margin-top: -60px; /* moiti? de la hauteur */ 
 margin-left: -225px; /* moiti? de la largeur */ 
 }
-#modulInfo dd{
+#modulSelected #modulInfo{
+position:absolute;
+left: 0;
+top: 160px;
+width:250px;
+}
+#modulSelected #modulAct{
+position:absolute;
+right: 0px;
+top: 0;
+height:150px;
+width:290px;
+border:none;
+}
+#modulAct .open{
+position:absolute;
+bottom: 0px;
+left: 0px;
+padding:0;
+}
+#modulSelected dd{
 color:#dbe3e2;
 padding:0 0 0 20px;
 }

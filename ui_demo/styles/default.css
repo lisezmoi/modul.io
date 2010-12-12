@@ -1,7 +1,7 @@
 
 *{
-font-family: inconsolata, courier new, monospace;
-font-size:20px;
+font-family: saxmono, courier new, monospace;
+font-size:15px;
 letter-spacing:0.04em;
 }
 
@@ -67,11 +67,11 @@ color:#9BFB00;
 
 /*  MISC  */
 
-.inside{
+.inside, #modulInfo, #modulAct{
 background:rgba(0, 5, 20, .5);
 }
 @font-face {
-	font-family: slkscr;
-	src: url('../font/slkscr.ttf');
+	font-family: saxmono;
+	src: url('../font/saxmono.ttf');
 }
 

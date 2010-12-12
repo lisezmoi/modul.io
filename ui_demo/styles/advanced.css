@@ -32,12 +32,13 @@ border-right:1px solid #333;
 
 /*  MY MODULE   */
 
-#modulInfo{
-margin-top: -31px; 
-margin-left: -220px; 
+#modulSelected{
+color:#dbe3e2; 
+}
+
+#modulInfo, #modulAct{
 border-top:1px solid #ccc;
 border-right:1px solid #333;
-color:#dbe3e2; 
 }
 
 /*  PACKS   */
@@ -51,7 +52,6 @@ color:#dbe3e2;
 #codepad{
 color:#dbe3e2;
 }
-
 
 /*  ACTIONS   */
 
