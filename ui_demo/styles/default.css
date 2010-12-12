@@ -1,7 +1,7 @@
 
 *{
-font-family: saxmono, courier new, monospace;
-font-size:15px;
+font-family: BAVARG__, courier new, monospace;
+font-size:14px;
 letter-spacing:0.04em;
 }
 
@@ -19,6 +19,10 @@ color:#324b6b;
 .blue dd{
 color:#657397;
 padding:0 0 0 0px;
+}
+
+.white{
+color:#AAAAAA;
 }
 
 /*  CODE PAD   */
@@ -71,7 +75,7 @@ color:#9BFB00;
 background:rgba(0, 5, 20, .5);
 }
 @font-face {
-	font-family: saxmono;
-	src: url('../font/saxmono.ttf');
+	font-family: BAVARG__;
+	src: url('../font/BAVARG__.ttf');
 }
 

@@ -82,6 +82,11 @@ left: 0;
 top: 160px;
 width:250px;
 }
+
+#modulInfo .open{
+text-align:right;
+padding:0 55px 0 0;
+}
 #modulSelected #modulAct{
 position:absolute;
 right: 0px;
