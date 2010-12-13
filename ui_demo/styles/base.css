@@ -203,10 +203,15 @@ width:48.2%;
 margin:0 0 4px 0;
 cursor:pointer;
 }
+#playground button.keyActive{
+color:#fff;
+border:solid 1px #fff;
+}
 .moving{
 width:48.2%;
 height:70px;
 position:relative;
+float:left;
 }
 .keyLeft, .keyTop, .keyBottom ,.keyRight {
 position:absolute;
@@ -236,10 +241,24 @@ top:0;
 left:100px;
 float:right;
 }
-
+.handle{
+width:48.2%;
+height:70px;
+position:relative;
+float:right;
+}
+.newF, .parentF{
+width:66px;
+height:64px;
+border:0px;
+font-size:20px;
+}
 
 /*  MISC   */
-
+i{
+font-family:modulicons;
+font-style:normal;
+}
 .inside{
 display:none;
 overflow:hidden;
@@ -267,5 +286,7 @@ background: #000;
 	src: url('../font/DejaVuSans-Bold.ttf');
 }
 
-
-s
+@font-face {
+	font-family: modulicons;
+	src: url('../font/modulicons.ttf');
+}

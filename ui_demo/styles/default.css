@@ -1,7 +1,7 @@
 
 *{
-font-family: BAVARG__, courier new, monospace;
-font-size:14px;
+font-family: DroidSansMono, courier new, monospace;
+font-size:16px;
 letter-spacing:0.04em;
 }
 
@@ -57,7 +57,7 @@ color:#ff2323;
 color:#881717;
 border:solid 1px #881717;
 }
-.red button:hover, .red .keyActive{
+.red button:hover{
 color:#ff2323;
 border:solid 1px #ff2323;
 }
@@ -75,7 +75,7 @@ color:#9BFB00;
 background:rgba(0, 5, 20, .5);
 }
 @font-face {
-	font-family: BAVARG__;
-	src: url('../font/BAVARG__.ttf');
+	font-family: DroidSansMono;
+	src: url('../font/DroidSansMono.ttf');
 }
 

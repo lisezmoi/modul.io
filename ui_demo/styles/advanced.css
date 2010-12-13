@@ -70,11 +70,14 @@ padding:0 0 3px 0;
 background:transparent;
 cursor:pointer;
 }
-button:hover, .keyActive{
+button:hover{
 color:#dbe3e2;
 border:solid 1px #dbe3e2;
 }
-
+#playground button.keyActive{
+border:1px solid #324B6B;
+color:#324B6B;
+}
 @font-face {
 	font-family: envy;
 	src: url('../font/Envy.ttf');
