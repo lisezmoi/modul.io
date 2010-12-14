@@ -38,11 +38,11 @@ color:#7ADF9A;
 border-top:1px solid #FFD513;
 color:#FFD513;
 }
-.yellow button{
+.yellow button, .red button.drop{
 color:#956f13;
 border:solid 1px #956f13;
 }
-.yellow button:hover{
+.yellow button:hover, .red button.drop:hover{
 color:#FFD513;
 border:solid 1px #FFD513;
 }
@@ -54,14 +54,13 @@ border-top:1px solid #ff2323;
 color:#ff2323;
 }
 .red button{
-color:#881717;
-border:solid 1px #881717;
+color:#BB0808;
+border:solid 1px #BB0808;
 }
 .red button:hover{
 color:#ff2323;
 border:solid 1px #ff2323;
 }
-
 /*  ENERGY  */
 
 .green{
@@ -71,6 +70,9 @@ color:#9BFB00;
 
 /*  MISC  */
 
+.red .newF, .red .parentF{
+border:0px;
+}
 .inside, #modulInfo, #modulAct{
 background:rgba(0, 5, 20, .5);
 }

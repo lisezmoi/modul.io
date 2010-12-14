@@ -258,6 +258,12 @@ font-size:20px;
 i{
 font-family:modulicons;
 font-style:normal;
+font-size:16px;
+}
+b{
+font-family:modulicons2218;
+font-weight:normal;
+font-size:16px;
 }
 .inside{
 display:none;
@@ -290,3 +296,9 @@ background: #000;
 	font-family: modulicons;
 	src: url('../font/modulicons.ttf');
 }
+
+@font-face {
+	font-family: modulicons2218;
+	src: url('../font/modulicons2218.ttf');
+}
+
