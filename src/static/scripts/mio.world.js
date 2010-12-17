@@ -42,9 +42,9 @@
             if (!!grounds) {
                 function draw(groundSprite) {
                     ctx.drawImage(groundSprite, grounds.indexOf(gid)*50, 0, 50, 50, x, y, 50, 50);
-                    ctx.fillStyle = "#ffffff";
-                    ctx.font = 'bold 9px Arial';
-                    ctx.fillText(grid[y/50][x/50].x+","+grid[y/50][x/50].y, x, y+10);
+                    // ctx.fillStyle = "#ffffff";
+                    // ctx.font = 'bold 9px Arial';
+                    // ctx.fillText(grid[y/50][x/50].x+","+grid[y/50][x/50].y, x, y+10);
                 };
                 // Grounds sprite loaded?
                 if (!!groundSprite) {
