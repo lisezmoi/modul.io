@@ -8,6 +8,7 @@ var Script = process.binding('evals').Script,
         this.id = id;
         this.canvas = new Canvas(50,50);
         this.ctx = this.canvas.getContext('2d');
+        delete this.ctx.canvas; // do not expose canvas
         this.env = getEnv.call(this);
     };
     
