@@ -55,3 +55,19 @@ ctx.fillRect(32,45, 1, 1);
 ctx.fillRect(33,46, 1, 1);
 ctx.fillRect(34,47, 1, 1);
 //bZzZ
+
+
+modul.actions = {
+    right: function() {
+        modul.move("right");
+    },
+    left: function() {
+        modul.move("left");
+    },
+    top: function() {
+        modul.move("top");
+    },
+    bottom: function() {
+        modul.move("bottom");
+    }
+};

@@ -6,18 +6,20 @@
         // Configuration
         mio.conf = config;
         
-        // World init
-        mio.world.init("world");
-        
-        // UI
+        // Init UI
         mio.ui.init();
+        mio.ui.waitFor("gridfragment", "actions", "grounds");
+        
+        // World init
+        mio.world.init();
         
         // Socket.IO
         mio.socket = new io.Socket(mio.conf.domain);
         
         mio.socket.on("connect", function(){
             mio.socket.send({
-                modulId: mio.conf.modulId
+                modulId: mio.conf.modulId,
+                gridSize: mio.ui.gridSize
             });
         });
         
@@ -26,11 +28,17 @@
         mio.socket.on("message", function(msg){
             mio.util.d(msg);
             
-            if (!!msg.grid) {
-                mio.world.updateGrid(msg.grid);
+            if (!!msg.grounds) {
+                mio.world.updateGrounds(msg.grounds);
+                mio.ui.justGot("grounds");
             }
             if (!!msg.actions) {
                 mio.actions.update(msg.actions);
+                mio.ui.justGot("actions");
+            }
+            if (!!msg.gridFragment) {
+                mio.world.updateGrid(msg.gridFragment);
+                mio.ui.justGot("gridfragment");
             }
         });
     };

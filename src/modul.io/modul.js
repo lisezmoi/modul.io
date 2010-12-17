@@ -51,7 +51,6 @@ var Script = process.binding('evals').Script,
                 },
                 move: function(direction) {
                     // Permet de déplacer le modul (direction = [top,right,bottom,left])
-                    console.log('Modul move: ' +  direction);
                     curModul.world.moveModul(curModul, direction);
                 }
             }

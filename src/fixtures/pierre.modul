@@ -1,26 +1,44 @@
 var ctx = modul.getCanvas();
 
-ctx.antiAlias = "none";
+function drawAvatar(text) {
+    
+    ctx.clearRect(0,0,50,50);
+    
+    ctx.antiAlias = "none";
+    
+    ctx.fillStyle = "rgb(30,66,95)";
+    ctx.beginPath();
+    ctx.arc(25, 40, 25, 0, Math.PI*2, true);
+    ctx.fill();
+    
+    ctx.fillStyle = "rgb(50,50,50)";
+    ctx.beginPath();
+    ctx.arc(25, 50, 10, 0, Math.PI*2, true);
+    ctx.fill();
+    
+    ctx.fillStyle = "rgb(255,255,255)";
+    ctx.font = 'bold 9px Arial';
+    ctx.fillText(text, 0, 10);
+}
 
-ctx.beginPath();
-ctx.strokeStyle = "black";
-ctx.moveTo(0, 0);
-ctx.lineTo(50, 50);
-ctx.stroke();
+function smile() {
+    
+    ctx.clearRect(0,0,50,50);
+    
+    ctx.clearRect(0,0,800,600);
+    ctx.strokeStyle = "#ffffff";
+    ctx.beginPath();  
+    ctx.arc(25,25,25,0,Math.PI*2,true); // Outer circle  
+    ctx.moveTo(35,28);  
+    ctx.arc(25,28,10,0,Math.PI,false);   // Mouth (clockwise)  
+    ctx.moveTo(20,15);  
+    ctx.arc(15,15,5,0,Math.PI*2,true);  // Left eye  
+    ctx.moveTo(40,15);  
+    ctx.arc(35,15,5,0,Math.PI*2,true);  // Right eye  
+    ctx.stroke();
+}
 
-ctx.fillStyle = "rgb(30,66,95)";
-ctx.beginPath();
-ctx.arc(25, 40, 25, 0, Math.PI*2, true);
-ctx.fill();
-
-ctx.fillStyle = "rgb(50,50,50)";
-ctx.beginPath();
-ctx.arc(25, 50, 10, 0, Math.PI*2, true);
-ctx.fill();
-
-ctx.fillStyle = "rgb(0,0,0)";
-ctx.font = 'bold 9px Arial';
-ctx.fillText("_PIER", 0, 10);
+drawAvatar("_PIER");
 
 modul.actions = {
     right: function() {
@@ -35,7 +53,13 @@ modul.actions = {
     bottom: function() {
         modul.move("bottom");
     },
-    test: function() {
-        
+    my_avatar: function() {
+        drawAvatar("_PIER");
+    },
+    hello_avatar: function() {
+        drawAvatar("Hello");
+    },
+    smile_avatar: function() {
+        smile();
     }
 };
