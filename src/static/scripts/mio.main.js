@@ -15,14 +15,12 @@
         
         // Socket.IO
         mio.socket = new io.Socket(mio.conf.domain);
-        
         mio.socket.on("connect", function(){
             mio.socket.send({
-                modulId: mio.conf.modulId,
-                gridSize: mio.ui.gridSize
+                "modulId": mio.conf.modulId,
+                "gridSize": mio.world.getGridSize()
             });
         });
-        
         mio.socket.connect();
         
         mio.socket.on("message", function(msg){
@@ -41,5 +39,13 @@
                 mio.ui.justGot("gridfragment");
             }
         });
+        
+        // On browser resize…
+        window.addEventListener("resize", function(){
+            mio.world.realignWorld();
+            mio.socket.send({
+                "gridSize": mio.world.getGridSize()
+            });
+        }, false);
     };
 })();

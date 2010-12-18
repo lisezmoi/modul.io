@@ -7,14 +7,19 @@
             ctx,
             moduls = {},
             grid = [],
+            gridSize,
             grounds = [],
-            groundSprite;
+            groundSprite,
+            screenDims = [],
+            hiddenBordersWidth = 0;
         
+        // Draw a modul detection zone
         var showModulZone = function(x, y) {
             ctx.strokeStyle = "#fff";
             ctx.strokeRect(x-150.5, y-150.5, 350, 350);
         };
         
+        // Draw a single modul
         var drawModul = function(mid, x, y, zone) {
             moduls[mid] = moduls[mid] || {};
             moduls[mid].pos = {x: x, y: y};
@@ -37,6 +42,7 @@
             }
         };
         
+        // Draw a single ground
         var drawGround = function(gid, x, y) {
             // Ground ids loaded?
             if (!!grounds) {
@@ -67,21 +73,46 @@
             }
         };
         
-        pub.init = function(canvasId) {
-            canvas = mio.ui.elements.world;
-            ctx = canvas.getContext("2d");
+        // Set styles on canvas element
+        var setWorldStyles = function() {
+            var mDims = mio.modul.dims;
+            
+            canvas.width  = gridSize[0] * mDims[0];
+            canvas.height = gridSize[1] * mDims[1];
+            
+            // (modul size) - ((screen width % modul size) / 2)
+            canvas.style.left = -(mDims[0]*hiddenBordersWidth) + Math.floor((screenDims[0] % mDims[0])/2) +"px";
+            canvas.style.top  = -(mDims[1]*hiddenBordersWidth) + Math.floor((screenDims[1] % mDims[1])/2) +"px";
         };
         
+        // Returns screen dimensions
+        var getScreenDims = function() {
+            if (!!mio.debug && !!mio.debug.debugScreen) {
+                return [mio.debug.debugScreen.offsetWidth, mio.debug.debugScreen.offsetHeight];
+            }
+            return [window.innerWidth, window.innerHeight];
+        };
+        
+        // Init world
+        pub.init = function(canvasId) {
+            canvas = mio.util.gid("world");
+            ctx = canvas.getContext("2d");
+            this.realignWorld();
+        };
+        
+        // Update ground images
         pub.updateGrounds = function(newGrounds) {
             grounds = newGrounds;
             this.draw();
         };
         
+        // Update grid size
         pub.updateGrid = function(newGrid) {
             grid = newGrid;
             this.draw();
         };
         
+        // Draw the world fragment
         pub.draw = function() {
             if (ctx) {
                 ctx.clearRect(0, 0, canvas.width, canvas.height); // clear canvas
@@ -94,20 +125,35 @@
             }
         };
         
+        // Realign world
         pub.realign = function() {
             var modulDims = mio.modul.dims,
                 worldElt = mio.ui.elements.world;
             
             screenDims = getScreenDims.call(this);
-            this.gridSize = getGridSize.call(this);
             
-            worldElt.width  = this.gridSize[0] * modulDims[0];
-            worldElt.height = this.gridSize[1] * modulDims[1];
+            worldElt.width  = gridSize[0] * modulDims[0];
+            worldElt.height = gridSize[1] * modulDims[1];
             worldElt.style.left = "-"+ (modulDims[0] + (screenDims[0] % modulDims[0]) / 2) +"px";
             worldElt.style.top  = "-"+ (modulDims[1] + (screenDims[1] % modulDims[1]) / 2) +"px";
             
             // Refresh
             mio.world.draw();
+        };
+        
+        // Returns grid size
+        pub.getGridSize = function() {
+            return [
+                Math.floor(screenDims[0] / mio.modul.dims[0]) + hiddenBordersWidth*2,
+                Math.floor(screenDims[1] / mio.modul.dims[1]) + hiddenBordersWidth*2
+            ];
+        };
+        
+        // Realign world
+        pub.realignWorld = function() {
+            screenDims = getScreenDims.call(this);
+            gridSize = this.getGridSize();
+            setWorldStyles.call(this);
         };
         
         return pub;
