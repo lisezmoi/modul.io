@@ -2,9 +2,10 @@ var express = require('express'),
     io = require('socket.io'),
     fs = require('fs'),
     server = express.createServer(),
-    World = require('./modul.io/world').World,
-    Modul = require('./modul.io/modul').Modul,
-    Ground = require('./modul.io/ground').Ground,
+    Clients = require('./lib/clients').Clients,
+    World = require('./lib/world').World,
+    Modul = require('./lib/modul').Modul,
+    Ground = require('./lib/ground').Ground,
     sys = require('sys'),
     _ = require('underscore')._;
 
