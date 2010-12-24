@@ -78,10 +78,15 @@ var Script = process.binding('evals').Script,
             return actions;
         },
         execAction: function(action, callback) {
-            var curAction = this.env.modul.actions[action];
+            var curAction = this.env.modul.actions[action],
+                that = this;
             if (typeof curAction === "function") {
+                var imgData = this.canvas.toDataURL('image/png');
                 curAction();
-                callback(this);
+                if (imgData === this.canvas.toDataURL('image/png')) {
+                    
+                }
+                callback();
             }
         }
     };

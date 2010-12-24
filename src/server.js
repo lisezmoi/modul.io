@@ -2,7 +2,7 @@ var express = require('express'),
     io = require('socket.io'),
     fs = require('fs'),
     server = express.createServer(),
-    Clients = require('./lib/clients').Clients,
+    ClientDisplay = require('./lib/clientDisplay').ClientDisplay,
     World = require('./lib/world').World,
     Modul = require('./lib/modul').Modul,
     Ground = require('./lib/ground').Ground,
@@ -17,6 +17,9 @@ server.configure(function(){
     server.use(express.bodyDecoder());
     //server.use(server.router);
     server.use(express.staticProvider(__dirname + '/static'));
+    
+    server.use(express.cookieDecoder());
+    server.use(express.session());
 });
 
 // Dev environment
@@ -39,7 +42,7 @@ var pierModul = new Modul("pierre/default");
 pierModul.updateCode(fs.readFileSync("fixtures/pierre.modul", "utf8"));
 world.addModul(pierModul, 140, 40);
 
-// HTTP Requests
+// ## HTTP server
 
 // Views global vars
 var viewVars = {
@@ -61,14 +64,14 @@ server.get('/get/ground', function(req, res, next) {
 
 // Modul page
 server.get('/:user/:modul', function(req, res, next) {
-    console.log(req.headers.host);
     res.render('modul.ejs', {
         layout: false,
         locals: {
             user: req.params.user,
             modul: req.params.modul,
             host: req.headers.host,
-            domain: req.headers.host.slice(0,-5)
+            domain: req.headers.host.slice(0,-5),
+            sessionID: req.sessionID
         }
     });
 });
@@ -106,56 +109,80 @@ server.error(function(err, req, res, next) {
     }
 });
 
-// socket.io
+// ## socket.io (websockets) server
 var socket = io.listen(server);
 
 socket.on('connection', function(client){
     
-    client.mio = {
-        modul: null,
-        gridSize: []
-    };
+    // Modul reference
+    var modul;
+    
+    // Send grounds to the client
+    client.send({
+        "grounds": world.ground.groundIds
+    });
+    
+    // client.display will manage all components displayed on the client: grid, modul skin, etc.
+    client.display = new ClientDisplay();
+    client.display.setWorld(world);
+    
+    // On resize:
+    // 
+    // - send a new grid fragment
+    client.display.on("gridUpdate", function(gridFragment) {
+        client.send({
+            "gridFragment": gridFragment
+        });
+    });
+    
+    // On modul update:
+    // 
+    // - send new actions
+    // - requests a new modul image
+    client.display.on("modulUpdate", function(modul) {
+        client.send({
+            "actions": modul.getActions()
+        });
+    });
     
     client.on('message', function(msg){
         console.log(msg);
         
-        // modulId? > init client sesssion
+        // ### `modulId` message
+        // if modul exists, send it to client.display
         if (!!msg.modulId) {
-            client.mio.modul = world.getModul(msg.modulId);
-            if (!!client.mio.modul) {
-                client.send({
-                    "actions": client.mio.modul.getActions(),
-                    "grounds": world.ground.groundIds
-                });
+            modul = world.getModul(msg.modulId);
+            if (!!modul) {
+                client.display.setModul(modul);
             }
         }
         
-        // Get client grid side
-        if (!!msg.gridSize && !!client.mio.modul) {
-            client.mio.gridSize = msg.gridSize;
-            client.send({
-                "gridFragment": world.getGridFragment(client.mio.modul.position, client.mio.gridSize)
-            });
+        // ### `gridSize` message
+        // Send the new grid size to client.display
+        if (!!msg.gridSize) {
+            client.display.setGridSize(msg.gridSize);
         }
         
-        // Action? exec action on modul
-        if (!!msg.action && !!client.mio.modul) {
-            world.getModul(client.mio.modul.id).execAction(msg.action, function(modul){
+        // ### `action` message
+        // Executes action on modul
+        if (!!msg.action && !!modul) {
+            modul.execAction(msg.action, function(){
                 // Update all clients (need update to only send update to clients that displays the modul)
                 for (var sessionId in socket.clients) {
                     var client = socket.clients[sessionId];
-                    if (!!client.mio.modul && client.mio.gridSize.length > 0) {
+                    client.display.getDisplayedModuls(function(gridFragment) {
+                        // TEMP
                         client.send({
-                            "gridFragment": world.getGridFragment(client.mio.modul.position, client.mio.gridSize)
+                            "gridFragment": gridFragment
                         });
-                    }
+                    });
                 }
             });
         }
     });
     
     client.on('disconnect', function(){
-        
+        delete client.display;
     });
 });
 
