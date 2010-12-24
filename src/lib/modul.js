@@ -63,7 +63,7 @@ var Script = process.binding('evals').Script,
             compileScript.call(this, modulCode);
         },
         getSkinData: function() {
-            return this.ctx.getImageData(0,0,50,50);
+            return this.canvas.toBuffer();
         },
         getSkinPng: function(callback) {
             this.canvas.toBuffer(function(err, buf){
