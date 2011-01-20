@@ -1,25 +1,30 @@
 <!doctype html>
+<%
+	var site_url = "http://"+host+"/";
+%>
 <html>
 <head>
 	<title>modul.io</title>
-	<link rel="stylesheet" href="http://192.168.1.29:3000/styles/mio.css" />
+	<link rel="stylesheet" href="<%- site_url %>styles/mio.css" />
 </head>
 <body>
-	<h1>modul.io</h1>
-	<canvas id="world" width="800" height="600"></canvas>
+	<h1>modul.io / <%- user %> / <%- modul %></h1>
+	<div id="world-container"><canvas id="world" width="800" height="600"></canvas></div>
 	<p id="actions"></p>
-	<script src="http://192.168.1.29:3000/socket.io/socket.io.js"></script>
-	<script src="http://192.168.1.29:3000/scripts/mio.util.js"></script>
-	<script src="http://192.168.1.29:3000/scripts/mio.ws.js"></script>
-	<script src="http://192.168.1.29:3000/scripts/mio.ui.js"></script>
-	<script src="http://192.168.1.29:3000/scripts/mio.actions.js"></script>
-	<script src="http://192.168.1.29:3000/scripts/mio.modul.js"></script>
-	<script src="http://192.168.1.29:3000/scripts/mio.world.js"></script>
-	<script src="http://192.168.1.29:3000/scripts/mio.main.js"></script>
+	<script src="<%- site_url %>socket.io/socket.io.js"></script>
+	<script src="<%- site_url %>scripts/mio.util.js"></script>
+	<script src="<%- site_url %>scripts/mio.ws.js"></script>
+	<script src="<%- site_url %>scripts/mio.ui.js"></script>
+	<script src="<%- site_url %>scripts/mio.actions.js"></script>
+	<script src="<%- site_url %>scripts/mio.modul.js"></script>
+	<script src="<%- site_url %>scripts/mio.world.js"></script>
+	<script src="<%- site_url %>scripts/mio.main.js"></script>
+	<script src="<%- site_url %>scripts/mio.debug.js"></script>
 	<script>
+		//mio.debug.init();
 		mio.main({
-			domain: "192.168.1.29",
-			url: "http://192.168.1.29:3000/",
+			domain: "<%- domain %>",
+			url: "<%- site_url %>",
 			modulId: "<%- user %>/<%- modul %>"
 		});
 	</script>

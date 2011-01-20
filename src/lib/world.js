@@ -1,17 +1,28 @@
+var Ground = require('./ground').Ground;
+
 // World Class
-(function () {
+(function() {
     
     var World = exports.World = function(width, height) {
-        this.grid = initGrid.call(this, width, height);
         this.width = width;
         this.height = height;
         this.moduls = {};
+        this.ground = new Ground();
+        this.grid = initGrid.call(this, width, height);
     };
     
     function initGrid(w, h) {
-        var grid = new Array(w); // Cols
+        var grid = new Array(h); // Cols
         for (var i = grid.length-1; i > -1; i--){
-            grid[i] = new Array(h); // Row of cells
+            grid[i] = new Array(w); // Cells
+            for (var j = grid[i].length-1; j > -1; j--) {
+                grid[i][j] = {
+                    ground: this.ground.getRandGroundId(),
+                    modul: null,
+                    y: i,
+                    x: j
+                }
+            }
         }
         return grid;
     };
@@ -21,21 +32,19 @@
     };
     
     function isOccupied(pos) {
-        if (!this.grid[pos.y]) {
-            // Error: out
-        }
-        return (!!this.grid[pos.y][pos.x]);
+        return (!!this.grid[pos.y][pos.x].modul);
     };
     
     World.prototype = {
         addModul: function(modul, x, y) {
-            if (isOut({x:x, y:y})) {
-                // Error: Out!
+            if (isOut.call(this, {x:x, y:y})) {
+                return false; // Out!
             }
-            this.grid[y][x] = modul.id;
+            this.grid[y][x].modul = modul.id;
             this.moduls[modul.id] = modul;
             this.moduls[modul.id].position = {x: x, y: y};
             modul.world = this;
+            return true;
         },
         moveModul: function(modul, dir) {
             if (!!this.moduls[modul.id]) {
@@ -59,18 +68,38 @@
                         // Error: incorrect direction
                         break;
                 }
-                
                 if (!isOut.call(this, newPos) && !isOccupied.call(this, newPos)) {
-                    delete this.grid[curPos.y][curPos.x]; // Remove modul from current location
-                    this.grid[newPos.y][newPos.x] = modul.id; // Add modul to new location
+                    this.grid[curPos.y][curPos.x].modul = null; // Remove modul from current location
+                    this.grid[newPos.y][newPos.x].modul = modul.id; // Add modul to new location
                     modul.position = newPos;
                 }
             } else {
-                // Error modul not listed
+                // Error: modul not listed
             }
         },
         getGrid: function() {
             return this.grid;
+        },
+        getGridFragment: function(position, dims) {
+            var xSlice = position.x - Math.floor((dims[0]-1)/2),
+                ySlice = position.y - Math.floor((dims[1]-1)/2);
+            
+            if (xSlice < 0) { // Left border
+                xSlice = 0;
+            } else if (xSlice+dims[0] > this.width) { // Right border
+                xSlice = this.width-dims[0];
+            }
+            if (ySlice < 0) { // Top border
+                ySlice = 0;
+            } else if (ySlice+dims[1] > this.height) { // Bottom border
+                ySlice = this.height-dims[1];
+            }
+            
+            var gridFrag = this.grid.slice(ySlice, ySlice+dims[1]);
+            for (var i = gridFrag.length-1; i > -1; i--) {
+                gridFrag[i] = gridFrag[i].slice(xSlice , xSlice+dims[0]);
+            }
+            return gridFrag;
         },
         getModuls: function(callback) {
             callback(this.moduls);

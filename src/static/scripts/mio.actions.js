@@ -8,7 +8,7 @@
             var actions = {};
             for (var i in names) {
                 actions[names[i]] = function(name) {
-                    console.log(name);
+                    mio.util.d(name);
                     mio.socket.send({
                         action: name
                     });
