@@ -76,18 +76,17 @@ height: 400px;
 margin-top: -60px; /* moiti? de la hauteur */ 
 margin-left: -225px; /* moiti? de la largeur */ 
 }
-#modulSelected #modulInfo{
+#modulInfo{
 position:absolute;
 left: 0;
 top: 160px;
 width:250px;
 }
-
 #modulInfo .open{
 text-align:right;
-padding:0 55px 0 0;
+padding-right:55px;
 }
-#modulSelected #modulAct{
+#modulAct{
 position:absolute;
 right: 0px;
 top: 0;
@@ -105,7 +104,33 @@ padding:0;
 color:#dbe3e2;
 padding:0 0 0 20px;
 }
-
+#modulSpeak{
+height:200px;
+position:absolute;
+left: 260px;
+top: 160px;
+width:235px;
+}
+#modulSpeak input{
+border:1px white;
+background:gray;
+width:186px;
+padding:0 0 0 2px;
+margin:0 5px 0 0 ;
+font-size:12px;
+height:23px;
+}
+#modulSpeak p{
+font-size:12px;
+padding:140px 0 20px 0;
+}
+#modulSpeak .sender{
+position:absolute;
+bottom:-30px;
+}
+#modulSpeak button{
+width:40px;
+}
 
 /*  MENU BOXES   */
 

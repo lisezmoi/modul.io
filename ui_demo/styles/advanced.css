@@ -19,7 +19,6 @@ color:#EB7C7C;
 
 /*  MENU BOXES   */
 
-
 .bottom.box{
 bottom:0;
 border-top:1px solid #ccc;
@@ -36,9 +35,12 @@ border-right:1px solid #333;
 color:#dbe3e2; 
 }
 
-#modulInfo, #modulAct{
+#modulInfo, #modulAct, #modulSpeak{
 border-top:1px solid #ccc;
 border-right:1px solid #333;
+}
+#modulAct{
+padding-top:5px;
 }
 
 /*  PACKS   */

@@ -13,6 +13,10 @@ bottom:7px;
 
 /*  MY MODULE   */
 
+.inside, #modulInfo, #modulAct, #modulSpeak{
+background:rgba(0, 5, 20, .5);
+}
+
 .blue{
 color:#324b6b;
 }
@@ -72,9 +76,6 @@ color:#9BFB00;
 
 .red .newF, .red .parentF{
 border:0px;
-}
-.inside, #modulInfo, #modulAct{
-background:rgba(0, 5, 20, .5);
 }
 @font-face {
 	font-family: DroidSansMono;
