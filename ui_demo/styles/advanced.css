@@ -35,12 +35,16 @@ border-right:1px solid #333;
 color:#dbe3e2; 
 }
 
-#modulInfo, #modulAct, #modulSpeak{
+#modulInfo, #modulAct{
 border-top:1px solid #ccc;
 border-right:1px solid #333;
 }
 #modulAct{
 padding-top:5px;
+}
+#modulSpeak p span{
+color:#0f2843;
+background:#a76c8d;
 }
 
 /*  PACKS   */

@@ -39,16 +39,18 @@ font-style:italic;
 border-bottom:none;
 }
 
-/*  MY MODULE   */
+/*  MY MODUL   */
 
-#myModul{
+#myModul, #modulArea, #modulSelected{
 position:absolute;
 left: 50%;  
 top: 50%; 
+}
+#myModul{
 width: 50px; 
 height: 50px; 
-margin-top: -26px; /* moiti? de la hauteur */ 
-margin-left: -26px; /* moiti? de la largeur */ 
+margin-top: -25px; /* moiti? de la hauteur */ 
+margin-left: -25px; /* moiti? de la largeur */ 
 border:1px dotted transparent;
 cursor:pointer;
 }
@@ -57,30 +59,23 @@ border:1px dotted #0340ff;
 }
 #modulArea{
 display:none;
-position:absolute;
-left: 50%;  
-top: 50%; 
 width: 500px; 
 height: 500px; 
 margin-top: -250px; /* moiti? de la hauteur */ 
 margin-left: -250px; /* moiti? de la largeur */ 
 }
 #modulSelected{
-background:none;
 display:none;
-position:absolute;
-left: 50%;
-top: 35%;
 width: 500px;
-height: 400px;
-margin-top: -60px; /* moiti? de la hauteur */ 
-margin-left: -225px; /* moiti? de la largeur */ 
+height: 500px;
+margin-top: -250px; /* moiti? de la hauteur */ 
+margin-left: -250px; /* moiti? de la largeur */ 
 }
 #modulInfo{
 position:absolute;
 left: 0;
-top: 160px;
-width:250px;
+top: 225px;
+width:273px;
 }
 #modulInfo .open{
 text-align:right;
@@ -90,8 +85,8 @@ padding-right:55px;
 position:absolute;
 right: 0px;
 top: 0;
-height:150px;
-width:290px;
+height:210px;
+width:250px;
 border:none;
 }
 #modulAct .open{
@@ -107,29 +102,18 @@ padding:0 0 0 20px;
 #modulSpeak{
 height:200px;
 position:absolute;
-left: 260px;
-top: 160px;
-width:235px;
-}
-#modulSpeak input{
-border:1px white;
-background:gray;
-width:186px;
-padding:0 0 0 2px;
-margin:0 5px 0 0 ;
-font-size:12px;
-height:23px;
+top: 230px;
+right: 0px;
+width:220px;
 }
 #modulSpeak p{
 font-size:12px;
-padding:140px 0 20px 0;
+width:200px;
+margin:4px 0;
+float:right;
 }
-#modulSpeak .sender{
-position:absolute;
-bottom:-30px;
-}
-#modulSpeak button{
-width:40px;
+#modulSpeak p span{
+padding:2px;
 }
 
 /*  MENU BOXES   */
