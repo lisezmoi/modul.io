@@ -9,7 +9,22 @@ var Ground = require('./ground').Ground;
         this.moduls = {};
         this.ground = new Ground();
         this.grid = initGrid.call(this, width, height);
+        initInterval.call(this);
     };
+    
+    function initInterval() {
+        var self = this;
+        setInterval(function(){
+            for (var i in self.moduls) {
+                var j = self.moduls[i].intervalFunctions.length;
+                if (j > 0) {
+                    while (j--) {
+                        self.moduls[i].intervalFunctions[j]();
+                    }
+                }
+            }
+        }, 1000);
+    }
     
     function initGrid(w, h) {
         var grid = new Array(h); // Cols

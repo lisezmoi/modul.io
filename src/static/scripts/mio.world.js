@@ -112,6 +112,15 @@
             this.draw();
         };
         
+        // Update modul skin
+        pub.updateModulSkin = function(mid) {
+            if (!!moduls[mid]) {
+                delete moduls[mid].skin;
+                ctx.clearRect(moduls[mid].pos.x, moduls[mid].pos.y, 50, 50);
+                drawModul.call(this, mid, moduls[mid].pos.x, moduls[mid].pos.y);
+            }
+        };
+        
         // Draw the world fragment
         pub.draw = function() {
             if (ctx) {

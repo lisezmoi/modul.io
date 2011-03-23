@@ -72,6 +72,25 @@ function smile() {
     ctx.moveTo(40,15);
     ctx.arc(35,15,5,0,Math.PI*2,true); // Right eye
     ctx.stroke();
+  //hello();
+  loule();
+}
+
+function loule(){
+//ctx.clearRect(0,0,50,50);
+ctx.fillStyle    = '#f00';
+ctx.font         = '16px monospace';
+ctx.textBaseline = 'top';
+ctx.fillText  ('PTDR', 0, 20);
+}
+function zizi(){
+//ctx.clearRect(0,0,50,50);
+ctx.fillStyle    = '#f00';
+ctx.font         = '9px monospace';
+ctx.textBaseline = 'top';
+ctx.fillText  ("modul.io", 0, 10);
+ctx.fillText  ("ma bite", 0, 30);
+
 }
 
 smile();
@@ -96,13 +115,10 @@ var actionsPanel = new ButtonsPanel("Actions", [
     }),
     new Button("addbutton", function(){
         
-    })
+    }),
+    new Button("loule", loule),
+  new Button("zizi", zizi),
 ]);
-
-// onInterval(function(){
-//     actionsPanel.add(new Button("button:"+i, function(){}));
-//     i++;
-// });
 
 // ...or at any moment, with add()
 actionsPanel.add(new Button("Cube", avatar));
