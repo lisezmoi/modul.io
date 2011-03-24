@@ -9,7 +9,7 @@ button span{margin-top:-1px;} /* Safari and Google Chrome only - fix margins */
 
 
 *{
-font-family:courier new, monospace;
+font-family:verdana, arial, monospace;
 font-size:10px;
 letter-spacing:0.04em;
 }
@@ -81,6 +81,15 @@ width:273px;
 text-align:right;
 padding-right:55px;
 }
+#modulInfo dt{
+padding:5px 0 0 0;
+font-family:verdana, arial, sans;
+font-size:10px;
+color:#555;
+}
+#modulInfo dd{
+color:#dbe3e2;
+}
 #modulAct{
 position:absolute;
 right: 0px;
@@ -94,10 +103,6 @@ position:absolute;
 bottom: 0px;
 left: 0px;
 padding:0;
-}
-#modulSelected dd{
-color:#dbe3e2;
-padding:0 0 0 20px;
 }
 #modulSpeak{
 height:200px;
@@ -175,12 +180,13 @@ left:20px;
 #menu .open.logo:hover{
 opacity:1;
 }
-#menu .inside{
+#menu>.inside{
 background:none;
 position:absolute;
 bottom:40px;
 left:20px;
 border-top:1px #324B6B solid;
+overflow:visible;
 }
 #menu li{
 padding:2px 0;
@@ -199,6 +205,21 @@ width:60px;
 height:20px;
 margin:0px 0 0 0;
 border-right:1px #324B6B solid;
+}
+.about.inside{
+font-size:10px;
+font-family:verdana, arial, sans;
+position:absolute;
+top:-60px;
+left:0px;
+letter-spacing:1px;
+}
+.about.inside a{
+font-size:10px;
+font-family:verdana, arial, sans;
+display:inline;
+border:0;
+color:yellow;
 }
 
 /*  BUTTONS   */
