@@ -22,6 +22,15 @@ function ClientDisplay(modul, world, gridSize) {
 util.inherits(ClientDisplay, EventEmitter);
 exports.ClientDisplay = ClientDisplay;
 
+// Returns a grid fragment
+function getGridFragment(callback) {
+    if (!this.world || !this.gridSize || !this.modul) {
+        callback(false);
+    } else {
+        callback(this.world.getGridFragment(this.modul.position, this.gridSize));
+    }
+}
+
 // Update grid size
 ClientDisplay.prototype.setGridSize = function(gridSize) {
     var self = this;
@@ -63,14 +72,6 @@ ClientDisplay.prototype.refresh = function(settings) {
     });
 };
 
-// Returns a grid fragment
-function getGridFragment(callback) {
-    if (!this.world || !this.gridSize || !this.modul) {
-        callback(false);
-    } else {
-        callback(this.world.getGridFragment(this.modul.position, this.gridSize));
-    }
-}
 
 /* Static */
 ClientDisplay.getDisplaysByModulId = function(mid, callback){

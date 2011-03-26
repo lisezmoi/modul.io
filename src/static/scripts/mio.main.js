@@ -39,7 +39,7 @@
         mio.socket.connect();
         
         mio.socket.on("message", function(msg){
-            mio.util.d(msg);
+            // mio.util.d(msg);
             
             if (!!msg.grounds) {
                 mio.world.updateGrounds(msg.grounds);
@@ -54,6 +54,7 @@
                 mio.ui.justGot("gridfragment");
             }
             if (!!msg.updateSkins) {
+                mio.util.d(msg.updateSkins);
                 var i = msg.updateSkins.length;
                 while (i--) {
                     mio.world.updateModulSkin(msg.updateSkins[i]);

@@ -21,7 +21,7 @@ var fs = require('fs'),
                 var userPath = path.join(__dirname, '../data', splitId[0]);
                 path.exists(userPath, function(exists) {
                     if (!exists) {
-                        fs.mkdirSync(userPath, 0666);
+                        fs.mkdirSync(userPath, 0777);
                     }
                     fs.writeFileSync(path.join(userPath, splitId[1]), modul.getCode(), encoding='utf8');
                     callback();

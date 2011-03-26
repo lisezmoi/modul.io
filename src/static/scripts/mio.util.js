@@ -30,9 +30,9 @@
                     for (var i in loadImageCallbacks[url]) {
                         loadImageCallbacks[url][i](image);
                     }
-                    delete loadImageCallbacks[url]; // Delete image from loadActions
+                    delete loadImageCallbacks[url]; // Delete URL from loadActions
                 };
-                image.src = url+"?"+Date.now();
+                image.src = url;
             }
             // Call each callback for this URL
             loadImageCallbacks[url].push(callback);
@@ -55,6 +55,11 @@
                 for (var eventName in opts.events) {
                     elt.addEventListener(eventName, opts.events[eventName], false);
                 }
+            }
+            
+            // Id
+            if (!!opts.id) {
+                elt.id = opts.id;
             }
             
             // Attributes

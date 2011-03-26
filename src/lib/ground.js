@@ -1,5 +1,4 @@
-var Script = process.binding('evals').Script,
-    Canvas = require('canvas'),
+var Canvas = require('canvas'),
     _ = require('underscore')._;
 
 // Ground Class
@@ -39,7 +38,7 @@ var Script = process.binding('evals').Script,
                 }
             });
         });
-    };
+    }
     
     Ground.prototype = {
         getGroundsPng: function(callback) {

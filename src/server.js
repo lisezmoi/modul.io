@@ -41,31 +41,41 @@ var raphModul = new Modul("raphael/default");
 raphModul.updateCode(fs.readFileSync("fixtures/raphael.modul", "utf8"));
 world.addModul(raphModul, 30, 20);
 
+// Raphael - test modul
+var raphTestModul = new Modul("raphael/test");
+raphTestModul.updateCode(fs.readFileSync("fixtures/raphael-test.modul", "utf8"));
+world.addModul(raphTestModul, 33, 22);
+
+// Caroline - modul
+var caroModul = new Modul("caroline/default");
+caroModul.updateCode(fs.readFileSync("fixtures/caroline.modul", "utf8"));
+world.addModul(caroModul, 29, 19);
+
 // Pierre - modul
 var pierModul = new Modul("pierre/default");
 pierModul.updateCode(fs.readFileSync("fixtures/pierre.modul", "utf8"));
 world.addModul(pierModul, 31, 21);
 
-// Phil - modul
-var philModul1 = new Modul("phil/1");
-philModul1.updateCode(fs.readFileSync("fixtures/phil.modul", "utf8"));
-world.addModul(philModul1, 32, 22);
-// Phil - modul
-var philModul2 = new Modul("phil/2");
-philModul2.updateCode(fs.readFileSync("fixtures/phil.modul", "utf8"));
-world.addModul(philModul2, 33, 22);
-// Phil - modul
-var philModul3 = new Modul("phil/3");
-philModul3.updateCode(fs.readFileSync("fixtures/phil.modul", "utf8"));
-world.addModul(philModul3, 34, 22);
-// Phil - modul
-var philModul4 = new Modul("phil/4");
-philModul4.updateCode(fs.readFileSync("fixtures/phil.modul", "utf8"));
-world.addModul(philModul4, 35, 22);
-// Phil - modul
-var philModul5 = new Modul("phil/5");
-philModul5.updateCode(fs.readFileSync("fixtures/phil.modul", "utf8"));
-world.addModul(philModul5, 36, 22);
+function loadTestModuls() {
+    var testCount = 200;
+    function getRandomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+    function addTestModul(num) {
+        var testModul = new Modul("default/"+num);
+        testModul.updateCode(fs.readFileSync("fixtures/default.modul", "utf8"));
+        var x = getRandomInt(1,159),
+            y = getRandomInt(1,129);
+        if (!world.addModul(testModul, x, y)) {
+            addTestModul(num);
+        }
+        return true;
+    }
+    while (testCount--) {
+        addTestModul(testCount+1);
+    }
+}
+loadTestModuls();
 
 // ## HTTP server
 
@@ -139,7 +149,47 @@ server.error(function(err, req, res, next) {
 });
 
 // ## socket.io (websockets) server
-var socket = io.listen(server);
+var socket = io.listen(server, {
+    transports: ['websocket', 'flashsocket']
+});
+
+// Update moduls
+(function initModulsPush() {
+    
+    function onChange(modul, updates) {
+        // Get clients displaying this modul
+        ClientDisplay.getDisplaysByModulId(modul.id, function(displays) {
+            var skinsToRefresh = (!!updates.skinHash)? [{"mid": modul.id, "hash": updates.skinHash}] : [];
+            
+            var i = displays.length;
+            while(i--) {
+                // Refresh displays
+                var refreshObj = {};
+                if (!!skinsToRefresh) {
+                    refreshObj.skinsToRefresh = skinsToRefresh;
+                }
+                if (!!updates.updateGrid) {
+                    refreshObj.updateGrid = updates.updateGrid;
+                }
+                if (!!updates.updatePanels) {
+                    refreshObj.updatePanels = updates.updatePanels;
+                }
+                displays[i].refresh(refreshObj);
+            }
+        });
+    }
+    
+    for (var i in world.moduls) {
+        (function(modul){
+            modul.on("change", function(updates){
+                onChange(modul, updates);
+            });
+            modul.on("panelsUpdate", function() {
+                onChange(modul, { updatesPanels: true });
+            });
+        })(world.moduls[i]);
+    }
+})();
 
 socket.on('connection', function(client){
     
@@ -202,24 +252,8 @@ socket.on('connection', function(client){
         
         // ### `action` message
         // Executes action on modul
-        if (!!msg.action && !!msg.action.panelName && !!msg.action.actionName && !!client.display) {
-            
-            modul.execAction(msg.action.panelName, msg.action.actionName, function(updates){
-                
-                // Get clients displaying this modul
-                ClientDisplay.getDisplaysByModulId(modul.id, function(displays) {
-                    var skinsToRefresh = (updates.updateSkin)? [modul.id] : [];
-                    var i = displays.length;
-                    while(i--) {
-                        // Refresh displays
-                        displays[i].refresh({
-                            "skinsToRefresh": skinsToRefresh,
-                            "updateGrid": updates.updateGrid,
-                            "updatePanels": updates.updatePanels
-                        });
-                    }
-                });
-            });
+        if (!!msg.action && !!msg.action.panelName && !!msg.action.actionName && !!msg.action.actionParams && !!client.display) {
+            modul.execAction(msg.action.panelName, msg.action.actionName, msg.action.actionParams);
         }
         
         // ### `code` message

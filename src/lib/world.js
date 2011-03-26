@@ -16,12 +16,7 @@ var Ground = require('./ground').Ground;
         var self = this;
         setInterval(function(){
             for (var i in self.moduls) {
-                var j = self.moduls[i].intervalFunctions.length;
-                if (j > 0) {
-                    while (j--) {
-                        self.moduls[i].intervalFunctions[j]();
-                    }
-                }
+                self.moduls[i].execIntervals();
             }
         }, 1000);
     }
@@ -54,6 +49,9 @@ var Ground = require('./ground').Ground;
         addModul: function(modul, x, y) {
             if (isOut.call(this, {x:x, y:y})) {
                 return false; // Out!
+            }
+            if (isOccupied.call(this, {x:x, y:y})) {
+                return false; // Occupied
             }
             this.grid[y][x].modul = modul.id;
             this.moduls[modul.id] = modul;

@@ -9,12 +9,21 @@
             panel.contentElt.innerHTML = "";
             for (var i in buttons) {
                 (function(i) {
-                    var button = mio.ui.makeButton(buttons[i], function() {
+                    var button = mio.ui.makeButton(buttons[i][0], function() {
+                        
+                        var j = 0,
+                            values = [];
+                        while (j < buttons[i][1]) {
+                            values[j] = window.prompt("Enter param #"+(j+1)+":");
+                            j++;
+                        }
                         mio.util.d(buttons[i]);
+                        
                         mio.socket.send({
                             "action": {
                                 "panelName": panel.label,
-                                "actionName": buttons[i]
+                                "actionName": buttons[i][0],
+                                "actionParams": values
                             }
                         });
                     });
