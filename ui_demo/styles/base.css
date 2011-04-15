@@ -183,7 +183,7 @@ opacity:1;
 #menu>.inside{
 background:none;
 position:absolute;
-bottom:40px;
+bottom:50px;
 left:20px;
 border-top:1px #324B6B solid;
 overflow:visible;
@@ -200,12 +200,7 @@ border-bottom:0px;
 border-top:0px;
 position:static;
 }
-#menu .arrow{
-width:60px;
-height:20px;
-margin:0px 0 0 0;
-border-right:1px #324B6B solid;
-}
+
 .about.inside{
 font-size:10px;
 font-family:verdana, arial, sans;
@@ -219,7 +214,7 @@ font-size:10px;
 font-family:verdana, arial, sans;
 display:inline;
 border:0;
-color:yellow;
+color:#42FF21;
 }
 
 /*  BUTTONS   */
@@ -303,6 +298,9 @@ overflow:hidden;
 cursor:pointer;
 padding:5px 0;
 }
+.close{
+cursor:pointer;
+}
 a{
 color:#dbe3e2;
 border-bottom:1px dashed #dbe3e2;
@@ -319,16 +317,31 @@ background: #000;
 }
 @font-face {
 	font-family: dejavubold;
-	src: url('../font/DejaVuSans-Bold.ttf');
+	src: url('font/DejaVuSans-Bold.ttf');
+}
+
+
+@font-face {
+    font-family: 'modulicons';
+    src: url('font/modulicons/modulicons-webfont.eot');
+    src: url('font/modulicons/modulicons-webfont.eot?#iefix') format('eot'),
+         url('font/modulicons/modulicons-webfont.woff') format('woff'),
+         url('font/modulicons/modulicons-webfont.ttf') format('truetype'),
+         url('font/modulicons/modulicons-webfont.svg#webfontB253rSyV') format('svg');
+    font-weight: normal;
+    font-style: normal;
+
 }
 
 @font-face {
-	font-family: modulicons;
-	src: url('../font/modulicons.ttf');
-}
+    font-family: 'modulicons2218';
+    src: url('font/modulicons/modulicons2218-webfont.eot');
+    src: url('font/modulicons/modulicons2218-webfont.eot?#iefix') format('eot'),
+         url('font/modulicons/modulicons2218-webfont.woff') format('woff'),
+         url('font/modulicons/modulicons2218-webfont.ttf') format('truetype'),
+         url('font/modulicons/modulicons2218-webfont.svg#webfontEezNUb44') format('svg');
+    font-weight: normal;
+    font-style: normal;
 
-@font-face {
-	font-family: modulicons2218;
-	src: url('../font/modulicons2218.ttf');
 }
 
