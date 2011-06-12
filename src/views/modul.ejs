@@ -5,23 +5,26 @@
 <html>
 <head>
 	<title>modul.io</title>
+	<link href='http://fonts.googleapis.com/css?family=Droid+Sans+Mono' rel='stylesheet' type='text/css'>
 	<link rel="stylesheet" href="<%- site_url %>styles/mio.css" />
 </head>
 <body>
 	<h1>modul.io / <%- user %> / <%- modul %></h1>
 	<div id="world-container"><canvas id="world" width="800" height="600"></canvas></div>
-	<p id="actions"></p>
 	<script src="<%- site_url %>socket.io/socket.io.js"></script>
+	<script src="<%- site_url %>codemirror/js/codemirror.js"></script>
+	
 	<script src="<%- site_url %>scripts/mio.util.js"></script>
 	<script src="<%- site_url %>scripts/mio.ws.js"></script>
 	<script src="<%- site_url %>scripts/mio.ui.js"></script>
 	<script src="<%- site_url %>scripts/mio.actions.js"></script>
+	<script src="<%- site_url %>scripts/mio.editor.js"></script>
 	<script src="<%- site_url %>scripts/mio.modul.js"></script>
 	<script src="<%- site_url %>scripts/mio.world.js"></script>
 	<script src="<%- site_url %>scripts/mio.main.js"></script>
 	<script src="<%- site_url %>scripts/mio.debug.js"></script>
 	<script>
-		//mio.debug.init();
+		//var MIO_DEBUG = true;
 		mio.main({
 			domain: "<%- domain %>",
 			url: "<%- site_url %>",

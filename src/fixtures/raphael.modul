@@ -1,73 +1,255 @@
-// modul.io DEFAULT SKIN
 var ctx = modul.getCanvas();
+ctx.globalAlpha=1;
 
-ctx.beginPath();
-ctx.fillStyle="#DFE2EE";
-//eyes
-ctx.fillRect(12,3, 4, 4);
-ctx.fillRect(35,3, 4, 4);
-//left antenna
-ctx.fillRect(16,7, 1, 1);
-ctx.fillRect(17,8, 1, 1);
-ctx.fillRect(18,9, 1, 1);
-ctx.fillRect(17,10, 1, 1);
-ctx.fillRect(16,11, 1, 1);
-ctx.fillRect(15,12, 1, 1);
-ctx.fillRect(14,13, 1, 1);
-ctx.fillRect(15,14, 1, 1);
-ctx.fillRect(16,15, 1, 1);
-ctx.fillRect(17,16, 1, 1);
-ctx.fillRect(18,17, 1, 1);
-//right antenna
-ctx.fillRect(34,7, 1, 1);
-ctx.fillRect(33,8, 1, 1);
-ctx.fillRect(32,9, 1, 1);
-ctx.fillRect(31,10, 1, 1);
-ctx.fillRect(32,11, 1, 1);
-ctx.fillRect(33,12, 1, 1);
-ctx.fillRect(34,13, 1, 1);
-ctx.fillRect(33,14, 1, 1);
-ctx.fillRect(32,15, 1, 1);
-ctx.fillRect(31,16, 1, 1);
-ctx.fillRect(30,17, 1, 1);
-//body
-ctx.fillRect(11,18, 29, 4);
-ctx.fillRect(11,26, 29, 4);
-ctx.fillRect(11,34, 29, 4);
-//trail
-ctx.fillRect(16,47, 1, 1);
-ctx.fillRect(17,46, 1, 1);
-ctx.fillRect(18,45, 1, 1);
-ctx.fillRect(19,44, 1, 1);
-ctx.fillRect(20,43, 1, 1);
-ctx.fillRect(21,42, 1, 1);
-ctx.fillRect(22,41, 1, 1);
-ctx.fillRect(23,40, 1, 1);
-ctx.fillRect(24,39, 1, 1);
-ctx.fillRect(25,38, 1, 1);
-ctx.fillRect(26,39, 1, 1);
-ctx.fillRect(27,40, 1, 1);
-ctx.fillRect(28,41, 1, 1);
-ctx.fillRect(29,42, 1, 1);
-ctx.fillRect(30,43, 1, 1);
-ctx.fillRect(31,44, 1, 1);
-ctx.fillRect(32,45, 1, 1);
-ctx.fillRect(33,46, 1, 1);
-ctx.fillRect(34,47, 1, 1);
-//bZzZ
-
-
-modul.actions = {
-    right: function() {
-        modul.move("right");
-    },
-    left: function() {
-        modul.move("left");
-    },
-    top: function() {
-        modul.move("top");
-    },
-    bottom: function() {
-        modul.move("bottom");
+function skin_Default() {
+  ctx.clearRect(0,0,50,50);
+  // modul.io DEFAULT SKIN
+  ctx.beginPath();
+  ctx.fillStyle="#DFE2EE";
+  //eyes
+  ctx.fillRect(12,3, 4, 4);
+  ctx.fillRect(35,3, 4, 4);
+  //left antenna
+  ctx.fillRect(16,7, 1, 1);
+  ctx.fillRect(17,8, 1, 1);
+  ctx.fillRect(18,9, 1, 1);
+  ctx.fillRect(17,10, 1, 1);
+  ctx.fillRect(16,11, 1, 1);
+  ctx.fillRect(15,12, 1, 1);
+  ctx.fillRect(14,13, 1, 1);
+  ctx.fillRect(15,14, 1, 1);
+  ctx.fillRect(16,15, 1, 1);
+  ctx.fillRect(17,16, 1, 1);
+  ctx.fillRect(18,17, 1, 1);
+  //right antenna
+  ctx.fillRect(34,7, 1, 1);
+  ctx.fillRect(33,8, 1, 1);
+  ctx.fillRect(32,9, 1, 1);
+  ctx.fillRect(31,10, 1, 1);
+  ctx.fillRect(32,11, 1, 1);
+  ctx.fillRect(33,12, 1, 1);
+  ctx.fillRect(34,13, 1, 1);
+  ctx.fillRect(33,14, 1, 1);
+  ctx.fillRect(32,15, 1, 1);
+  ctx.fillRect(31,16, 1, 1);
+  ctx.fillRect(30,17, 1, 1);
+  //body
+  ctx.fillRect(11,18, 29, 4);
+  ctx.fillRect(11,26, 29, 4);
+  ctx.fillRect(11,34, 29, 4);
+  //trail
+  ctx.fillRect(16,47, 1, 1);
+  ctx.fillRect(17,46, 1, 1);
+  ctx.fillRect(18,45, 1, 1);
+  ctx.fillRect(19,44, 1, 1);
+  ctx.fillRect(20,43, 1, 1);
+  ctx.fillRect(21,42, 1, 1);
+  ctx.fillRect(22,41, 1, 1);
+  ctx.fillRect(23,40, 1, 1);
+  ctx.fillRect(24,39, 1, 1);
+  ctx.fillRect(25,38, 1, 1);
+  ctx.fillRect(26,39, 1, 1);
+  ctx.fillRect(27,40, 1, 1);
+  ctx.fillRect(28,41, 1, 1);
+  ctx.fillRect(29,42, 1, 1);
+  ctx.fillRect(30,43, 1, 1);
+  ctx.fillRect(31,44, 1, 1);
+  ctx.fillRect(32,45, 1, 1);
+  ctx.fillRect(33,46, 1, 1);
+  ctx.fillRect(34,47, 1, 1);
+  //bZzZ
+}
+function skin_Blank() {
+  ctx.clearRect(0,0,50,50);
+}
+function skin_Blue() {
+  ctx.clearRect(0,0,50,50);
+  var gradient1 = ctx.createRadialGradient( 25, 25, 25, 25,25,0);
+  gradient1.addColorStop(0, 'rgba(0,0,255,0)'); //transparent black
+  gradient1.addColorStop(1,'#0000ff');
+  ctx.fillStyle = gradient1;
+  ctx.beginPath();
+  ctx.arc(25,25, 25, 0, Math.PI*2, false);
+  ctx.closePath();
+  ctx.fill();
+}
+function skin_Glitch() {
+ var x = 50;  
+  while (x--){
+    var y = 50;
+    while (y--){
+      ctx.fillStyle = "rgba(" + Math.floor( Math.random() * 255) + "," + Math.floor( Math.random() * 255) + "," + Math.floor( Math.random() * 255) + ",1)";  
+      ctx.fillRect(x, y, 1, 1);
     }
-};
+  }
+}
+function skin_Kirby() {
+  ctx.clearRect(0,0,50,50);
+  //body
+  ctx.fillStyle="#fba7c3";
+  ctx.fillRect(6,6,35,38);
+  ctx.fillRect(41,15,3,26);
+  ctx.fillRect(44,25,3,13);
+  ctx.fillRect(12,3,13,3);
+  ctx.fillRect(31,44,3,3);
+  //feets
+  ctx.fillStyle="#f65797";
+  ctx.fillRect(3,25,3,15);
+  ctx.fillRect(6,34,3,10);
+  ctx.fillRect(19,41,9,6);
+  ctx.fillRect(22,38,3,3);
+  ctx.fillRect(25,35,6,9);
+  //border
+  ctx.fillStyle="black";
+  ctx.fillRect(12,0,13,3);
+  ctx.fillRect(9,3,3,3);
+  ctx.fillRect(25,3,10,3);
+  ctx.fillRect(6,6,3,7);
+  ctx.fillRect(34,6,7,3);
+  ctx.fillRect(41,9,3,6);
+  ctx.fillRect(3,13,3,11);
+  ctx.fillRect(44,15,3,10);
+  ctx.fillRect(38,22,7,3);
+  ctx.fillRect(47,25,4,12);
+  ctx.fillRect(0,23,3,17);
+  ctx.fillRect(6,25,3,9);
+  ctx.fillRect(3,40,3,4);
+  ctx.fillRect(6,44,10,3);
+  ctx.fillRect(9,34,3,10);
+  ctx.fillRect(3,22,3,3);
+  ctx.fillRect(16,41,3,9);
+  ctx.fillRect(19,3,3,3);
+  ctx.fillRect(19,38,3,3);
+  ctx.fillRect(22,35,3,3);
+  ctx.fillRect(25,32,6,3);
+  ctx.fillRect(31,35,3,9);
+  ctx.fillRect(16,47,18,3);
+  ctx.fillRect(28,44,3,3);
+  ctx.fillRect(34,44,7,3);
+  ctx.fillRect(41,41,3,3);
+  ctx.fillRect(44,38,3,3);
+  ctx.fillRect(47,25,3,13);
+  ctx.fillRect(19,13,3,3);
+  ctx.fillRect(22,10,3,3);
+  ctx.fillRect(25,16,3,3);
+  ctx.fillRect(28,13,3,3);
+  ctx.fillRect(16,19,3,3);
+  //pinkdots
+  ctx.fillStyle="#f65797";
+  ctx.fillRect(13,13,3,3);
+  ctx.fillRect(16,7,3,3);
+  ctx.fillRect(29,21,3,3);
+  ctx.fillRect(35,25,3,3);
+  //cleardots
+  ctx.fillStyle="#fdc8e9";
+  ctx.fillRect(27,8,3,3);
+  ctx.fillRect(19,8,3,3);
+  ctx.fillRect(40,18,3,3);
+  ctx.fillRect(39,26,3,3);
+}
+function skin_Mario() {
+ ctx.clearRect(0,0,50,50);
+  ctx.beginPath();
+  ctx.fillStyle="#FFD1F8";
+  ctx.fillRect(38,3, 9, 6);
+  ctx.fillRect(10,9,31, 10);
+  ctx.fillRect(16,19,22, 6);
+  ctx.fillRect(3,31,10, 7);
+  ctx.fillStyle="white";
+  ctx.fillRect(25,31,13, 4);
+  ctx.fillStyle="black";
+  ctx.fillRect(16,0, 15, 3);
+  ctx.fillRect(38,0, 9, 3);
+  ctx.fillRect(31,3, 7, 3);
+  ctx.fillRect(47,3, 3, 6);
+  ctx.fillRect(13,3, 3, 3);
+  ctx.fillRect(10,6, 3, 6);
+  ctx.fillRect(13,9, 6, 3);
+  ctx.fillRect(25,9, 3, 6);
+  ctx.fillRect(31,9, 10, 3);
+  ctx.fillRect(44,9, 3, 10);
+  ctx.fillRect(38,6, 3, 3);
+  ctx.fillRect(7,12, 3, 7);
+  ctx.fillRect(16,12, 6, 7);
+  ctx.fillRect(28,15, 3, 4);
+  ctx.fillRect(10,19, 6, 3);
+  ctx.fillRect(25,19, 19, 3);
+  ctx.fillRect(13,22, 6, 3);
+  ctx.fillRect(41,22, 3, 3);
+  ctx.fillRect(7,25, 3, 3);
+  ctx.fillRect(19,25, 3, 3);
+  ctx.fillRect(32,25, 3, 3);
+  ctx.fillRect(38,25, 3, 3);
+  ctx.fillRect(3,28, 10, 3);
+  ctx.fillRect(22,28, 3, 7);
+  ctx.fillRect(35,28, 12, 3);
+  ctx.fillRect(0,31, 3, 6);
+  ctx.fillRect(13,31, 3, 6);
+  ctx.fillRect(28,31, 7, 3);
+  ctx.fillRect(38,31, 3, 3);
+  ctx.fillRect(47,31, 4, 6);
+  ctx.fillRect(3,37, 3, 3);
+  ctx.fillRect(19,34, 19, 10);
+  ctx.fillRect(44,37, 3, 7);
+  ctx.fillRect(10,37, 3, 3);
+  ctx.fillRect(13,37, 9, 12);
+  ctx.fillRect(10,44, 18, 3);
+  ctx.fillRect(38,44, 6, 3);
+  ctx.fillRect(0,41, 3, 6);
+  ctx.fillRect(3,47, 7, 3);
+  ctx.fillStyle="red";
+  ctx.fillRect(16,3, 15, 3);
+  ctx.fillRect(13,6, 25, 3);
+  ctx.fillRect(41,9, 3, 10);
+  ctx.fillRect(10,25, 9,3);
+  ctx.fillRect(22,25, 10, 3);
+  ctx.fillRect(35,25, 3, 3);
+  ctx.fillRect(38,22, 3, 3);
+  ctx.fillRect(13,28, 9, 3);
+  ctx.fillRect(25,28, 10, 3);
+  ctx.fillRect(16,31, 6, 3);
+  ctx.fillRect(16,34, 3, 3);
+  ctx.fillRect(41,31, 6, 6);
+  ctx.fillRect(38,34, 6, 10);
+  ctx.fillRect(3,40, 7, 7);
+  ctx.fillRect(6,37, 4, 4);
+  ctx.fillRect(9,40, 4, 4);
+}
+// You can fill your panel on creation...
+var actionsPanel = new ButtonsPanel("Actions", [
+    new Button("Top", function(){
+        modul.move("top");
+        skin_Default();
+    }),
+    new Button("Right", function(){
+        modul.move("right");
+        skin_Mario();
+    }),
+    new Button("Bottom", function(){
+        modul.move("bottom");
+        skin_Default();
+    }),
+    new Button("Left", function(){
+        modul.move("left");
+        skin_Kirby();
+    }),
+    new Button("Say", function(msg){
+        // say
+    })
+]);
+// You can fill your panel on creation...
+var spriteskin_anel = new ButtonsPanel("sprites", [
+    new Button("default", skin_Default),
+    new Button("blank", skin_Blank),
+    new Button("kirby", skin_Kirby),
+    new Button("mario", skin_Mario),
+    new Button("blue", skin_Blue),
+    new Button("glitch", skin_Glitch)
+]);
+
+//Automated action
+//onInterval(function(){
+//       modul.move("right");
+//});
+
+skin_Default();

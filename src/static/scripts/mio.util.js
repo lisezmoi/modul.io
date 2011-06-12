@@ -5,10 +5,6 @@
         var pub = {},
             loadImageCallbacks = {};
         
-        pub.gid = function(eId) {
-            return document.getElementById(eId);
-        };
-        
         window.d = pub.d = function() {
             if (typeof console !== "undefined") {
                 try {
@@ -21,6 +17,10 @@
             }
         };
         
+        pub.gid = function(eId) {
+            return document.getElementById(eId);
+        };
+        
         pub.loadImage = function(url, callback) {
             if (!loadImageCallbacks[url]) {
                 loadImageCallbacks[url] = [];
@@ -30,12 +30,46 @@
                     for (var i in loadImageCallbacks[url]) {
                         loadImageCallbacks[url][i](image);
                     }
-                    delete loadImageCallbacks[url]; // Delete image from loadActions
+                    delete loadImageCallbacks[url]; // Delete URL from loadActions
                 };
-                image.src = url+"?"+Date.now();
+                image.src = url;
             }
             // Call each callback for this URL
             loadImageCallbacks[url].push(callback);
+        };
+        
+        pub.createElt = function(tagName, opts) {
+            var opts = opts || {},
+                elt = document.createElement(tagName);
+            
+            // InnerHTML / textContent
+            if (!!opts.htmlContent) {
+                elt.innerHTML = opts.htmlContent;
+                
+            } else if (!!opts.textContent) {
+                elt.textContent = opts.textContent;
+            }
+            
+            // Events
+            if (!!opts.events) {
+                for (var eventName in opts.events) {
+                    elt.addEventListener(eventName, opts.events[eventName], false);
+                }
+            }
+            
+            // Id
+            if (!!opts.id) {
+                elt.id = opts.id;
+            }
+            
+            // Attributes
+            if (!!opts.attributes) {
+                for (var attr in opts.attributes) {
+                    elt.setAttribute(attr, opts.attributes[attr]);
+                }
+            }
+            
+            return elt;
         };
         
         pub.getSprite = function(img, callback) {

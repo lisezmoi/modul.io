@@ -20,7 +20,10 @@
         };
         
         // Draw a single modul
-        var drawModul = function(mid, x, y, zone) {
+        var drawModul = function(skin, x, y, zone) {
+            var mid = skin.mid,
+                hash = Date.now();
+                
             moduls[mid] = moduls[mid] || {};
             moduls[mid].pos = {x: x, y: y};
             
@@ -29,11 +32,12 @@
             }
             
             function draw() {
+                ctx.clearRect(moduls[mid].pos.x, moduls[mid].pos.y, 50, 50);
                 ctx.drawImage(moduls[mid].skin, moduls[mid].pos.x, moduls[mid].pos.y);
-            };
+            }
             
             if (!moduls[mid].skin) {
-                mio.util.loadImage(mio.conf.url + mid + "/skin", function(image) {
+                mio.util.loadImage(mio.conf.url + mid + "/skin?"+hash, function(image) {
                     moduls[mid].skin = image;
                     draw();
                 });
@@ -51,7 +55,7 @@
                     // ctx.fillStyle = "#ffffff";
                     // ctx.font = 'bold 9px Arial';
                     // ctx.fillText(grid[y/50][x/50].x+","+grid[y/50][x/50].y, x, y+10);
-                };
+                }
                 // Grounds sprite loaded?
                 if (!!groundSprite) {
                     draw(groundSprite);
@@ -112,6 +116,14 @@
             this.draw();
         };
         
+        // Update modul skin
+        pub.updateModulSkin = function(skin) {
+            if (!!moduls[skin.mid]) {
+                delete moduls[skin.mid].skin;
+                drawModul.call(this, skin, moduls[skin.mid].pos.x, moduls[skin.mid].pos.y);
+            }
+        };
+        
         // Draw the world fragment
         pub.draw = function() {
             if (ctx) {
@@ -119,7 +131,7 @@
                 eachBox.call(this, function(box, x, y) {
                     drawGround.call(this, box.ground, x*50, y*50);
                     if (typeof box.modul === "string") {
-                        drawModul.call(this, box.modul, x*50, y*50);
+                        drawModul.call(this, {"mid": box.modul}, x*50, y*50);
                     }
                 });
             }

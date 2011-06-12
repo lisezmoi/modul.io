@@ -9,7 +9,17 @@ var Ground = require('./ground').Ground;
         this.moduls = {};
         this.ground = new Ground();
         this.grid = initGrid.call(this, width, height);
+        initInterval.call(this);
     };
+    
+    function initInterval() {
+        var self = this;
+        setInterval(function(){
+            for (var i in self.moduls) {
+                self.moduls[i].execIntervals();
+            }
+        }, 1000);
+    }
     
     function initGrid(w, h) {
         var grid = new Array(h); // Cols
@@ -39,6 +49,9 @@ var Ground = require('./ground').Ground;
         addModul: function(modul, x, y) {
             if (isOut.call(this, {x:x, y:y})) {
                 return false; // Out!
+            }
+            if (isOccupied.call(this, {x:x, y:y})) {
+                return false; // Occupied
             }
             this.grid[y][x].modul = modul.id;
             this.moduls[modul.id] = modul;

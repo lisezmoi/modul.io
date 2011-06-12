@@ -2,21 +2,54 @@
     var mio = window.mio = window.mio || {};
     
     mio.actions = (function(){
-        var pub = {};
+        var pub = {},
+            curPanels = {};
         
-        pub.update = function(names) {
-            var actions = {};
-            for (var i in names) {
-                actions[names[i]] = function(name) {
-                    mio.util.d(name);
-                    mio.socket.send({
-                        action: name
+        function updatePanel(panel, buttons, callback) {
+            panel.contentElt.innerHTML = "";
+            for (var i in buttons) {
+                (function(i) {
+                    var button = mio.ui.makeButton(buttons[i][0], function() {
+                        
+                        var j = 0,
+                            values = [];
+                        while (j < buttons[i][1]) {
+                            values[j] = window.prompt("Enter param #"+(j+1)+":");
+                            j++;
+                        }
+                        mio.util.d(buttons[i]);
+                        
+                        mio.socket.send({
+                            "action": {
+                                "panelName": panel.label,
+                                "actionName": buttons[i][0],
+                                "actionParams": values
+                            }
+                        });
                     });
-                };
+                    panel.contentElt.appendChild(button);
+                })(i);
             }
-            mio.ui.updateActionsPanel(actions, function() {
-                mio.util.d("Actions updated.");
-            });
+            if (!!callback) {
+                callback();
+            }
+        }
+        
+        pub.updatePanels = function(panels) {
+            pub.removePanels();
+            for (var i in panels) {
+                curPanels[i] = mio.ui.panels.add(i, i, "br");
+                updatePanel(curPanels[i], panels[i], function() {
+                    mio.util.d("Actions updated.");
+                });
+            }
+        };
+        
+        pub.removePanels = function() {
+            for (var i in curPanels) {
+                curPanels[i].remove();
+                delete curPanels[i];
+            }
         };
         
         return pub;
