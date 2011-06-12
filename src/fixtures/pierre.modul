@@ -291,10 +291,9 @@ var actionsPanel = new ButtonsPanel("Actions", [
     new Button("______________________Top______________________", function(){
         modul.move("top");
     }),
-  
+    
     new Button("____Left____", function(){
         modul.move("left");
-      modul.move("left");
     }),
     new Button("____Bottom____", function(){
         modul.move("bottom");

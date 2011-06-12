@@ -24,6 +24,10 @@
         // Editor
         var editorPanel = mio.ui.panels.add("codepad", "Code Pad", "tr", {overlap: true});
         
+        // Console
+        var consolePanel = mio.ui.panels.add("console", "Console", "tl", {overlap: true});
+        mio.console.init(consolePanel, "Console ready.");
+        
         // World init
         mio.world.init();
         
@@ -71,6 +75,10 @@
                     mio.editor.init(editorPanel, msg.code);
                 }
                 mio.ui.justGot("code");
+            }
+            
+            if (!!msg.log) {
+                mio.console.log(msg.log);
             }
         });
         

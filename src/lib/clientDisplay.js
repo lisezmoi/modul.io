@@ -7,11 +7,12 @@ var EventEmitter = require('events').EventEmitter,
     clientDisplayList = [];
 
 // ## ClientDisplay Constructor
-function ClientDisplay(modul, world, gridSize) {
+function ClientDisplay(client, modul, world, gridSize) {
     // ClientDisplay is an instance of EventEmitter
     EventEmitter.call(this);
     
     this.displayedModuls = [];
+    this.client = client;
     this.modul = modul;
     this.world = world;
     
@@ -39,6 +40,13 @@ ClientDisplay.prototype.setGridSize = function(gridSize) {
         if (gridFragment !== false) {
             self.emit("gridUpdate", gridFragment);
         }
+    });
+};
+
+// Log something on the console
+ClientDisplay.prototype.consoleLog = function(msg) {
+    this.client.send({
+        "log": msg
     });
 };
 
