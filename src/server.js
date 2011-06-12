@@ -38,12 +38,12 @@ var world = new World(160, 120);
 
 // Raphael - modul
 var raphModul = new Modul("raphael/default");
-raphModul.updateCode(fs.readFileSync("fixtures/raphael.modul", "utf8"));
+raphModul.updateCode(fs.readFileSync("data/raphael/default", "utf8"));
 world.addModul(raphModul, 30, 20);
 
 // Raphael - test modul
 var raphTestModul = new Modul("raphael/test");
-raphTestModul.updateCode(fs.readFileSync("fixtures/raphael-test.modul", "utf8"));
+raphTestModul.updateCode(fs.readFileSync("data/raphael/test", "utf8"));
 world.addModul(raphTestModul, 33, 22);
 
 // Caroline - modul
@@ -57,7 +57,7 @@ pierModul.updateCode(fs.readFileSync("fixtures/pierre.modul", "utf8"));
 world.addModul(pierModul, 31, 21);
 
 function loadTestModuls() {
-    var testCount = 200;
+    var testCount = 100;
     function getRandomInt(min, max) {
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
@@ -99,6 +99,10 @@ server.get('/get/ground', function(req, res, next) {
 
 // Modul page
 server.get('/:user/:modul', function(req, res, next) {
+    /* Modul exists? */
+    if ( "undefined" === typeof world.getModul(req.params.user + '/' + req.params.modul) ) {
+        return next();
+    }
     res.render('modul.ejs', {
         layout: false,
         locals: {
@@ -157,6 +161,7 @@ var socket = io.listen(server, {
 (function initModulsPush() {
     
     function onChange(modul, updates) {
+        if (!modul || !modul.id) console.log(modul, modul.id);
         // Get clients displaying this modul
         ClientDisplay.getDisplaysByModulId(modul.id, function(displays) {
             var skinsToRefresh = (!!updates.skinHash)? [{"mid": modul.id, "hash": updates.skinHash}] : [];
@@ -179,22 +184,27 @@ var socket = io.listen(server, {
         });
     }
     
-    for (var i in world.moduls) {
-        (function(modul){
-            modul.on("change", function(updates){
-                onChange(modul, updates);
-            });
-            modul.on("panelsUpdate", function() {
-                onChange(modul, { updatesPanels: true });
-            });
-        })(world.moduls[i]);
-    }
+    _.each(world.moduls, function(modul){
+        modul.on("change", function(updates){
+            onChange(modul, updates);
+        });
+        modul.on("panelsUpdate", function(modul){
+            onChange(modul, { updatesPanels: true });
+        });
+    });
 })();
 
 socket.on('connection', function(client){
     
     // Modul reference
-    var modul;
+    var modul,
+        display;
+    
+    function modulError(err) {
+        if (display) {
+            display.consoleLog(err.message + "\n" + err.stack);
+        }
+    }
     
     // Send grounds to the client
     client.send({
@@ -211,9 +221,12 @@ socket.on('connection', function(client){
             
             if (!!modul && ClientDisplay.isValidGridSize(msg.gridSize)) {
                 
-                // client.display will manage all components displayed on the client: grid, modul skin, etc.
-                client.display = new ClientDisplay(modul, world, msg.gridSize);
+                // the display will manage all components displayed on the client: grid, modul skin, etc.
+                display = new ClientDisplay(client, modul, world, msg.gridSize);
                 client.modulId = msg.modulId;
+                
+                // Log errors
+                modul.on("error", modulError);
                 
                 // Send basic
                 client.send({
@@ -222,21 +235,21 @@ socket.on('connection', function(client){
                 });
                 
                 // On gridUpdate event, send a new grid fragment
-                client.display.on("gridUpdate", function(gridFragment) {
+                display.on("gridUpdate", function(gridFragment) {
                     client.send({
                         "gridFragment": gridFragment
                     });
                 });
                 
                 // On panelsUpdate event, send all panels
-                client.display.on("panelsUpdate", function(panels) {
+                display.on("panelsUpdate", function(panels) {
                     client.send({
                         "panels": panels
                     });
                 });
                 
                 // On gridUpdate event, send a new grid fragment
-                client.display.on("skinsUpdate", function(moduls) {
+                display.on("skinsUpdate", function(moduls) {
                     client.send({
                         "updateSkins": moduls
                     });
@@ -245,20 +258,20 @@ socket.on('connection', function(client){
         }
         
         // ### `gridSize` message
-        // Send the new grid size to client.display
-        if (!!msg.gridSize && !!client.display) {
-            client.display.setGridSize(msg.gridSize);
+        // Send the new grid size to display
+        if (!!msg.gridSize && !!display) {
+            display.setGridSize(msg.gridSize);
         }
         
         // ### `action` message
         // Executes action on modul
-        if (!!msg.action && !!msg.action.panelName && !!msg.action.actionName && !!msg.action.actionParams && !!client.display) {
+        if (!!msg.action && !!msg.action.panelName && !!msg.action.actionName && !!msg.action.actionParams && !!display) {
             modul.execAction(msg.action.panelName, msg.action.actionName, msg.action.actionParams);
         }
         
         // ### `code` message
         // Update modul's code
-        if (!!msg.code && !!client.display) {
+        if (!!msg.code && !!display) {
             modul.updateCode(msg.code, function() {
                 dManager.saveModul(modul, function(){
                     client.send({
@@ -270,8 +283,9 @@ socket.on('connection', function(client){
     });
     
     client.on('disconnect', function(){
-        ClientDisplay.remove(client.display);
-        delete client.display;
+        // modul.removeListener("on", modulError);
+        ClientDisplay.remove(display);
+        display = null;
     });
 });
 

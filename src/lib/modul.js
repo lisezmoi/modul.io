@@ -2,7 +2,8 @@ var EventEmitter = require('events').EventEmitter,
     util = require('util'),
     Script = require('vm').Script,
     Canvas = require('canvas'),
-    crypto = require('crypto');
+    crypto = require('crypto'),
+    _ = require('underscore')._;
 
 // Modul Class
 (function() {
@@ -30,7 +31,11 @@ var EventEmitter = require('events').EventEmitter,
         try {
             Script.runInNewContext(this.code, this.env);
         } catch (e) {
-            console.log("MODUL ERROR: ", e);
+            this.emit("error", e);
+            console.log("============");
+            console.log("MODUL ERROR: ", e.message);
+            console.log("ERROR STACK: ", e.stack);
+            //throw e;
         }
     }
     
