@@ -3,6 +3,7 @@
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 		<title>: modul.io : ui.demo </title>
+		<link rel="icon" type="image/x-icon" href="favicon.ico" />
 		<link id="bespin_base" href="scripts/bespin/"/>
 		<link rel="stylesheet" href="styles/base.css" type="text/css" media="all" />
 		<link rel="stylesheet" href="styles/default.css" id="switch" type="text/css" media="all" />
@@ -39,6 +40,12 @@
 					<dt>Url</dt>
 					<dd>http://modul.io/raphael/default</dd>
 				</div>
+				<div id="modulSpeak">
+						 <i>7</i> 
+						 <p><span>Love</span></p>
+						 <p><span>One</span></p>
+						 <p><span>Tu vas au contest de madison ?</span></p>
+				</div>
 			</div>
 			<div id="myModul">
 				<img src="modul3.gif"/>
@@ -68,6 +75,9 @@
 					<button><b>R</b> Repeat</button>
 					<button><b>R</b> Play</button>
 					<button><b>R</b> Fight</button>
+					<div class="close">
+						<b>X</b>
+					</div>
 				</div>
 			</div>
 			<div id="actions" class="red bottom box closed">
@@ -96,6 +106,9 @@
 					<button>Repeat</button>
 					<button>Play</button>
 					<button>Fight</button>
+					<div class="close">
+						<b>X</b>
+					</div>
 				</div>
 			</div>
 			<div id="energy" class="green bottom box closed">
@@ -109,14 +122,22 @@
 					<dd>Buy energy</dd>
 					<dt>Recent activity</dt>
 					<dd><img src=""></dd>
-				</dl>				
+					<div class="close">
+						<b>X</b>
+					</div>
+				</dl>
 			</div>
 			<div id="menu">
 				<div class="open logo">
-					modul.io
+					<img src="logo.png">
 				</div>
 				<ul class="inside">
-					<li>About</li>
+					<li class="open">About</li>
+						<div class="about inside">
+						modul.io is an ongoing project by <a href="http://pierrebertet.net/">Pierre Bertet</a> and <a href="http://raphaelbastide.com">Raphaël Bastide</a>. 
+						Feel free to <a href="mailto:bonjour@raphaelbastide.com">contact</a> us.
+						
+						</div>
 					<li>Help</li>
 					<li>- - - - -</li>
 					<li>Generate a screenshot</li>
@@ -129,7 +150,6 @@
 					</li>
 					<li>Profile</li>
 					<li>Logout</li>
-					<div class="arrow"></div>
 				</ul>
 			</div>
 		</div>
