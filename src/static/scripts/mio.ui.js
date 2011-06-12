@@ -78,6 +78,10 @@
                 tr: [],
                 br: [],
                 bl: []
+            },
+            events = {
+                show: [],
+                hide: []
             };
         
         var Panel = function(id, label, position, opts) {
@@ -90,6 +94,27 @@
             this.hide();
         };
         
+        Panel.prototype.bind = function(event, fn) {
+            if (!!events[event] && events[event].indexOf(fn) === -1) {
+                events[event].push(fn);
+            }
+        };
+        
+        Panel.prototype.unbind = function(event, fn) {
+            if (!!events[event] && events[event].indexOf(fn) === -1) {
+                events[event].splice(events[event].indexOf(fn),1);
+            }
+        };
+        
+        Panel.prototype.trigger = function(event) {
+            if (!!events[event]) {
+                var i = events[event].length;
+                while (i--) {
+                    events[event][i]();
+                }
+            }
+        };
+        
         Panel.prototype.remove = function() {
             var stack = stacks[this.position];
             stack.splice(stack.indexOf(this.id), 1);
@@ -100,11 +125,13 @@
         Panel.prototype.show = function() {
             this.contentElt.style.display = "block";
             stylePanel.call(this);
+            this.trigger('show');
         };
         
         Panel.prototype.hide = function() {
             this.contentElt.style.display = "none";
             stylePanel.call(this);
+            this.trigger('hide');
         };
         
         Panel.prototype.toggle = function() {

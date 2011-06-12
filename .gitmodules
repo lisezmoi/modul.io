@@ -1,3 +1,0 @@
-[submodule "vendor/CodeMirror"]
-	path = vendor/CodeMirror
-	url = https://github.com/marijnh/CodeMirror.git

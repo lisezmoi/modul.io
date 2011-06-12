@@ -63,6 +63,11 @@
             
             if (!!msg.code) {
                 if (editorPanel !== false) {
+                    editorPanel.bind('show', function(){
+                        var e = document.createEvent("UIEvents");
+                        e.initUIEvent("resize", true, true, window, 1);
+                        window.dispatchEvent(e);
+                    });
                     mio.editor.init(editorPanel, msg.code);
                 }
                 mio.ui.justGot("code");
