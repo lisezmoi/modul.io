@@ -161,11 +161,10 @@ var socket = io.listen(server, {
 (function initModulsPush() {
     
     function onChange(modul, updates) {
-        if (!modul || !modul.id) console.log(modul, modul.id);
+        
         // Get clients displaying this modul
         ClientDisplay.getDisplaysByModulId(modul.id, function(displays) {
             var skinsToRefresh = (!!updates.skinHash)? [{"mid": modul.id, "hash": updates.skinHash}] : [];
-            
             var i = displays.length;
             while(i--) {
                 // Refresh displays

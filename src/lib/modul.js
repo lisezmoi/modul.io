@@ -80,7 +80,7 @@ var EventEmitter = require('events').EventEmitter,
         }
         ButtonsPanel.prototype.add = function(button) {
             this.panel.buttons[button.label] = button;
-            curModul.emit("panelsUpdate");
+            curModul.emit("panelsUpdate", curModul);
         };
         
         /* Button */
