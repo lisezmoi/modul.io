@@ -8,6 +8,7 @@ Create a directory:
     mkdir modul.io && cd modul.io
 
 Clone the repository:
+
     git clone git://github.com/bpierre/modul.io.git
 
 Install dependencies:
