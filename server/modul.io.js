@@ -17,7 +17,7 @@ server.configure(function(){
     server.use(express.methodOverride());
     server.use(express.bodyParser());
     //server.use(server.router);
-    server.use(express.static(__dirname + '/static'));
+    server.use(express.static(__dirname + '/../client'));
     
     server.use(express.cookieParser());
     server.use(express.session({ 'secret': 'goVfq36*jp586w%GMkW)7F#,x2>y_gPu)tUAZ`%$I:#4S.a!z-x[W6M?gn/I.}ks' }));
@@ -289,3 +289,4 @@ socket.on('connection', function(client){
 });
 
 server.listen(3000);
+console.log('modul.io server started: http://127.0.0.1:3000');

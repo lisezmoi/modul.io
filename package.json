@@ -22,5 +22,8 @@
         "socket.io": ">= 0.6.18 < 0.7",
         "underscore": ">= 1.1.6 < 1.2"
     },
-    "devDependencies": {}
+    "devDependencies": {},
+    "bin" : {
+        "modul.io" : "./bin/modul.io.js"
+    }
 }
