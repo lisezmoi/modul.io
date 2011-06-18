@@ -51,6 +51,11 @@ var caroModul = new Modul("caroline/default");
 caroModul.updateCode(fs.readFileSync("fixtures/caroline.modul", "utf8"));
 world.addModul(caroModul, 29, 19);
 
+// Aude - modul
+var audeModul = new Modul("aude/default");
+audeModul.updateCode(fs.readFileSync("fixtures/aude.modul", "utf8"));
+world.addModul(audeModul, 29, 20);
+
 // Pierre - modul
 var pierModul = new Modul("pierre/default");
 pierModul.updateCode(fs.readFileSync("fixtures/pierre.modul", "utf8"));
