@@ -7,7 +7,13 @@ var web = require('./lib/web'),
     Modul = require('./lib/modul').Modul,
     Ground = require('./lib/ground').Ground,
     util = require('util'),
-    _ = require('underscore')._;
+    _ = require('underscore')._,
+    ENV = process.env.NODE_ENV;
+
+// 'prod' is the default environment
+if (!ENV) {
+    ENV = process.env.NODE_ENV = 'prod';
+}
 
 // Change current dir
 process.chdir(__dirname);
@@ -18,51 +24,10 @@ var dManager = new DataManager();
 // Init world
 var world = getWorld();
 
-// Raphael - modul
-var raphModul = new Modul("raphael/default");
-raphModul.updateCode(fs.readFileSync("data/raphael/default", "utf8"));
-world.addModul(raphModul, 30, 20);
-
-// Raphael - test modul
-var raphTestModul = new Modul("raphael/test");
-raphTestModul.updateCode(fs.readFileSync("data/raphael/test", "utf8"));
-world.addModul(raphTestModul, 33, 22);
-
-// Caroline - modul
-var caroModul = new Modul("caroline/default");
-caroModul.updateCode(fs.readFileSync("fixtures/caroline.modul", "utf8"));
-world.addModul(caroModul, 29, 19);
-
-// Aude - modul
-var audeModul = new Modul("aude/default");
-audeModul.updateCode(fs.readFileSync("fixtures/aude.modul", "utf8"));
-world.addModul(audeModul, 29, 20);
-
-// Pierre - modul
-var pierModul = new Modul("pierre/default");
-pierModul.updateCode(fs.readFileSync("fixtures/pierre.modul", "utf8"));
-world.addModul(pierModul, 31, 21);
-
-function loadTestModuls() {
-    var testCount = 100;
-    function getRandomInt(min, max) {
-        return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
-    function addTestModul(num) {
-        var testModul = new Modul("default/"+num);
-        testModul.updateCode(fs.readFileSync("fixtures/default.modul", "utf8"));
-        var x = getRandomInt(1,159),
-            y = getRandomInt(1,129);
-        if (!world.addModul(testModul, x, y)) {
-            addTestModul(num);
-        }
-        return true;
-    }
-    while (testCount--) {
-        addTestModul(testCount+1);
-    }
+// Load moduls
+if (ENV === 'dev') {
+    require('./fixtures/load-fixtures');
 }
-loadTestModuls();
 
 // ## HTTP server
 var webServer = web.start(3000);

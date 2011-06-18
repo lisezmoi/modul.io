@@ -38,7 +38,6 @@ function World(width, height, interval) {
     initInterval.call(this, interval);
 }
 
-
 function isOut(pos) {
     return (pos.x < 0 || pos.y < 0 || pos.x > this.width-1 || pos.y > this.height-1);
 };

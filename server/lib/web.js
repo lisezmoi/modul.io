@@ -21,7 +21,14 @@ exports.start = function(port) {
     });
     
     // Dev environment
-    server.configure('development', function(){
+    server.configure('dev', function(){
+        server.set('views', __dirname + '/../views');
+        server.set('view engine', 'ejs');
+        server.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
+    });
+    
+    // Prod environment
+    server.configure('prod', function(){
         server.set('views', __dirname + '/../views');
         server.set('view engine', 'ejs');
         server.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
