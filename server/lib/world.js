@@ -1,23 +1,15 @@
 var Ground = require('./ground').Ground,
     curWorld = null;
 
-// World Class
-function World(width, height) {
-    this.width = width;
-    this.height = height;
-    this.moduls = {};
-    this.ground = new Ground();
-    this.grid = initGrid.call(this, width, height);
-    initInterval.call(this);
-}
-
-function initInterval() {
+function initInterval(interval) {
     var self = this;
     setInterval(function(){
         for (var i in self.moduls) {
-            self.moduls[i].execIntervals();
+            if (self.moduls.hasOwnProperty(i)) {
+                self.moduls[i].execIntervals();
+            }
         }
-    }, 1000);
+    }, interval);
 }
 
 function initGrid(w, h) {
@@ -35,6 +27,17 @@ function initGrid(w, h) {
     }
     return grid;
 };
+
+// World 'Class'
+function World(width, height, interval) {
+    this.width = width;
+    this.height = height;
+    this.moduls = {};
+    this.ground = new Ground();
+    this.grid = initGrid.call(this, width, height);
+    initInterval.call(this, interval);
+}
+
 
 function isOut(pos) {
     return (pos.x < 0 || pos.y < 0 || pos.x > this.width-1 || pos.y > this.height-1);
@@ -133,7 +136,7 @@ World.prototype = {
 
 exports.getWorld = function(){
     if (!curWorld) {
-        curWorld = new World(160, 120);
+        curWorld = new World(160, 120, 1000);
     }
     return curWorld;
 };
