@@ -16,14 +16,15 @@
         "node": "~v0.4.8"
     },
     "dependencies": {
-        "canvas": ">= 0.6.0 < 0.7",
-        "ejs": ">= 0.4.2 < 0.5.0",
-        "express": ">= 2.3.11 < 2.4.0",
-        "socket.io": ">= 0.6.18 < 0.7",
-        "underscore": ">= 1.1.6 < 1.2"
+        "canvas": "~0.6.0",
+        "ejs": "~0.4.2",
+        "express": "~2.3.11",
+        "socket.io": "~0.6.18",
+        "underscore": "~1.1.6"
     },
     "devDependencies": {},
     "bin" : {
         "modul.io" : "./bin/modul.io.js"
-    }
+    },
+    "private": true
 }
