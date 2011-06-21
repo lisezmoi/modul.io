@@ -12,32 +12,32 @@ DataManager.prototype = {
     loadAllModuls: function(callback) {
         var self = this;
         
-        function eachFile(dirname, callback) {
-            fs.readdir(dirname, function(err, files) {
-                for (var i in files) {
-                    if (files.hasOwnProperty(i)) {
-                        callback(files[i], files.length);
+        // List moduls
+        var modulsList = [];
+        var dirs = fs.readdirSync(__dirname + '/../data');
+        for (var i in dirs) {
+            if (dirs.hasOwnProperty(i)) {
+                var files = fs.readdirSync(__dirname + '/../data/' + dirs[i]);
+                for (var j in files) {
+                    if (files.hasOwnProperty(j)) {
+                        modulsList.push(dirs[i] + '/' + files[j]);
                     }
                 }
-            });
+            }
         }
         
-        var dirsCallbackCount = 0;
-        eachFile(__dirname + '/../data', function(dirname, dirsCount) {
-            var filesCallbackCount = 0;
-            eachFile(__dirname + '/../data/' + dirname, function(filename, filesCount) {
-                self.loadModul(dirname + '/' + filename, function(){
-                    filesCallbackCount++;
-                    if (filesCallbackCount === filesCount) {
-                        dirsCallbackCount++;
-                    }
-                    if (dirsCallbackCount === dirsCount && filesCallbackCount === filesCount) {
-                        console.log('OK');
+        // Load the moduls list
+        var loadModulCount = modulsList.length;
+        for (var k in modulsList) {
+            if (modulsList.hasOwnProperty(k)) {
+                self.loadModul(modulsList[k], function(){
+                    loadModulCount--;
+                    if (!loadModulCount) {
                         callback();
                     }
                 });
-            });
-        });
+            }
+        }
     },
     loadFixtures: function(callback) {
         require('../fixtures/load-fixtures');
@@ -45,23 +45,30 @@ DataManager.prototype = {
     },
     loadModul: function(name, callback) {
         console.log('load ' + name + '...');
-        var curModul = new Modul(name);
-        curModul.updateCode(fs.readFileSync(__dirname + '/../data/' + name, 'utf8'));
-        
-        // Temp
-        function getRandomInt(min, max) {
-            return Math.floor(Math.random() * (max - min + 1)) + min;
+        var modulPath = path.normalize(__dirname + '/../data/' + name);
+        var modulCode = fs.readFileSync(modulPath, 'utf8');
+        if (modulCode) {
+            var curModul = new Modul(name);
+            curModul.updateCode(modulCode, function(){
+                
+                // Temp
+                function getRandomInt(min, max) {
+                    return Math.floor(Math.random() * (max - min + 1)) + min;
+                }
+                
+                var x = 0, y = 0;
+                (function A(){
+                    x = getRandomInt(1, world.width-1);
+                    y = getRandomInt(1, world.height-1);
+                    if ( !world.addModul(curModul, x,y) ) {
+                        A();
+                    }
+                })();
+                
+                console.log(name + ' loaded at ['+ x + ',' + y +'].');
+                return callback();
+            });
         }
-        var x = 0, y = 0;
-        (function A(){
-            x = getRandomInt(1, world.width-1);
-            y = getRandomInt(1, world.height-1);
-            if ( !world.addModul(curModul, x,y) ) {
-                A();
-            }
-        })();
-        console.log(name + ' loaded at ['+ x + ',' + y +'].');
-        return callback();
     },
     saveModul: function(modul, callback) {
         var splitId = modul.id.split('/');
