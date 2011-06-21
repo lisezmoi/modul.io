@@ -17,5 +17,14 @@ Install dependencies:
 
 Launch modul.io:
 
+Node:
+
     node src/server.js
 
+Or NPM:
+
+    npm start
+
+If installed with `npm install -g`:
+
+    modul.io

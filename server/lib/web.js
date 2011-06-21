@@ -1,7 +1,7 @@
 var express = require('express'),
     world = require('./world').getWorld(),
     util = require('util'),
-    server;
+    server = null;
 
 exports.start = function(port) {
     
