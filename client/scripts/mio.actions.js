@@ -18,13 +18,10 @@
                             j++;
                         }
                         mio.util.d(buttons[i]);
-                        
-                        mio.socket.send({
-                            "action": {
-                                "panelName": panel.label,
-                                "actionName": buttons[i][0],
-                                "actionParams": values
-                            }
+                        mio.socket.emit('action', {
+                            "panel": panel.label,
+                            "name": buttons[i][0],
+                            "params": values
                         });
                     });
                     panel.contentElt.appendChild(button);

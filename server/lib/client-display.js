@@ -15,8 +15,7 @@ function ClientDisplay(client, modul, world, gridSize) {
     this.client = client;
     this.modul = modul;
     this.world = world;
-    
-    this.setGridSize(gridSize);
+    this.gridSize = gridSize;
     
     clientDisplayList.push(this);
 }
@@ -24,36 +23,29 @@ util.inherits(ClientDisplay, EventEmitter);
 exports.ClientDisplay = ClientDisplay;
 
 // Returns a grid fragment
-function getGridFragment(callback) {
+ClientDisplay.prototype.getGridFragment = function(callback) {
     if (!this.world || !this.gridSize || !this.modul) {
         callback(false);
     } else {
         callback(this.world.getGridFragment(this.modul.position, this.gridSize));
     }
-}
+};
 
 // Update grid size
 ClientDisplay.prototype.setGridSize = function(gridSize) {
     var self = this;
     self.gridSize = gridSize;
-    getGridFragment.call(self, function(gridFragment) {
+    self.getGridFragment(function(gridFragment) {
         if (gridFragment !== false) {
             self.emit("gridUpdate", gridFragment);
         }
     });
 };
 
-// Log something on the console
-ClientDisplay.prototype.consoleLog = function(msg) {
-    this.client.send({
-        "log": msg
-    });
-};
-
 // Returns a list of currently displayed moduls
 ClientDisplay.prototype.getDisplayedModuls = function(callback) {
     var dispModuls = [];
-    getGridFragment.call(this, function(gridFragment){
+    this.getGridFragment(function(gridFragment) {
         for (var i in gridFragment) {
             for (var j in gridFragment[i]) {
                 if (gridFragment[i][j].modul) {
@@ -67,7 +59,7 @@ ClientDisplay.prototype.getDisplayedModuls = function(callback) {
 
 ClientDisplay.prototype.refresh = function(settings) {
     var self = this;
-    getGridFragment.call(this, function(gridFragment){
+    self.getGridFragment(function(gridFragment) {
         if (!!settings.updateGrid) {
             self.emit("gridUpdate", gridFragment);
         }
@@ -82,7 +74,7 @@ ClientDisplay.prototype.refresh = function(settings) {
 
 
 /* Static */
-ClientDisplay.getDisplaysByModulId = function(mid, callback){
+ClientDisplay.getDisplaysByModulId = function(mid, callback) {
     var modulClients = [],
         i = clientDisplayList.length,
         iterations = 0;

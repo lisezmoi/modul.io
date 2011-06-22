@@ -33,8 +33,9 @@ exports.start = function(startCallback) {
         
         console.log('Start websocket server...');
         // socket.io (websockets) server
-        var socket = io.listen(webServer, {
-            transports: ['websocket', 'flashsocket']
+        var ioServer = io.listen(webServer);
+        ioServer.configure(function() {
+            ioServer.set('log level', 1);
         });
         console.log('Websocket server started.');
         
@@ -45,7 +46,7 @@ exports.start = function(startCallback) {
                 
                 // Get clients displaying this modul
                 ClientDisplay.getDisplaysByModulId(modul.id, function(displays) {
-                    var skinsToRefresh = (!!updates.skinHash)? [{"mid": modul.id, "hash": updates.skinHash}] : [];
+                    var skinsToRefresh = (!!updates.skinHash)? [{'mid': modul.id, 'hash': updates.skinHash}] : [];
                     var i = displays.length;
                     while(i--) {
                         // Refresh displays
@@ -64,107 +65,103 @@ exports.start = function(startCallback) {
                 });
             }
             
-            _.each(world.moduls, function(modul){
-                modul.on("change", function(updates){
+            _.each(world.moduls, function(modul) {
+                modul.on('change', function(updates) {
                     onChange(modul, updates);
                 });
-                modul.on("panelsUpdate", function(modul){
+                modul.on('panelsUpdate', function(modul) {
                     onChange(modul, { updatesPanels: true });
                 });
             });
         })();
         
-        socket.on('connection', function(client){
+        ioServer.sockets.on('connection', function(socket) {
             
-            // Modul reference
-            var modul, display;
+            // Modul and client display
+            var modul = null,
+                display = null;
             
-            function modulError(err) {
-                if (display) {
-                    display.consoleLog(err.message + "\n" + err.stack);
-                }
-            }
+            // Send grounds IDs
+            socket.emit('grounds', world.ground.groundIds);
             
-            // Send grounds to the client
-            client.send({
-                "grounds": world.ground.groundIds
-            });
-            
-            client.on('message', function(msg){
-                //console.log(msg);
+            // Init modul
+            socket.on('modulId', function(modulId) {
                 
-                // New display
-                if (!!msg.initDisplay && !!msg.modulId && msg.gridSize) {
-                    
-                    modul = world.getModul(msg.modulId);
-                    
-                    if (!!modul && ClientDisplay.isValidGridSize(msg.gridSize)) {
+                // Get modul
+                if (!( modul = world.getModul(modulId) )) return;
+                
+                // One init (modulId) / connection
+                socket.removeAllListeners('modulId');
+                
+                // Send code and panels
+                socket.emit('code', modul.getCode());
+                socket.emit('panels', modul.getPanels());
+                
+                // Log errors
+                function logError(err) {
+                    socket.emit('log', err.message + '\n' + err.stack);
+                }
+                modul.on('error', logError);
+                socket.on('disconnect', function() {
+                    modul.removeListener('error', logError);
+                });
+                
+                // Update display size
+                socket.on('gridSize', function(gridSize) {
+                    if (!display) {
                         
-                        // the display will manage all components displayed on the client: grid, modul skin, etc.
-                        display = new ClientDisplay(client, modul, world, msg.gridSize);
-                        client.modulId = msg.modulId;
-                        
-                        // Log errors
-                        modul.on("error", modulError);
-                        
-                        // Send basic
-                        client.send({
-                            "code": modul.getCode(),
-                            "panels": modul.getPanels()
-                        });
+                        // Init display
+                        display = new ClientDisplay(socket, modul, world, gridSize);
                         
                         // On gridUpdate event, send a new grid fragment
-                        display.on("gridUpdate", function(gridFragment) {
-                            client.send({
-                                "gridFragment": gridFragment
-                            });
+                        display.on('gridUpdate', function(gridFragment) {
+                            socket.emit('gridFragment', gridFragment);
                         });
                         
                         // On panelsUpdate event, send all panels
-                        display.on("panelsUpdate", function(panels) {
-                            client.send({
-                                "panels": panels
-                            });
+                        display.on('panelsUpdate', function(panels) {
+                            socket.emit('panels', panels);
                         });
                         
-                        // On gridUpdate event, send a new grid fragment
-                        display.on("skinsUpdate", function(moduls) {
-                            client.send({
-                                "updateSkins": moduls
-                            });
+                        // On skinsUpdate, update moduls skins
+                        display.on('skinsUpdate', function(moduls) {
+                            socket.emit('updateSkins', moduls);
                         });
+                        
+                        // Updates grid fragment
+                        display.getGridFragment(function(gridFragment) {
+                            socket.emit('gridFragment', gridFragment)
+                        });
+                        
+                    } else {
+                        // Just update display
+                        display.setGridSize(gridSize);
                     }
-                }
+                });
                 
-                // ### `gridSize` message
-                // Send the new grid size to display
-                if (!!msg.gridSize && !!display) {
-                    display.setGridSize(msg.gridSize);
-                }
+                // Executes an action on the modul
+                socket.on('action', function(action) {
+                    if (action.panel && action.name && action.params) {
+                        modul.execAction(action.panel, action.name, action.params);
+                    }
+                });
                 
-                // ### `action` message
-                // Executes action on modul
-                if (!!msg.action && !!msg.action.panelName && !!msg.action.actionName && !!msg.action.actionParams && !!display) {
-                    modul.execAction(msg.action.panelName, msg.action.actionName, msg.action.actionParams);
-                }
-                
-                // ### `code` message
                 // Update modul's code
-                if (!!msg.code && !!display) {
-                    modul.updateCode(msg.code, function() {
-                        dManager.saveModul(modul, function(){
-                            client.send({
-                                "panels": modul.getPanels() // TODO: send panels only if needed + refresh avatar if needed.
-                            });
+                socket.on('code', function(code) {
+                    modul.updateCode(code, function() {
+                        dManager.saveModul(modul, function() { // Save code
+                            socket.emit('log', '[info] modul saved.');
                         });
                     });
-                }
+                });
+                
             });
             
-            client.on('disconnect', function(){
-                // modul.removeListener("on", modulError);
-                ClientDisplay.remove(display);
-                display = null;
+            socket.on('disconnect', function(){
+                if (display) {
+                    ClientDisplay.remove(display);
+                    display = null;
+                }
             });
         });
         
