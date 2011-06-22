@@ -17,6 +17,7 @@ exports.start = function(port) {
         //server.use(server.router);
         server.use(express.static(__dirname + '/../../client'));
         server.use(express.cookieParser());
+        server.use(express.favicon(__dirname + '/../../client/favicon.ico'));
         server.use(express.session({ 'secret': 'goVfq36*jp586w%GMkW)7F#,x2>y_gPu)tUAZ`%$I:#4S.a!z-x[W6M?gn/I.}ks' }));
     });
     

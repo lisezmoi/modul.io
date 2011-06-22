@@ -51,7 +51,6 @@ var EventEmitter = require('events').EventEmitter,
             "updateGrid": (oldX !== this.position.x || oldY !== this.position.y) // true if the modul has moved
         };
         
-        console.log(imgData !== newImgData);
         if (imgData !== newImgData) {
             changeObj.skinHash = this.getSkinHash(newImgData);
         }

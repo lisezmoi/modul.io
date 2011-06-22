@@ -4,8 +4,10 @@
 %>
 <html>
 <head>
+	<meta charset="utf-8">
 	<title>modul.io</title>
-	<link href='http://fonts.googleapis.com/css?family=Droid+Sans+Mono' rel='stylesheet' type='text/css'>
+	<link rel="shortcut icon" href="/favicon.ico" />
+	<link href="http://fonts.googleapis.com/css?family=Droid+Sans+Mono" rel="stylesheet" type="text/css" />
 	<link rel="stylesheet" href="<%- site_url %>styles/mio.css" />
 </head>
 <body>
@@ -28,10 +30,10 @@
 	<script>
 		//var MIO_DEBUG = true;
 		mio.main({
-			domain: "<%- domain %>",
-			url: "<%- site_url %>",
-			modulId: "<%- user %>/<%- modul %>",
-			sessionId: "<%- sessionID %>"
+			domain: '<%- domain %>',
+			url: '<%- site_url %>',
+			modulId: '<%- user %>/<%- modul %>',
+			sessionId: '<%- sessionID %>'
 		});
 	</script>
 </body>
