@@ -33,13 +33,13 @@
         
         // Socket.IO
         mio.socket = io.connect('http://' + mio.conf.domain);
-        mio.socket.on('connect', function(){
+        mio.socket.on('connect', function() {
             mio.socket.emit('modulId', mio.conf.modulId);
             mio.socket.emit('gridSize', mio.world.getGridSize());
         });
         
         // Ground textures
-        mio.socket.on('grounds', function(grounds){
+        mio.socket.on('grounds', function(grounds) {
             mio.world.updateGrounds(grounds);
             mio.ui.justGot('grounds');
         });
@@ -85,6 +85,7 @@
         // On browser resize
         window.addEventListener('resize', function(){
             mio.world.realignWorld();
+            mio.ui.waitFor('gridfragment');
             mio.socket.emit('gridSize', mio.world.getGridSize());
             mio.ui.panels.refresh();
             mio.editor.refresh();

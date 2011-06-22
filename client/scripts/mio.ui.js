@@ -42,10 +42,14 @@
         
         // Add a new component to the waiting list
         pub.waitFor = function() {
+            var tmpList = [];
             for (var i = arguments.length-1; i > -1; i--) {
-                waitList.push(arguments[i]);
+                if (!pub.isWaitingFor(arguments[i])) {
+                    tmpList.push(arguments[i]);
+                    waitList.push(arguments[i]);
+                }
             }
-            if (waitList.length === arguments.length) {
+            if (waitList.length === tmpList.length) {
                 startWait();
             }
             updateWaitList();
@@ -64,6 +68,11 @@
             } else {
                 updateWaitList();
             }
+        };
+        
+        // Check if we wait for a component
+        pub.isWaitingFor = function(component) {
+            return waitList.indexOf(component) !== -1;
         };
         
         return pub;
