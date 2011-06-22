@@ -32,7 +32,7 @@ DataManager.prototype = {
             if (modulsList.hasOwnProperty(k)) {
                 self.loadModul(modulsList[k], function(){
                     loadModulCount--;
-                    if (!loadModulCount) {
+                    if (!loadModulCount && callback) {
                         callback();
                     }
                 });
