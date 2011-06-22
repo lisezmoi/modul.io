@@ -41,7 +41,7 @@ DataManager.prototype = {
     },
     loadFixtures: function(callback) {
         require('../fixtures/load-fixtures');
-        callback();
+        if (callback) callback();
     },
     loadModul: function(name, callback) {
         console.log('load ' + name + '...');
