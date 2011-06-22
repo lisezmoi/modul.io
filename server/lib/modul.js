@@ -50,6 +50,8 @@ var EventEmitter = require('events').EventEmitter,
         var changeObj = {
             "updateGrid": (oldX !== this.position.x || oldY !== this.position.y) // true if the modul has moved
         };
+        
+        console.log(imgData !== newImgData);
         if (imgData !== newImgData) {
             changeObj.skinHash = this.getSkinHash(newImgData);
         }
@@ -135,9 +137,13 @@ var EventEmitter = require('events').EventEmitter,
     Modul.prototype.updateCode = function(modulCode, callback) {
         this.code = modulCode;
         compileScript.call(this);
-        if (!!callback) {
-            callback();
-        }
+        
+        // Send modul skin
+        this.emit("change", {
+            skinHash: this.getSkinHash(this.canvas.toDataURL('image/png'))
+        });
+        
+        if (!!callback) callback();
     };
     Modul.prototype.getSkinData = function() {
         return this.canvas.toBuffer();
