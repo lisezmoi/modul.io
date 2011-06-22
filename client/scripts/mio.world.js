@@ -11,7 +11,7 @@
             grounds = [],
             groundSprite,
             screenDims = [],
-            hiddenBordersWidth = 0;
+            hiddenBordersWidth = 2;
         
         // Draw a modul detection zone
         var showModulZone = function(x, y) {
@@ -23,7 +23,7 @@
         var drawModul = function(skin, x, y, zone) {
             var mid = skin.mid,
                 hash = Date.now();
-                
+            
             moduls[mid] = moduls[mid] || {};
             moduls[mid].pos = {x: x, y: y};
             
@@ -79,21 +79,19 @@
         
         // Set styles on canvas element
         var setWorldStyles = function() {
-            var mDims = mio.modul.dims;
+            var mDims = mio.modul.dims,
+                width = gridSize[0] * mDims[0],
+                height = gridSize[1] * mDims[1];
             
-            canvas.width  = gridSize[0] * mDims[0];
-            canvas.height = gridSize[1] * mDims[1];
-            
-            // (modul size) - ((screen width % modul size) / 2)
-            canvas.style.left = -(mDims[0]*hiddenBordersWidth) + Math.floor((screenDims[0] % mDims[0])/2) +"px";
-            canvas.style.top  = -(mDims[1]*hiddenBordersWidth) + Math.floor((screenDims[1] % mDims[1])/2) +"px";
+            canvas.width = width;
+            canvas.height = height;
+            canvas.style.left = '-' + ((width - screenDims[0]) / 2) + 'px';
+            canvas.style.top = '-' + ((height - screenDims[1]) / 2) + 'px';
+            canvas.style.border = '1px solid red';
         };
         
         // Returns screen dimensions
         var getScreenDims = function() {
-            if (!!mio.debug && !!mio.debug.debugScreen) {
-                return [mio.debug.debugScreen.offsetWidth, mio.debug.debugScreen.offsetHeight];
-            }
             return [window.innerWidth, window.innerHeight];
         };
         
@@ -137,28 +135,13 @@
             }
         };
         
-        // Realign world
-        pub.realign = function() {
-            var modulDims = mio.modul.dims,
-                worldElt = mio.ui.elements.world;
-            
-            screenDims = getScreenDims.call(this);
-            
-            worldElt.width  = gridSize[0] * modulDims[0];
-            worldElt.height = gridSize[1] * modulDims[1];
-            worldElt.style.left = "-"+ (modulDims[0] + (screenDims[0] % modulDims[0]) / 2) +"px";
-            worldElt.style.top  = "-"+ (modulDims[1] + (screenDims[1] % modulDims[1]) / 2) +"px";
-            
-            // Refresh
-            mio.world.draw();
-        };
-        
         // Returns grid size
         pub.getGridSize = function() {
-            return [
-                Math.floor(screenDims[0] / mio.modul.dims[0]) + hiddenBordersWidth*2,
-                Math.floor(screenDims[1] / mio.modul.dims[1]) + hiddenBordersWidth*2
-            ];
+            var width = Math.floor(screenDims[0] / mio.modul.dims[0]) + hiddenBordersWidth*2;
+            var height = Math.floor(screenDims[1] / mio.modul.dims[1]) + hiddenBordersWidth*2;
+            if (width % 2 === 0) width += 1;
+            if (height % 2 === 0) height += 1;
+            return [ width, height ];
         };
         
         // Realign world
