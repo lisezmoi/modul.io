@@ -5,8 +5,11 @@ var Modul = require('../lib/modul').Modul;
 function loadFixture(user, modul, x, y, filename) {
     if (!filename) filename = user + '-' + modul + '.modul';
     var curModul = new Modul(user + '/' + modul);
-    curModul.updateCode(fs.readFileSync(__dirname + '/' + filename, 'utf8'));
-    return world.addModul(curModul, x, y);
+    var modulAdded = world.addModul(curModul, x, y);
+    if (modulAdded) {
+        curModul.updateCode(fs.readFileSync(__dirname + '/' + filename, 'utf8'));
+    }
+    return modulAdded;
 }
 
 function loadDefaults(count) {

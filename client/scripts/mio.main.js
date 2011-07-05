@@ -57,11 +57,8 @@
         });
         
         // Moduls skins
-        mio.socket.on('updateSkins', function(updateSkins) {
-            var i = updateSkins.length;
-            while (i--) {
-                mio.world.updateModulSkin(updateSkins[i]);
-            }
+        mio.socket.on('updateSkin', function(skin) {
+            mio.world.updateModulSkin(skin);
         });
         
         // Code
@@ -83,10 +80,19 @@
         });
         
         // On browser resize
-        window.addEventListener('resize', function(){
+        var curGridSize = mio.world.getGridSize();
+        window.addEventListener('resize', function() {
+            var newGridSize = mio.world.getGridSize();
+            
+            if ( curGridSize[0] !== newGridSize[0] ||
+                 curGridSize[1] !== newGridSize[1] ) {
+                mio.ui.waitFor('gridfragment');
+                mio.socket.emit('gridSize', curGridSize);
+            }
+            
+            curGridSize = newGridSize;
             mio.world.realignWorld();
-            mio.ui.waitFor('gridfragment');
-            mio.socket.emit('gridSize', mio.world.getGridSize());
+            
             mio.ui.panels.refresh();
             mio.editor.refresh();
         }, false);

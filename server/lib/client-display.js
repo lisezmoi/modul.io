@@ -1,53 +1,112 @@
-// The ClientDisplay class handle all the client screen data:
-// Grid size, displayed moduls, etc.
+// The ClientDisplay class handle the client data (screen size etc.)
+// and the Socket.IO messages
 
 var EventEmitter = require('events').EventEmitter,
     util = require('util'),
     _ = require('underscore')._,
-    clientDisplayList = [];
+    dManager = require('./data-manager').getDataManager(),
+    world = require('./world').getWorld(),
+    clientsList = [];
 
-// ## ClientDisplay Constructor
-function ClientDisplay(client, modul, world, gridSize) {
-    // ClientDisplay is an instance of EventEmitter
+function ClientDisplay(socket) {
+    // ClientDisplay is an EventEmitter
     EventEmitter.call(this);
     
-    this.displayedModuls = [];
-    this.client = client;
-    this.modul = modul;
-    this.world = world;
-    this.gridSize = gridSize;
+    this.socket = socket;
+    this.modul = null;
+    this.gridSize = null;
     
-    clientDisplayList.push(this);
+    initSocketEvents.call(this, socket);
+    
+    clientsList.push(this);
 }
 util.inherits(ClientDisplay, EventEmitter);
 exports.ClientDisplay = ClientDisplay;
 
-// Returns a grid fragment
-ClientDisplay.prototype.getGridFragment = function(callback) {
-    if (!this.world || !this.gridSize || !this.modul) {
-        callback(false);
-    } else {
-        callback(this.world.getGridFragment(this.modul.position, this.gridSize));
+// Init Socket.IO events
+function initSocketEvents(socket) {
+    
+    var self = this;
+    
+    // Log errors
+    function socketLogError(err) {
+        self.socket.emit('log', err.message + '\n' + err.stack);
     }
+    
+    // Send grounds IDs
+    self.socket.emit('grounds', world.ground.groundIds);
+    
+    // Init socket transmission
+    socket.on('modulId', function(modulId) {
+        
+        // Get modul
+        if (!( self.modul = world.getModul(modulId) )) return; // Modul not found
+        
+        // Stop listening for 'modulId' event
+        socket.removeAllListeners('modulId');
+        
+        // Send code and panels
+        socket.emit('code', self.modul.getCode());
+        socket.emit('panels', self.modul.getPanels());
+        
+        // Log errors
+        self.modul.on('error', socketLogError);
+        
+        socket.on('disconnect', function() {
+            self.modul.removeListener('error', socketLogError);
+        });
+        
+        // Update grid size
+        socket.on('gridSize', function(gridSize) {
+            self.gridSize = gridSize;
+            self.sendGridFragment();
+        });
+        
+        // Executes an action on the modul
+        socket.on('action', function(action) {
+            if (action.panel && action.name && action.params) {
+                self.modul.execAction(action.panel, action.name, action.params);
+            }
+        });
+        
+        // Update modul's code
+        socket.on('code', function(code) {
+            self.modul.updateCode(code, function() {
+                dManager.saveModul(self.modul, function() { // Save code
+                    socket.emit('log', '[info] modul saved.');
+                });
+            });
+        });
+    });
+    
+    socket.on('disconnect', function() {
+        ClientDisplay.remove(this);
+    });
+}
+
+// Send a new skin to the client
+ClientDisplay.prototype.sendSkinUpdate = function(skin) {
+    this.socket.emit('updateSkin', skin);
 };
 
-// Update grid size
-ClientDisplay.prototype.setGridSize = function(gridSize) {
-    var self = this;
-    self.gridSize = gridSize;
-    self.getGridFragment(function(gridFragment) {
-        if (gridFragment !== false) {
-            self.emit("gridUpdate", gridFragment);
-        }
-    });
+// Send a new grid fragment to the client
+ClientDisplay.prototype.sendGridFragment = function() {
+    this.socket.emit('gridFragment', world.getGridFragment(this.modul.position, this.gridSize));
+};
+
+// Send panels to the client
+ClientDisplay.prototype.sendPanels = function(panels) {
+    this.socket.emit('panels', panels);
 };
 
 // Returns a list of currently displayed moduls
 ClientDisplay.prototype.getDisplayedModuls = function(callback) {
     var dispModuls = [];
     this.getGridFragment(function(gridFragment) {
-        for (var i in gridFragment) {
-            for (var j in gridFragment[i]) {
+        var yLen = gridFragment.length;
+        for (var i = 0; i < yLen; i++) {
+            var xLen = gridFragment[i].length;
+            for (var j = 0; j < xLen; j++) {
                 if (gridFragment[i][j].modul) {
                     dispModuls.push(gridFragment[i][j].modul);
                 }
@@ -57,51 +116,82 @@ ClientDisplay.prototype.getDisplayedModuls = function(callback) {
     });
 };
 
-ClientDisplay.prototype.refresh = function(settings) {
-    var self = this;
-    self.getGridFragment(function(gridFragment) {
-        if (!!settings.updateGrid) {
-            self.emit("gridUpdate", gridFragment);
-        }
-        if (!!settings.updatePanels) {
-            self.emit("panelsUpdate", self.modul.getPanels());
-        }
-        if (!!settings.skinsToRefresh && settings.skinsToRefresh.length !== 0) {
-            self.emit("skinsUpdate", settings.skinsToRefresh);
-        }
+// ** Static methods
+
+// Returns a list of clients wich displays the given position
+ClientDisplay.getDisplaysByPosition = function(position) {
+    var displays = clientsList.filter(function(client) {
+        var xRange = [
+            client.modul.position.x - (client.gridSize[0]-1) / 2,
+            client.modul.position.x + (client.gridSize[0]-1) / 2
+        ];
+        var yRange = [
+            client.modul.position.y - (client.gridSize[1]-1) / 2,
+            client.modul.position.y + (client.gridSize[1]-1) / 2
+        ];
+        return ( position.x >= xRange[0] && position.x <= xRange[1] &&
+                 position.y >= yRange[0] && position.y <= yRange[1] );
     });
+    
+    return displays;
 };
 
-
-/* Static */
+// Returns a list of clients which displays the given modul
 ClientDisplay.getDisplaysByModulId = function(mid, callback) {
-    var modulClients = [],
-        i = clientDisplayList.length,
-        iterations = 0;
-    
-    function getDisplayCallback(dispModuls) {
-        if (dispModuls.indexOf(mid) !== -1) {
-            modulClients.push(clientDisplayList[i]);
-        }
-        iterations++;
-        if (iterations === clientDisplayList.length) {
-            callback(modulClients);
+    var displays = [];
+    for (var i = clientsList.length - 1; i >= 0; i--){
+        if (clientsList[i].id === mid) {
+            displays.push(clientsList[i]);
         }
     }
-    
-    while (i--) {
-        clientDisplayList[i].getDisplayedModuls(getDisplayCallback);
-    }
-};
-
-ClientDisplay.isValidGridSize = function(gridSize) {
-    return (_.isArray(gridSize) && gridSize.length === 2 && _.isNumber(gridSize[0]) && _.isNumber(gridSize[1]));
+    return displays;
 };
 
 // Removes a client display from the list
 ClientDisplay.remove = function(display) {
-  var dispIndex = clientDisplayList.indexOf(display);
-  if (dispIndex !== -1) {
-    clientDisplayList.splice(dispIndex, 1);
-  }
+    var i = clientsList.indexOf(display);
+    if (i !== -1) {
+        clientsList.splice(i, 1);
+    }
 };
+
+/*
+
+// À chaque fois qu’un modul est déplacé: la mise à jour est envoyée sur tous les écrans du modul
+modul.on('move', function(position) {
+  var modulDisplays = ClientDisplay.getDisplaysByPosition(position);
+  modulDisplays.each(function() {
+    socket.emit('modulMove', position);
+  });
+});
+
+// À chaque fois qu’un modul change de skin: la mise à jour est renvoyée sur tous les écrans du modul
+modul.on('skinUpdate', function(skin) {
+  var modulDisplays = ClientDisplay.getDisplaysByPosition(position);
+  modulDisplays.each(function() {
+    var emitObj = {};
+    emitObj[modul.id] = skin;
+    socket.emit('skinsUpdate', emitObj);
+  });
+});
+
+A chaque fois que le modul principal d’un écran se déplace: vérifier si de nouveaux moduls sont dans l’écran
+modul.on('move', function(){
+  
+});
+
+modul.on('move')
+la mise à jour est renvoyée sur tous les écrans du modul
+
+*/
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+/* Static */
+
+//ClientDisplay.isValidGridSize = function(gridSize) {
+//    return (_.isArray(gridSize) && gridSize.length === 2 && _.isNumber(gridSize[0]) && _.isNumber(gridSize[1]));
+//};
