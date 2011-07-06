@@ -92,7 +92,6 @@
             canvas.height = worldPxHeight;
             canvas.style.left = ( (screenPxWidth - worldPxWidth) / 2 ) + 'px';
             canvas.style.top = ( (screenPxHeight - worldPxHeight) / 2 ) + 'px';
-            canvas.style.border = '1px solid red';
         };
         
         // Returns screen dimensions
@@ -113,6 +112,9 @@
             canvas = mio.util.gid('world');
             ctx = canvas.getContext('2d');
             screenDims = getScreenDims.call(this);
+            if (window.MIO_DEBUG) {
+                canvas.style.border = '1px solid red';
+            }
         };
         
         // Update ground images

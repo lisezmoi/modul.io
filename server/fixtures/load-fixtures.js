@@ -33,5 +33,5 @@ loadFixture('raphael', 'default', 30, 20);
 loadFixture('raphael', 'test', 33, 22);
 loadFixture('caroline', 'default', 29, 19);
 loadFixture('aude', 'default', 29, 20);
-loadFixture('pierre', 'default', 31, 21);
+loadFixture('pierre', 'default', 5, 5);
 loadDefaults(100);

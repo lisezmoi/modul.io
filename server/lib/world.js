@@ -1,7 +1,8 @@
 var EventEmitter = require('events').EventEmitter,
     util = require('util'),
     Ground = require('./ground').Ground,
-    curWorld = null;
+    curWorld = null,
+    borderWidth = 2;
 
 function initInterval(interval) {
     var self = this;
@@ -20,11 +21,16 @@ function initGrid(w, h) {
         grid[i] = []; // Cells
         for (var j = 0; j < w; j++) {
             grid[i][j] = {
+                type: null,
                 ground: this.ground.getRandGroundId(),
                 modul: null,
                 y: i,
                 x: j
             };
+            if (i < borderWidth || j < borderWidth || i > h-borderWidth*2 || j > w-borderWidth*2) {
+                grid[i][j].type = 'border';
+                grid[i][j].ground = 'wall';
+            }
         }
     }
     
@@ -50,7 +56,7 @@ function isOut(pos) {
 }
 
 function isOccupied(pos) {
-    return (!!this.grid[pos.y][pos.x].modul);
+    return (!!this.grid[pos.y][pos.x].modul || this.grid[pos.y][pos.x].type === 'border');
 }
 
 World.prototype.addModul = function(modul, x, y) {

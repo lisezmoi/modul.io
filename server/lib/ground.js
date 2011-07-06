@@ -19,6 +19,11 @@ var Canvas = require('canvas'),
             blank: function(ctx, x, y, callback) {
                 ctx.fillStyle="#fff";
                 callback();
+            },
+            wall: function(ctx, x, y, callback) {
+                ctx.fillStyle = '#ccc';
+                ctx.fillRect(x+0.5, y+0.5, 50.5, 50.5);
+                callback();
             }
         };
         this.groundIds = _.keys(this.grounds);
