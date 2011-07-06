@@ -112,7 +112,7 @@
         pub.init = function(canvasId) {
             canvas = mio.util.gid('world');
             ctx = canvas.getContext('2d');
-            this.realignWorld();
+            screenDims = getScreenDims.call(this);
         };
         
         // Update ground images
@@ -122,9 +122,10 @@
         };
         
         // Update grid size
-        pub.updateGrid = function(newGrid) {
+        pub.updateGrid = function(newGrid, newSize) {
+            gridSize = newSize;
             grid = newGrid;
-            mio.world.draw();
+            this.realignWorld();
         };
         
         // Update modul skin
@@ -150,7 +151,6 @@
         
         // Returns grid size
         pub.getGridSize = function() {
-            console.log('get grid size');
             var width = Math.floor(screenDims[0] / mio.modul.dims[0]) + 2;
             var height = Math.floor(screenDims[1] / mio.modul.dims[1]) + 2;
             // Always odd
@@ -163,7 +163,6 @@
         // Realign world
         pub.realignWorld = function() {
             screenDims = getScreenDims.call(this);
-            gridSize = this.getGridSize();
             setWorldStyles.call(this);
             
             // Refresh

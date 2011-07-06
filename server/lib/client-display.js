@@ -91,7 +91,7 @@ ClientDisplay.prototype.sendSkinUpdate = function(skin) {
 
 // Send a new grid fragment to the client
 ClientDisplay.prototype.sendGridFragment = function() {
-    this.socket.emit('gridFragment', world.getGridFragment(this.modul.position, this.gridSize));
+    this.socket.emit('gridFragment', world.getGridFragment(this.modul.position, this.gridSize), this.gridSize);
 };
 
 // Send panels to the client
@@ -154,44 +154,3 @@ ClientDisplay.remove = function(display) {
         clientsList.splice(i, 1);
     }
 };
-
-/*
-
-// À chaque fois qu’un modul est déplacé: la mise à jour est envoyée sur tous les écrans du modul
-modul.on('move', function(position) {
-  var modulDisplays = ClientDisplay.getDisplaysByPosition(position);
-  modulDisplays.each(function() {
-    socket.emit('modulMove', position);
-  });
-});
-
-// À chaque fois qu’un modul change de skin: la mise à jour est renvoyée sur tous les écrans du modul
-modul.on('skinUpdate', function(skin) {
-  var modulDisplays = ClientDisplay.getDisplaysByPosition(position);
-  modulDisplays.each(function() {
-    var emitObj = {};
-    emitObj[modul.id] = skin;
-    socket.emit('skinsUpdate', emitObj);
-  });
-});
-
-A chaque fois que le modul principal d’un écran se déplace: vérifier si de nouveaux moduls sont dans l’écran
-modul.on('move', function(){
-  
-});
-
-modul.on('move')
-la mise à jour est renvoyée sur tous les écrans du modul
-
-*/
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-/* Static */
-
-//ClientDisplay.isValidGridSize = function(gridSize) {
-//    return (_.isArray(gridSize) && gridSize.length === 2 && _.isNumber(gridSize[0]) && _.isNumber(gridSize[1]));
-//};

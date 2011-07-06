@@ -30,30 +30,32 @@
         
         // World init
         mio.world.init();
+        var gridSize = mio.world.getGridSize();
         
         // Socket.IO
         mio.socket = io.connect('http://' + mio.conf.domain);
         mio.socket.on('connect', function() {
             mio.socket.emit('modulId', mio.conf.modulId);
-            mio.socket.emit('gridSize', mio.world.getGridSize());
+            mio.socket.emit('gridSize', gridSize);
         });
         
         // Ground textures
         mio.socket.on('grounds', function(grounds) {
-            mio.world.updateGrounds(grounds);
             mio.ui.justGot('grounds');
+            mio.world.updateGrounds(grounds);
         });
         
         // Panels
         mio.socket.on('panels', function(panels) {
-            mio.actions.updatePanels(panels);
             mio.ui.justGot('panels');
+            mio.actions.updatePanels(panels);
         });
         
         // Grid
-        mio.socket.on('gridFragment', function(gridFragment) {
-            mio.world.updateGrid(gridFragment);
+        mio.socket.on('gridFragment', function(gridFragment, size) {
             mio.ui.justGot('gridfragment');
+            gridSize = size;
+            mio.world.updateGrid(gridFragment, size);
         });
         
         // Moduls skins
@@ -63,6 +65,7 @@
         
         // Code
         mio.socket.on('code', function(code) {
+            mio.ui.justGot('code');
             if (editorPanel !== false) {
                 editorPanel.bind('show', function() {
                     var e = document.createEvent('UIEvents');
@@ -71,7 +74,6 @@
                 });
                 mio.editor.init(editorPanel, code);
             }
-            mio.ui.justGot('code');
         });
         
         // Log console
@@ -80,17 +82,15 @@
         });
         
         // On browser resize
-        var curGridSize = mio.world.getGridSize();
         window.addEventListener('resize', function() {
+            
             var newGridSize = mio.world.getGridSize();
             
-            if ( curGridSize[0] !== newGridSize[0] ||
-                 curGridSize[1] !== newGridSize[1] ) {
+            if ( gridSize[0] !== newGridSize[0] ||
+                 gridSize[1] !== newGridSize[1] ) {
                 mio.ui.waitFor('gridfragment');
-                mio.socket.emit('gridSize', curGridSize);
+                mio.socket.emit('gridSize', newGridSize);
             }
-            
-            curGridSize = newGridSize;
             mio.world.realignWorld();
             
             mio.ui.panels.refresh();
