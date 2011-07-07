@@ -121,6 +121,8 @@ ClientDisplay.prototype.getDisplayedModuls = function(callback) {
 // Returns a list of clients wich displays the given position
 ClientDisplay.getDisplaysByPosition = function(position) {
     var displays = clientsList.filter(function(client) {
+        if (!client.modul) return false;
+        
         var xRange = [
             client.modul.position.x - (client.gridSize[0]-1) / 2,
             client.modul.position.x + (client.gridSize[0]-1) / 2

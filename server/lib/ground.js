@@ -21,8 +21,18 @@ var Canvas = require('canvas'),
                 callback();
             },
             wall: function(ctx, x, y, callback) {
-                ctx.fillStyle = '#ccc';
-                ctx.fillRect(x+0.5, y+0.5, 50.5, 50.5);
+                x = x + 0.5;
+                y = y + 0.5;
+                ctx.strokeStyle = '#fff';
+                ctx.moveTo(x, y);
+                ctx.lineTo(x+49.5, y);
+                ctx.lineTo(x+49.5, y+49.5);
+                ctx.lineTo(x, y+49.5);
+                ctx.lineTo(x, y);
+                ctx.lineTo(x+49.5, y+49.5);
+                ctx.moveTo(x+49.5, y);
+                ctx.lineTo(x, y+49.5);
+                ctx.stroke();
                 callback();
             }
         };

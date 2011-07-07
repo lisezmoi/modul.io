@@ -72,10 +72,8 @@
         
         // Iterate over each box
         var eachBox = function(callback) {
-            var yLen = grid.length;
-            for (var y = 0; y < yLen; y++) {
-                var xLen = grid[y].length;
-                for (var x = 0; x < xLen; x++) {
+            for (var y = grid.length - 1; y >= 0; y--) {
+                for (var x = grid[y].length - 1; x >= 0; x--) {
                     callback(grid[y][x], x, y);
                 }
             }
@@ -92,6 +90,51 @@
             canvas.height = worldPxHeight;
             canvas.style.left = ( (screenPxWidth - worldPxWidth) / 2 ) + 'px';
             canvas.style.top = ( (screenPxHeight - worldPxHeight) / 2 ) + 'px';
+        };
+        
+        // Returns the border side (or false if it's not a border)
+        var getBorderSide = function(box, x, y) {
+            if (box.type === 'border') {
+                // left / right?
+                if (y !== 0 && y !== grid.length-1) {
+                    if (x === 0) {
+                        return 'left';
+                    }
+                    if (x === grid[0].length-1) {
+                        return 'right';
+                    }
+                }
+                // top / bottom?
+                if (x !== 0 && x !== grid[0].length-1) {
+                    if (y === 0) {
+                        return 'top';
+                    }
+                    if (y === grid.length-1) {
+                        return 'bottom';
+                    }
+                }
+            }
+            return false;
+        };
+        
+        // If a border is visible, the world is positionned to see it
+        var stickToBorder = function(borders) {
+            for (var i = borders.length - 1; i >= 0; i--){
+                switch (borders[i]) {
+                    case 'left':
+                        canvas.style.left = 0;
+                    break;
+                    case 'right':
+                        canvas.style.left = (screenDims[0] - (gridSize[0] * mio.modul.dims[0])) + 'px';
+                    break;
+                    case 'top':
+                        canvas.style.top = 0;
+                    break;
+                    case 'bottom':
+                        canvas.style.top = (screenDims[1] - (gridSize[1] * mio.modul.dims[1])) + 'px';
+                    break;
+                }
+            }
         };
         
         // Returns screen dimensions
@@ -113,7 +156,7 @@
             ctx = canvas.getContext('2d');
             screenDims = getScreenDims.call(this);
             if (window.MIO_DEBUG) {
-                canvas.style.border = '1px solid red';
+                canvas.style.outline = '1px solid red';
             }
         };
         
@@ -142,12 +185,22 @@
         pub.draw = function() {
             if (ctx) {
                 ctx.clearRect(0, 0, canvas.width, canvas.height); // clear canvas
+                var borders = [];
                 eachBox.call(this, function(box, x, y) {
+                    if (!box) return;
+                    
+                    var borderSide = getBorderSide.call(this, box, x, y);
+                    if (!!borderSide && borders.indexOf(borderSide) === -1) {
+                        borders.push(borderSide);
+                    }
+                    
                     drawGround.call(this, box.ground, x*50, y*50);
                     if (typeof box.modul === 'string') {
                         drawModul.call(this, {'mid': box.modul}, x*50, y*50);
                     }
                 });
+                // Reposition canvas if borders are displayed
+                stickToBorder.call(this, borders);
             }
         };
         
@@ -158,7 +211,6 @@
             // Always odd
             if (width % 2 === 0) width += 1;
             if (height % 2 === 0) height += 1;
-            
             return [ width, height ];
         };
         

@@ -2,7 +2,7 @@ var EventEmitter = require('events').EventEmitter,
     util = require('util'),
     Ground = require('./ground').Ground,
     curWorld = null,
-    borderWidth = 2;
+    borderWidth = 1;
 
 function initInterval(interval) {
     var self = this;
@@ -122,10 +122,10 @@ World.prototype.getGridFragment = function(position, dims) {
         ySlice = this.height-dims[1];
     }
     
-    var gridFrag = this.grid.slice(ySlice, ySlice+dims[1]-1);
+    var gridFrag = this.grid.slice(ySlice, ySlice+dims[1]);
     var gridFragLen = gridFrag.length;
     for (var i = 0; i < gridFragLen; i++) {
-        gridFrag[i] = gridFrag[i].slice(xSlice , xSlice+dims[0]-1);
+        gridFrag[i] = gridFrag[i].slice(xSlice, xSlice+dims[0]);
     }
     return gridFrag;
 };
