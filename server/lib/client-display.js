@@ -102,7 +102,7 @@ ClientDisplay.prototype.sendModulMove = function(modulId, newPosition) {
 
 // Send log
 ClientDisplay.prototype.sendLog = function(err) {
-    self.socket.emit('log', err.message + '\n' + err.stack);
+    this.socket.emit('log', err.message + '\n' + err.stack);
 };
 
 // Returns a list of currently displayed moduls
