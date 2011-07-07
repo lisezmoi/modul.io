@@ -222,7 +222,7 @@ function smole() {
     ctx.fillStyle    = '#fff';
     ctx.font         = '10px sans';
     ctx.textBaseline = 'top';
-    ctx.fillText ("FFFUU", 10, 35);
+    ctx.fillText ("BAH", 10, 35);
 }
 
 function say(msg1, msg2, msg3, msg4, msg5) {
@@ -288,17 +288,17 @@ smole();
 var iBtn = 0;
 // You can fill your panel on creation...
 var actionsPanel = new ButtonsPanel("Actions", [
-    new Button("______________________Top______________________", function(){
+    new Button("__________________Top__________________", function(){
         modul.move("top");
     }),
     
-    new Button("____Left____", function(){
+    new Button("___Left___", function(){
         modul.move("left");
     }),
-    new Button("____Bottom____", function(){
+    new Button("___Bottom___", function(){
         modul.move("bottom");
     }),
-    new Button("____Right____", function(){
+    new Button("___Right___", function(){
         modul.move("right");
     }),
     new Button("Say", say),
@@ -326,11 +326,10 @@ var actionsPanel = new ButtonsPanel("Actions", [
 
 var activeFlag = false;
 
-// var i = 1;
+//var i = 1;
 onInterval(function(){
-//     actionsPanel.add(new Button("button:"+i, function(){}));
-//     //modul.move(["top","right","left","bottom"][getRandomInt(0, 3)]);
-//     i++;
+     //actionsPanel.add(new Button("button:"+i, function(){}));
+     //i++;
     
     if (animActive && !!animFn) {
         animFn();

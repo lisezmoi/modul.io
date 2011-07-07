@@ -37,12 +37,12 @@ function compileScript() {
     }
 }
 
-function emitChanges(oldImgData) {
+function emitSkinChanges(oldImgData) {
     var updateSkin = false;
     
     var newImgData = this.canvas.toDataURL('image/png');
     if (oldImgData !== newImgData) {
-        this.emit('updateSkin', this.getSkinHash(newImgData));
+        this.emit('skinUpdate', this.getSkinHash(newImgData));
     }
 }
 
@@ -100,9 +100,14 @@ function getEnv() {
         return curModul.ctx;
     };
     modul.move = function(direction) {
+        var oldPosition = curModul.position;
+        
         // Move the modul (direction = [top,right,bottom,left])
-        curModul.world.moveModul(curModul, direction);
-        curModul.emit('move', curModul.position); // move event
+        var hasMoved = curModul.world.moveModul(curModul, direction);
+        
+        if (hasMoved) {
+            curModul.emit('move', oldPosition, curModul.position); // move event
+        }
     };
     // modul.actions: {
         // Exposed functions in UI buttons and HTTP API
@@ -170,7 +175,7 @@ Modul.prototype.execAction = function(panel, action, params, callback) {
     if (typeof curAction === 'function') {
         var imgData = this.canvas.toDataURL('image/png');
         this.panels[panel].buttons[action].callback.apply(this, params); // execute action
-        emitChanges.call(this, imgData);
+        emitSkinChanges.call(this, imgData);
     }
 };
 Modul.prototype.execIntervals = function() {
@@ -178,6 +183,6 @@ Modul.prototype.execIntervals = function() {
     while (i--) {
         var imgData = this.canvas.toDataURL('image/png');
         this.intervalFunctions[i]();
-        emitChanges.call(this, imgData);
+        emitSkinChanges.call(this, imgData);
     }
 };

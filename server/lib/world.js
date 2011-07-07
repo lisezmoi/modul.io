@@ -99,9 +99,13 @@ World.prototype.moveModul = function(modul, dir) {
             this.grid[curPos.y][curPos.x].modul = null; // Remove modul from current location
             this.grid[newPos.y][newPos.x].modul = modul.id; // Add modul to new location
             modul.position = newPos;
+            return true;
+        } else {
+            return false;
         }
     } else {
-        // Error: modul not listed
+        // Error modul not listed
+        return false;
     }
 };
 World.prototype.getGrid = function() {
@@ -122,10 +126,16 @@ World.prototype.getGridFragment = function(position, dims) {
         ySlice = this.height-dims[1];
     }
     
-    var gridFrag = this.grid.slice(ySlice, ySlice+dims[1]);
-    var gridFragLen = gridFrag.length;
-    for (var i = 0; i < gridFragLen; i++) {
-        gridFrag[i] = gridFrag[i].slice(xSlice, xSlice+dims[0]);
+    var gridFrag = {
+        fragment: null,
+        position: {
+            y: ySlice,
+            x: xSlice
+        }
+    };
+    gridFrag.fragment = this.grid.slice(ySlice, ySlice+dims[1]);
+    for (var i = gridFrag.fragment.length - 1; i >= 0; i--) {
+        gridFrag.fragment[i] = gridFrag.fragment[i].slice(xSlice, xSlice+dims[0]);
     }
     return gridFrag;
 };

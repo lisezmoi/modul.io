@@ -28,11 +28,6 @@ function initSocketEvents(socket) {
     
     var self = this;
     
-    // Log errors
-    function socketLogError(err) {
-        self.socket.emit('log', err.message + '\n' + err.stack);
-    }
-    
     // Send grounds IDs
     self.socket.emit('grounds', world.ground.groundIds);
     
@@ -48,13 +43,6 @@ function initSocketEvents(socket) {
         // Send code and panels
         socket.emit('code', self.modul.getCode());
         socket.emit('panels', self.modul.getPanels());
-        
-        // Log errors
-        self.modul.on('error', socketLogError);
-        
-        socket.on('disconnect', function() {
-            self.modul.removeListener('error', socketLogError);
-        });
         
         // Update grid size
         socket.on('gridSize', function(gridSize) {
@@ -80,18 +68,18 @@ function initSocketEvents(socket) {
     });
     
     socket.on('disconnect', function() {
-        ClientDisplay.remove(this);
+        ClientDisplay.remove(self);
     });
 }
 
 // Send a new skin to the client
-ClientDisplay.prototype.sendSkinUpdate = function(skin) {
-    this.socket.emit('updateSkin', skin);
+ClientDisplay.prototype.sendSkinUpdate = function(modulId, skinHash) {
+    this.socket.emit('updateSkin', modulId, skinHash);
 };
 
 // Send a new grid fragment to the client
 ClientDisplay.prototype.sendGridFragment = function() {
-    this.socket.emit('gridFragment', world.getGridFragment(this.modul.position, this.gridSize), this.gridSize);
+    this.socket.emit('gridFragment', world.getGridFragment(this.modul.position, this.gridSize).fragment, this.gridSize);
 };
 
 // Send panels to the client
@@ -99,21 +87,43 @@ ClientDisplay.prototype.sendPanels = function(panels) {
     this.socket.emit('panels', panels);
 };
 
+// Send a modul move
+ClientDisplay.prototype.sendModulMove = function(modulId, newPosition) {
+    if (modulId === this.modul.id) {
+        this.sendGridFragment();
+    } else {
+        var fragPosition = this.getFragmentPosition();
+        this.socket.emit('modulMove', modulId, {
+            x: newPosition.x - fragPosition.x,
+            y: newPosition.y - fragPosition.y
+        });
+    }
+};
+
+// Send log
+ClientDisplay.prototype.sendLog = function(err) {
+    self.socket.emit('log', err.message + '\n' + err.stack);
+};
+
 // Returns a list of currently displayed moduls
-ClientDisplay.prototype.getDisplayedModuls = function(callback) {
-    var dispModuls = [];
-    this.getGridFragment(function(gridFragment) {
-        var yLen = gridFragment.length;
-        for (var i = 0; i < yLen; i++) {
-            var xLen = gridFragment[i].length;
-            for (var j = 0; j < xLen; j++) {
-                if (gridFragment[i][j].modul) {
-                    dispModuls.push(gridFragment[i][j].modul);
-                }
-            }
-        }
-        callback(dispModuls);
-    });
+// ClientDisplay.prototype.getDisplayedModuls = function(callback) {
+//     var dispModuls = [];
+//     this.getGridFragment(function(gridFragment) {
+//         var yLen = gridFragment.length;
+//         for (var i = 0; i < yLen; i++) {
+//             var xLen = gridFragment[i].length;
+//             for (var j = 0; j < xLen; j++) {
+//                 if (gridFragment[i][j].modul) {
+//                     dispModuls.push(gridFragment[i][j].modul);
+//                 }
+//             }
+//         }
+//         callback(dispModuls);
+//     });
+// };
+
+ClientDisplay.prototype.getFragmentPosition = function() {
+    return world.getGridFragment(this.modul.position, this.gridSize).position;
 };
 
 // ** Static methods
@@ -134,15 +144,21 @@ ClientDisplay.getDisplaysByPosition = function(position) {
         return ( position.x >= xRange[0] && position.x <= xRange[1] &&
                  position.y >= yRange[0] && position.y <= yRange[1] );
     });
-    
     return displays;
 };
 
+// Returns a list of clients which displays one of the given positions
+ClientDisplay.getDisplaysByMove = function(oldPosition, newPosition) {
+    var oldPositionDisplays = ClientDisplay.getDisplaysByPosition(oldPosition);
+    var newPositionDisplays = ClientDisplay.getDisplaysByPosition(newPosition);
+    return _.uniq(oldPositionDisplays.concat(newPositionDisplays));
+};
+
 // Returns a list of clients which displays the given modul
-ClientDisplay.getDisplaysByModulId = function(mid, callback) {
+ClientDisplay.getDisplaysByModulId = function(modulId) {
     var displays = [];
-    for (var i = clientsList.length - 1; i >= 0; i--){
-        if (clientsList[i].id === mid) {
+    for (var i = clientsList.length - 1; i >= 0; i--) {
+        if (clientsList[i].modul.id === modulId) {
             displays.push(clientsList[i]);
         }
     }

@@ -35,23 +35,32 @@ exports.start = function(startCallback) {
     
     // Moduls events
     world.on('modulAdded', function(modul) {
-        modul.on('move', function(position) {
-            var displays = ClientDisplay.getDisplaysByPosition(position);
+        modul.on('move', function(oldPosition, newPosition) {
+            var displays = ClientDisplay.getDisplaysByMove(oldPosition, newPosition);
             for (var i = displays.length - 1; i >= 0; i--) {
-                displays[i].sendGridFragment();
+                if (displays[i].modul.id === modul.id) {
+                    displays[i].sendGridFragment(); // Update full grid if it is the display's main modul
+                } else {
+                    displays[i].sendModulMove(modul.id, newPosition); // Just move the modul
+                }
             }
         });
-        modul.on('skinUpdate', function(modul) {
-            var displays = ClientDisplay.getDisplaysByPosition(position);
+        modul.on('skinUpdate', function(skinHash) {
+            var displays = ClientDisplay.getDisplaysByPosition(modul.position);
             for (var i = displays.length - 1; i >= 0; i--) {
-                displays[i].sendSkinUpdate(skin);
+                displays[i].sendSkinUpdate(modul.id, skinHash);
             }
         });
         modul.on('panelsUpdate', function(panels) {
-            // console.log('receive panelsUpdate', panels.Actions);
             var displays = ClientDisplay.getDisplaysByModulId(modul.id);
             for (var i = displays.length - 1; i >= 0; i--) {
                 displays[i].sendPanels(panels);
+            }
+        });
+        modul.on('error', function(err) { // Log errors
+            var displays = ClientDisplay.getDisplaysByModulId(modul.id);
+            for (var i = displays.length - 1; i >= 0; i--) {
+                displays[i].sendLog(err);
             }
         });
     });
@@ -62,9 +71,6 @@ exports.start = function(startCallback) {
     } else {
         dManager.loadAllModuls();
     }
-    
-    // Socket.IO server
-    // socket.start(webServer);
     
     isStarted = true;
     console.log('modul.io started.');

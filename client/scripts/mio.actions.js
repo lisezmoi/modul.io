@@ -17,7 +17,6 @@
                             values[j] = window.prompt("Enter param #"+(j+1)+":");
                             j++;
                         }
-                        mio.util.d(buttons[i]);
                         mio.socket.emit('action', {
                             "panel": panel.label,
                             "name": buttons[i][0],
@@ -37,7 +36,7 @@
             for (var i in panels) {
                 curPanels[i] = mio.ui.panels.add(i, i, "br");
                 updatePanel(curPanels[i], panels[i], function() {
-                    mio.util.d("Actions updated.");
+                    // Actions updated
                 });
             }
         };

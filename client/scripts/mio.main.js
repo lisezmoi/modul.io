@@ -58,9 +58,14 @@
             mio.world.updateGrid(gridFragment, size);
         });
         
+        // Modul move
+        mio.socket.on('modulMove', function(modulId, newPosition) {
+            mio.world.moveModul(modulId, newPosition);
+        });
+        
         // Moduls skins
-        mio.socket.on('updateSkin', function(skin) {
-            mio.world.updateModulSkin(skin);
+        mio.socket.on('updateSkin', function(modulId, skinHash) {
+            mio.world.updateModulSkin(modulId, skinHash);
         });
         
         // Code
@@ -91,7 +96,7 @@
                 mio.ui.waitFor('gridfragment');
                 mio.socket.emit('gridSize', newGridSize);
             }
-            mio.world.realignWorld();
+            mio.world.realign();
             
             mio.ui.panels.refresh();
             mio.editor.refresh();

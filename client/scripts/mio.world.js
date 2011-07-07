@@ -10,7 +10,24 @@
             gridSize,
             grounds = [],
             groundSprite,
-            screenDims = [];
+            screenDims = [],
+            modulWidth = mio.modul.dims[0],
+            modulHeight = mio.modul.dims[1],
+            bordersVisible = false;
+        
+        var removeModul = function(modulId) {
+            eraseModul(modulId);
+            delete moduls[modulId];
+        };
+        
+        var addModul = function(modulId, x, y) {
+            if (!modulId[modulId]) {
+                moduls[modulId] = {
+                    pos: {x: x, y: y}
+                };
+                drawModul(modulId, x, y);
+            }
+        };
         
         // Draw a modul detection zone
         var showModulZone = function(x, y) {
@@ -19,29 +36,34 @@
         };
         
         // Draw a single modul
-        var drawModul = function(skin, x, y, zone) {
-            var mid = skin.mid,
-                hash = Date.now();
+        var drawModul = function(modulId, skinHash) {
+            // showModulZone(x, y);
             
-            moduls[mid] = moduls[mid] || {};
-            moduls[mid].pos = {x: x, y: y};
+            if (!moduls[modulId] || !moduls[modulId].pos) return;
             
-            if (!!zone) {
-                showModulZone(x, y);
-            }
+            if (!skinHash && !moduls[modulId].skin) return;
             
             function draw() {
-                ctx.clearRect(moduls[mid].pos.x, moduls[mid].pos.y, 50, 50);
-                ctx.drawImage(moduls[mid].skin, moduls[mid].pos.x, moduls[mid].pos.y);
+                eraseModul(modulId);
+                ctx.drawImage(moduls[modulId].skin, moduls[modulId].pos.x*50, moduls[modulId].pos.y*50);
             }
             
-            if (!moduls[mid].skin) {
-                mio.util.loadImage(mio.conf.url + mid + '/skin?'+hash, function(image) {
-                    moduls[mid].skin = image;
-                    draw();
+            if (!moduls[modulId].skin) {
+                mio.util.loadImage(mio.conf.url + modulId + '/skin?'+skinHash, function(img) {
+                    if (!!moduls[modulId]) {
+                        moduls[modulId].skin = img;
+                        draw();
+                    }
                 });
             } else {
                 draw();
+            }
+        };
+        
+        // Erase (display only) a modul
+        var eraseModul = function(modulId) {
+            if (!!moduls[modulId] && !!moduls[modulId].pos) {
+                ctx.clearRect(moduls[modulId].pos.x*50, moduls[modulId].pos.y*50, modulWidth, modulHeight);
             }
         };
         
@@ -80,14 +102,17 @@
         };
         
         // Set styles on canvas element
-        var setWorldStyles = function() {
+        var setWorldStyles = function(resize) {
             var screenPxWidth = screenDims[0],
                 screenPxHeight = screenDims[1],
-                worldPxWidth = gridSize[0] * mio.modul.dims[0],
-                worldPxHeight = gridSize[1] * mio.modul.dims[1];
+                worldPxWidth = gridSize[0] * modulWidth,
+                worldPxHeight = gridSize[1] * modulHeight;
             
-            canvas.width = worldPxWidth;
-            canvas.height = worldPxHeight;
+            if (resize) {
+                canvas.width = worldPxWidth;
+                canvas.height = worldPxHeight;
+            }
+            
             canvas.style.left = ( (screenPxWidth - worldPxWidth) / 2 ) + 'px';
             canvas.style.top = ( (screenPxHeight - worldPxHeight) / 2 ) + 'px';
         };
@@ -125,25 +150,26 @@
                         canvas.style.left = 0;
                     break;
                     case 'right':
-                        canvas.style.left = (screenDims[0] - (gridSize[0] * mio.modul.dims[0])) + 'px';
+                        canvas.style.left = (screenDims[0] - (gridSize[0] * modulWidth)) + 'px';
                     break;
                     case 'top':
                         canvas.style.top = 0;
                     break;
                     case 'bottom':
-                        canvas.style.top = (screenDims[1] - (gridSize[1] * mio.modul.dims[1])) + 'px';
+                        canvas.style.top = (screenDims[1] - (gridSize[1] * modulHeight)) + 'px';
                     break;
                 }
             }
+            
+            bordersVisible = (borders.length > 0);
         };
         
         // Returns screen dimensions
         var getScreenDims = function() {
             var width = window.innerWidth;
             var height = window.innerHeight;
-            
             if (window.MIO_DEBUG) {
-                var w = document.getElementById("world-container");
+                var w = mio.util.gid("world-container");
                 width = w.clientWidth;
                 height = w.clientHeight;
             }
@@ -168,35 +194,64 @@
         
         // Update grid size
         pub.updateGrid = function(newGrid, newSize) {
-            gridSize = newSize;
             grid = newGrid;
-            this.realignWorld();
+            gridSize = newSize;
+            this.realign(true);
+            this.draw();
         };
         
         // Update modul skin
-        pub.updateModulSkin = function(skin) {
-            if (!!moduls[skin.mid]) {
-                delete moduls[skin.mid].skin;
-                drawModul.call(this, skin, moduls[skin.mid].pos.x, moduls[skin.mid].pos.y);
+        pub.updateModulSkin = function(modulId, skinHash) {
+            if (!!moduls[modulId]) {
+                delete moduls[modulId].skin;
+                drawModul.call(this, modulId, skinHash);
+            }
+        };
+        
+        // Move a modul
+        pub.moveModul = function(modulId, position) {
+            if (!!moduls[modulId]) {
+                
+                eraseModul(modulId);
+                
+                // Remove modul
+                if ( position.x === -1 || position.x > gridSize[0]-1 ||
+                     position.y === -1 || position.y > gridSize[1]-1 ) {
+                    removeModul(modulId);
+                
+                // Redraw modul
+                } else {
+                    moduls[modulId].pos = position;
+                    drawModul(modulId);
+                }
             }
         };
         
         // Draw the world fragment
         pub.draw = function() {
+            // moduls = {}; // reset moduls references
+            
             if (ctx) {
                 ctx.clearRect(0, 0, canvas.width, canvas.height); // clear canvas
                 var borders = [];
                 eachBox.call(this, function(box, x, y) {
-                    if (!box) return;
                     
+                    // Check border side
                     var borderSide = getBorderSide.call(this, box, x, y);
                     if (!!borderSide && borders.indexOf(borderSide) === -1) {
                         borders.push(borderSide);
                     }
                     
+                    // Draw ground
                     drawGround.call(this, box.ground, x*50, y*50);
+                    
+                    // Add / draw modul
                     if (typeof box.modul === 'string') {
-                        drawModul.call(this, {'mid': box.modul}, x*50, y*50);
+                        if (!moduls[box.modul]) {
+                            addModul.call(this, box.modul, x, y);
+                        } else {
+                            pub.moveModul.call(this, box.modul, {x: x, y: y});
+                        }
                     }
                 });
                 // Reposition canvas if borders are displayed
@@ -215,12 +270,11 @@
         };
         
         // Realign world
-        pub.realignWorld = function() {
-            screenDims = getScreenDims.call(this);
-            setWorldStyles.call(this);
-            
-            // Refresh
-            mio.world.draw();
+        pub.realign = function(resize) {
+            if (!bordersVisible) {
+                screenDims = getScreenDims.call(this);
+                setWorldStyles.call(this, resize);
+            }
         };
         
         return pub;

@@ -23,7 +23,7 @@ var Canvas = require('canvas'),
             wall: function(ctx, x, y, callback) {
                 x = x + 0.5;
                 y = y + 0.5;
-                ctx.strokeStyle = '#fff';
+                ctx.strokeStyle = '#173f77';
                 ctx.moveTo(x, y);
                 ctx.lineTo(x+49.5, y);
                 ctx.lineTo(x+49.5, y+49.5);
