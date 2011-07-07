@@ -1,0 +1,24 @@
+<!doctype html>
+<%
+	var site_url = "http://"+host+"/";
+%>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>modul.io</title>
+	<link rel="shortcut icon" href="/favicon.ico" />
+	<link href="http://fonts.googleapis.com/css?family=Droid+Sans+Mono" rel="stylesheet" type="text/css" />
+	<style type="text/css">
+		body,
+		button{font:26px 'Droid Sans Mono', sans-serif;}
+		body{color:#fff;margin-top:200px;text-align:center;background:#0b1728;}
+		button{color:#0b1728;cursor:pointer;}
+	</style>
+</head>
+<body>
+	<h1><%- user %>/<%- modul %> does not exist.</h1>
+	<form method="post" action="">
+		<button>Wanna create “<%- user %>/<%- modul %>”?</button>
+	</form>
+</body>
+</html>

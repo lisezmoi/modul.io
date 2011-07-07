@@ -54,32 +54,54 @@ exports.start = function(port) {
         });
     });
     
-    // Modul page
-    server.get('/:user/:modul', function(req, res, next) {
-        /* Modul exists? */
-        if ( "undefined" === typeof world.getModul(req.params.user + '/' + req.params.modul) ) {
-            return next();
-        }
-        res.render('modul.ejs', {
-            layout: false,
-            locals: {
-                user: req.params.user,
-                modul: req.params.modul,
-                host: req.headers.host,
-                domain: req.headers.host.slice(0,-5),
-                sessionID: req.sessionID
-            }
-        });
-    });
-    
     // Get a modul image
     server.get('/:user/:modul/skin', function(req, res, next) {
-        world.getModuls(function(moduls) {
+        var modul = world.getModul(req.params.user + "/" + req.params.modul);
+        if (modul) {
             res.writeHead(200, {'Content-Type': 'image/png'});
-            moduls[req.params.user + "/" + req.params.modul].getSkinPng(function(buf){
+            modul.getSkinPng(function(buf) {
                 res.end(buf);
             });
-        });
+        } else {
+            next();
+        }
+    });
+    
+    // Modul page
+    server.get('/:user/:modul', function(req, res, next) {
+        
+        if ( !world.getModul(req.params.user + '/' + req.params.modul) ) { // Modul exists?
+            res.render('create-modul.ejs', {
+                layout: false,
+                host: req.headers.host,
+                user: req.params.user,
+                modul: req.params.modul
+            });
+        } else {
+            res.render('modul.ejs', {
+                layout: false,
+                locals: {
+                    user: req.params.user,
+                    modul: req.params.modul,
+                    host: req.headers.host,
+                    domain: req.headers.host.slice(0,-5),
+                    sessionID: req.sessionID
+                }
+            });
+        }
+    });
+    
+    // Modul creation
+    server.post('/:user/:modul', function(req, res, next) {
+        var modulId = req.params.user + '/' + req.params.modul;
+        if (!world.getModul(modulId)) {
+            var dManager = require('./data-manager').getDataManager();
+            dManager.createDefaultModul(modulId, function(modul) {
+                res.redirect('/'+modulId);
+            });
+        } else {
+            next();
+        }
     });
     
     // NotFound Exception

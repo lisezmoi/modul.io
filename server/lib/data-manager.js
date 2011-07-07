@@ -1,6 +1,7 @@
 var fs = require('fs'),
     path = require('path'),
     world = require('./world').getWorld(),
+    world = require('./world').getWorld(),
     dManager = null;
 
 // DataManager Class
@@ -41,14 +42,36 @@ DataManager.prototype.loadFixtures = function(callback) {
     require('../fixtures/load-fixtures');
     if (callback) callback();
 };
+DataManager.prototype.createDefaultModul = function(modulId, callback) {
+    var Modul = require('./modul').Modul;
+    function getRandomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+    
+    var modul = new Modul(modulId);
+    var modulAdded = null;
+    if (!modulAdded) {
+        modulAdded = world.addModul(
+                         modul,
+                         getRandomInt(1, world.width-1),
+                         getRandomInt(1, world.height-1)
+                     );
+    }
+    modul.updateCode(
+        fs.readFileSync(__dirname + '/../fixtures/default-default.modul', 'utf8')
+    );
+    
+    return callback(modul);
+};
 DataManager.prototype.loadModul = function(name, callback) {
     var Modul = require('./modul').Modul;
     console.log('load ' + name + '...');
     
     var modulPath = path.normalize(__dirname + '/../data/' + name);
+    var modulCode = null;
     
     try {
-        var modulCode = fs.readFileSync(modulPath, 'utf8');
+        modulCode = fs.readFileSync(modulPath, 'utf8');
     } catch(e) {
         if (e.code === 'EISDIR') {
             return callback();

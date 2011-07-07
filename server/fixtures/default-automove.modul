@@ -79,5 +79,14 @@ var actionsPanel = new ButtonsPanel("Actions", [
     }),
 ]);
 
+function getRandomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+onInterval(function(){
+    modul.move(["top","right","left","bottom"][getRandomInt(0, 3)]);
+});
+
+
 // Finally the skin is drawn
 default_skin();

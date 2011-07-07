@@ -20,7 +20,7 @@ function loadDefaults(count) {
         if (!loadFixture('default', num,
                          getRandomInt(1, world.width-1),
                          getRandomInt(1, world.height-1),
-                         'default-default.modul')) {
+                         'default-automove.modul')) {
             addModul(num);
         }
     }
