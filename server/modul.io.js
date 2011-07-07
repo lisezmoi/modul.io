@@ -35,6 +35,7 @@ exports.start = function(startCallback) {
     
     // Moduls events
     world.on('modulAdded', function(modul) {
+        console.log('++ ' + modul.id + ' at ['+modul.position.x + ',' + modul.position.y+']');
         modul.on('move', function(oldPosition, newPosition) {
             var displays = ClientDisplay.getDisplaysByMove(oldPosition, newPosition);
             for (var i = displays.length - 1; i >= 0; i--) {

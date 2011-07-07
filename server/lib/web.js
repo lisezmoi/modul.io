@@ -132,7 +132,7 @@ exports.start = function(port) {
     });
     
     server.listen(port);
-    console.log('modul.io server started: http://127.0.0.1:'+port);
+    console.log('webserver started: http://127.0.0.1:'+port);
     
     return server;
 };

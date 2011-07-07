@@ -65,7 +65,6 @@ DataManager.prototype.createDefaultModul = function(modulId, callback) {
 };
 DataManager.prototype.loadModul = function(name, callback) {
     var Modul = require('./modul').Modul;
-    console.log('load ' + name + '...');
     
     var modulPath = path.normalize(__dirname + '/../data/' + name);
     var modulCode = null;
@@ -96,7 +95,6 @@ DataManager.prototype.loadModul = function(name, callback) {
                 }
             })();
             
-            console.log(name + ' loaded at ['+ x + ',' + y +'].');
             return callback();
         });
     }
