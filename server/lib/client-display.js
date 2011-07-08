@@ -102,7 +102,7 @@ ClientDisplay.prototype.sendModulMove = function(modulId, newPosition) {
 
 // Send log
 ClientDisplay.prototype.sendLog = function(err) {
-    this.socket.emit('log', err.message + '\n' + err.stack);
+    this.socket.emit('log', 'Error: '+ err.message + '\n' + err.stack);
 };
 
 // Returns a list of currently displayed moduls
@@ -131,7 +131,8 @@ ClientDisplay.prototype.getFragmentPosition = function() {
 // Returns a list of clients wich displays the given position
 ClientDisplay.getDisplaysByPosition = function(position) {
     var displays = clientsList.filter(function(client) {
-        if (!client.modul) return false;
+        
+        if (!client.modul || !client.gridSize) return false;
         
         var xRange = [
             client.modul.position.x - (client.gridSize[0]-1) / 2,

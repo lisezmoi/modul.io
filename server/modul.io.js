@@ -58,7 +58,7 @@ exports.start = function(startCallback) {
                 displays[i].sendPanels(panels);
             }
         });
-        modul.on('error', function(err) { // Log errors
+        modul.on('codeError', function(err) { // Log errors
             var displays = ClientDisplay.getDisplaysByModulId(modul.id);
             for (var i = displays.length - 1; i >= 0; i--) {
                 displays[i].sendLog(err);

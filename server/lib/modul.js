@@ -30,10 +30,7 @@ function compileScript() {
     try {
         Script.runInNewContext(this.code, this.env);
     } catch (e) {
-        this.emit('error', e);
-        console.log('============');
-        console.log('MODUL ERROR: ', e.message);
-        console.log('ERROR STACK: ', e.stack);
+        this.emit('codeError', e);
     }
 }
 
@@ -174,7 +171,11 @@ Modul.prototype.execAction = function(panel, action, params, callback) {
     var curAction = this.panels[panel].buttons[action].callback;
     if (typeof curAction === 'function') {
         var imgData = this.canvas.toDataURL('image/png');
-        this.panels[panel].buttons[action].callback.apply(this, params); // execute action
+        try {
+            this.panels[panel].buttons[action].callback.apply(this, params); // execute action
+        } catch (e) {
+            this.emit('codeError', e);
+        }
         emitSkinChanges.call(this, imgData);
     }
 };
@@ -182,7 +183,11 @@ Modul.prototype.execIntervals = function() {
     var i = this.intervalFunctions.length;
     while (i--) {
         var imgData = this.canvas.toDataURL('image/png');
-        this.intervalFunctions[i]();
+        try {
+            this.intervalFunctions[i]();
+        } catch (e) {
+            this.emit('codeError', e);
+        }
         emitSkinChanges.call(this, imgData);
     }
 };

@@ -30,6 +30,7 @@
             var line = mio.util.createElt("pre");
             line.textContent = msg;
             consoleElt.appendChild(line);
+            consolePanel.show();
         };
         
         pub.clear = function() {
