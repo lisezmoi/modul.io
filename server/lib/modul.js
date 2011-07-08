@@ -15,11 +15,16 @@ function Modul(id) {
     this.canvas = new Canvas(50,50);
     this.ctx = this.canvas.getContext('2d');
     delete this.ctx.canvas; // do not expose canvas
-    this.env = getEnv.call(this);
+    this.env = null;
     this.code = '';
     this.position = {x: 0, y: 0};
     this.panels = {};
     this.intervalFunctions = [];
+    this.preScript = [
+        '"use strict";',
+        'Error.prepareStackTrace = prepareStackTrace;',
+        'Object.freeze(Error);'
+    ];
 }
 util.inherits(Modul, EventEmitter);
 exports.Modul = Modul;
@@ -27,8 +32,14 @@ exports.Modul = Modul;
 function compileScript() {
     this.panels = {};
     this.intervalFunctions = [];
+    this.env = getEnv.call(this);
+    
     try {
-        Script.runInNewContext(this.code, this.env);
+        Script.runInNewContext(
+            this.preScript.join('\n') + '\n' + this.code,
+            this.env,
+            'modulCode'
+        );
     } catch (e) {
         this.emit('codeError', e);
     }
@@ -114,11 +125,28 @@ function getEnv() {
         curModul.intervalFunctions.push(fn);
     }
     
-    var env = {
-        'ButtonsPanel': ButtonsPanel,
-        'Button': Button,
-        'modul': modul,
-        'onInterval': onInterval
+    var env = {};
+    env.ButtonsPanel = ButtonsPanel;
+    env.Button = Button;
+    env.modul = modul;
+    env.onInterval = onInterval;
+    
+    // Special stack trace
+    env.prepareStackTrace = function(e, structuredStack) {
+        var stack = '';
+        for (var i=0; i < structuredStack.length; i++) {
+            if (structuredStack[i].getFileName() === 'modulCode') {
+                stack += '  at';
+                var fnName = structuredStack[i].getFunctionName();
+                if (fnName.length > 0) {
+                    stack += ' ' + fnName;
+                }
+                stack += ' line ' + (structuredStack[i].getLineNumber() - curModul.preScript.length);
+                stack += ' col ' + structuredStack[i].getColumnNumber();
+                stack += '\n';
+            }
+        }
+        return stack;
     };
     
     return env;
