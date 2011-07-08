@@ -65,8 +65,8 @@ function getEnv() {
     }
     
     /* ButtonsPanel */
-    function ButtonsPanel(panelName, buttons) {
-        this.panel = curModul.panels[panelName] = new Panel(panelName, {});
+    function ButtonsPanel(name, buttons) {
+        this.panel = curModul.panels[name] = new Panel(name, {});
         if (!!buttons) {
             var buttonsLen = buttons.length;
             for (var i = 0; i < buttonsLen; i++) {
@@ -130,6 +130,11 @@ function getEnv() {
     env.Button = Button;
     env.modul = modul;
     env.onInterval = onInterval;
+    env.world = {
+        getDimensions: function() {
+            return [curModul.world.width, curModul.world.height];
+        }
+    };
     
     // Special stack trace
     env.prepareStackTrace = function(e, structuredStack) {
