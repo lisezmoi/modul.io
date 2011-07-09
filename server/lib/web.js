@@ -73,6 +73,7 @@ exports.start = function(port) {
         if ( !world.getModul(req.params.user + '/' + req.params.modul) ) { // Modul exists?
             res.render('create-modul.ejs', {
                 layout: false,
+                status: 404,
                 host: req.headers.host,
                 user: req.params.user,
                 modul: req.params.modul
