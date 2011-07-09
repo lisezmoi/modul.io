@@ -13,7 +13,8 @@
             screenDims = [],
             modulWidth = mio.modul.dims[0],
             modulHeight = mio.modul.dims[1],
-            bordersVisible = false;
+            bordersVisible = false,
+            currentBorders = [];
         
         var removeModul = function(modulId) {
             eraseModul(modulId);
@@ -113,6 +114,8 @@
                 canvas.height = worldPxHeight;
             }
             
+            canvas.style.right = 'auto';
+            canvas.style.bottom = 'auto';
             canvas.style.left = ( (screenPxWidth - worldPxWidth) / 2 ) + 'px';
             canvas.style.top = ( (screenPxHeight - worldPxHeight) / 2 ) + 'px';
         };
@@ -143,25 +146,27 @@
         };
         
         // If a border is visible, the world is positionned to see it
-        var stickToBorder = function(borders) {
-            for (var i = borders.length - 1; i >= 0; i--){
-                switch (borders[i]) {
+        var stickToBorder = function() {
+            for (var i = this.currentBorders.length - 1; i >= 0; i--){
+                switch (this.currentBorders[i]) {
                     case 'left':
                         canvas.style.left = 0;
                     break;
                     case 'right':
-                        canvas.style.left = (screenDims[0] - (gridSize[0] * modulWidth)) + 'px';
+                        canvas.style.left = 'auto';
+                        canvas.style.right = 0;
                     break;
                     case 'top':
                         canvas.style.top = 0;
                     break;
                     case 'bottom':
-                        canvas.style.top = (screenDims[1] - (gridSize[1] * modulHeight)) + 'px';
+                        canvas.style.top = 'auto';
+                        canvas.style.bottom = 0;
                     break;
                 }
             }
             
-            bordersVisible = (borders.length > 0);
+            bordersVisible = (this.currentBorders.length > 0);
         };
         
         // Returns screen dimensions
@@ -229,33 +234,33 @@
         
         // Draw the world fragment
         pub.draw = function() {
+            var self = this;
             // moduls = {}; // reset moduls references
-            
             if (ctx) {
                 ctx.clearRect(0, 0, canvas.width, canvas.height); // clear canvas
-                var borders = [];
-                eachBox.call(this, function(box, x, y) {
+                self.currentBorders = [];
+                eachBox.call(self, function(box, x, y) {
                     
                     // Check border side
-                    var borderSide = getBorderSide.call(this, box, x, y);
-                    if (!!borderSide && borders.indexOf(borderSide) === -1) {
-                        borders.push(borderSide);
+                    var borderSide = getBorderSide.call(self, box, x, y);
+                    if (!!borderSide && self.currentBorders.indexOf(borderSide) === -1) {
+                        self.currentBorders.push(borderSide);
                     }
                     
                     // Draw ground
-                    drawGround.call(this, box.ground, x*50, y*50);
+                    drawGround.call(self, box.ground, x*50, y*50);
                     
                     // Add / draw modul
                     if (typeof box.modul === 'string') {
                         if (!moduls[box.modul]) {
-                            addModul.call(this, box.modul, x, y);
+                            addModul.call(self, box.modul, x, y);
                         } else {
-                            pub.moveModul.call(this, box.modul, {x: x, y: y});
+                            pub.moveModul.call(self, box.modul, {x: x, y: y});
                         }
                     }
                 });
                 // Reposition canvas if borders are displayed
-                stickToBorder.call(this, borders);
+                stickToBorder.call(this);
             }
         };
         
@@ -271,9 +276,10 @@
         
         // Realign world
         pub.realign = function(resize) {
-            if (!bordersVisible) {
-                screenDims = getScreenDims.call(this);
-                setWorldStyles.call(this, resize);
+            screenDims = getScreenDims.call(this);
+            setWorldStyles.call(this, resize);
+            if (bordersVisible) {
+                stickToBorder.call(this);
             }
         };
         
