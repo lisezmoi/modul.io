@@ -8,7 +8,7 @@ button span{margin-top:-1px;} /* Safari and Google Chrome only - fix margins */
 }
 
 
-*{
+html{
 font-family:verdana, arial, monospace;
 font-size:10px;
 letter-spacing:0.04em;
@@ -169,8 +169,6 @@ right:10px;
 
 #menu .open.logo{
 opacity:0.8;
-font-family:dejavubold, futura, verdana;
-font-weight:bold;
 text-transform:none;
 font-size:20px;
 position:absolute;
@@ -226,6 +224,8 @@ background:transparent;
 cursor:pointer;
 width:48.2%;
 margin:0 0 4px 0;
+padding:2px 0;
+font-size:12px;
 cursor:pointer;
 }
 #playground button.keyActive{
@@ -289,6 +289,7 @@ b{
 font-family:modulicons2218;
 font-weight:normal;
 font-size:16px;
+vertical-align:bottom;
 }
 .inside{
 display:none;
@@ -315,11 +316,6 @@ background: #000;
 ::-moz-selection {
 background: #000;
 }
-@font-face {
-	font-family: dejavubold;
-	src: url('font/DejaVuSans-Bold.ttf');
-}
-
 
 @font-face {
     font-family: 'modulicons';

@@ -1,7 +1,7 @@
 
 
-*{
-font-family:envy, inconsolata, courier new, monospace;
+html{
+font-family:EnvyCodeB10ptRegular, courier new, monospace;
 font-size:10pt;
 letter-spacing:0.04em;
 text-transform:uppercase;
@@ -132,6 +132,13 @@ border:0px;
 }
 
 @font-face {
-	font-family: envy;
-	src: url('font/Envy.ttf');
+    font-family: 'EnvyCodeB10ptRegular';
+    src: url('font/envy/envy-webfont.eot');
+    src: url('font/envy/envy-webfont.eot?#iefix') format('embedded-opentype'),
+         url('font/envy/envy-webfont.woff') format('woff'),
+         url('font/envy/envy-webfont.ttf') format('truetype'),
+         url('font/envy/envy-webfont.svg#EnvyCodeB10ptRegular') format('svg');
+    font-weight: normal;
+    font-style: normal;
 }
+
