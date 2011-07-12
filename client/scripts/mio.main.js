@@ -104,18 +104,19 @@
             mio.ui.refreshModulInfos();
         }, false);
         
-        
         var hoveredBox = null;
         window.addEventListener('mousemove', function(e) {
             var x = Math.floor((e.clientX - mio.world.canvas.style.left.slice(0,-2)-0) / 50);
             var y = Math.floor((e.clientY - mio.world.canvas.style.top.slice(0,-2)-0) / 50);
-            hoveredBox = mio.world.grid[y][x];
-            hoveredBox.x = x;
-            hoveredBox.y = y;
-            if (hoveredBox.modul) {
-                mio.world.canvas.className = 'hover';
-            } else {
-                mio.world.canvas.className = '';
+            if (mio.world.grid[y] && mio.world.grid[y][x]) {
+              hoveredBox = mio.world.grid[y][x];
+              hoveredBox.x = x;
+              hoveredBox.y = y;
+              if (hoveredBox.modul) {
+                  mio.world.canvas.className = 'hover';
+              } else {
+                  mio.world.canvas.className = '';
+              }
             }
         }, false);
         
