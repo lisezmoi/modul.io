@@ -1,7 +1,7 @@
 
 html{
-font-family: DroidSansMonoRegular, courier new, monospace;
-font-size:14px;
+font-family: 'InconsolataMedium', courier new, monospace;
+font-size:16px;
 letter-spacing:0.04em;
 }
 
@@ -88,13 +88,14 @@ color:#9BFB00;
 border:0px;
 }
 @font-face {
-    font-family: 'DroidSansMonoRegular';
-    src: url('font/droidsansmono/droidsansmono-webfont.eot');
-    src: url('font/droidsansmono/droidsansmono-webfont.eot?#iefix') format('embedded-opentype'),
-         url('font/droidsansmono/droidsansmono-webfont.woff') format('woff'),
-         url('font/droidsansmono/droidsansmono-webfont.ttf') format('truetype'),
-         url('font/droidsansmono/droidsansmono-webfont.svg#DroidSansMonoRegular') format('svg');
+    font-family: 'InconsolataMedium';
+    src: url('font/inconsolata/inconsolata-webfont.eot');
+    src: url('font/inconsolata/inconsolata-webfont.eot?#iefix') format('embedded-opentype'),
+         url('font/inconsolata/inconsolata-webfont.woff') format('woff'),
+         url('font/inconsolata/inconsolata-webfont.ttf') format('truetype'),
+         url('font/inconsolata/inconsolata-webfont.svg#InconsolataMedium') format('svg');
     font-weight: normal;
     font-style: normal;
-
 }
+
+
