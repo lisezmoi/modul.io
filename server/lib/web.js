@@ -42,8 +42,10 @@ exports.start = function(port) {
     
     // Home
     server.get('/', function(req, res, next) {
-        res.writeHead(200);
-        res.end("index");
+        res.render('index.ejs', {
+            layout: false,
+            host: req.headers.host
+        });
     });
     
     // Get ground sprites

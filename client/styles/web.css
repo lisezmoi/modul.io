@@ -1,0 +1,60 @@
+html {
+  background:#0b1728 url(i/logo_198x38.png) no-repeat 50% 50px;
+}
+body, input, h2, button {
+  font:30px 'Droid Sans Mono', monospace;
+}
+h2 {
+  margin:40px 0 50px;
+  font-weight:normal;
+}
+.board {
+  width:60%;
+  margin:200px auto 50px;
+  padding:20px;
+  text-align:center;
+  color:#fff;
+  background:rgba(200, 200, 255, 0.1);
+  border-top:1px solid rgba(200, 200, 255, 0.1);
+  border-bottom:1px solid rgba(0, 0, 25, 0.5);
+}
+h3 {
+  font-size:18px;
+  font-weight:normal;
+}
+button {
+  color:#0b1728;
+  cursor:pointer;
+}
+iframe {
+  float:left;
+  width:200px;
+  height:200px;
+  margin:0 40px 0 0;
+  border:rgba(200, 200, 255, 0.1) solid 1px;
+}
+input {
+  width:50%;
+}
+ul {
+  list-style:none;
+}
+li {
+  clear:both;
+  overflow:hidden;
+  margin:50px 0 0;
+  text-align:left;
+}
+li button {
+  font-size:18px;
+}
+p {
+  line-height:28px;
+  margin:0;
+  font-size:14px;
+}
+hr {
+  margin:60px 0 30px;
+  border:0;
+  border-top:1px solid rgba(200, 200, 255, 0.1);
+}
