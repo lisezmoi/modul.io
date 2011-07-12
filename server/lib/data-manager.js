@@ -16,10 +16,18 @@ DataManager.prototype.loadAllModuls = function(callback) {
     var dirs = fs.readdirSync(__dirname + '/../data');
     for (var i in dirs) {
         if (dirs.hasOwnProperty(i)) {
-            var files = fs.readdirSync(__dirname + '/../data/' + dirs[i]);
-            for (var j in files) {
-                if (files.hasOwnProperty(j)) {
-                    modulsList.push(dirs[i] + '/' + files[j]);
+            try {
+                var files = fs.readdirSync(__dirname + '/../data/' + dirs[i]);
+                for (var j in files) {
+                    if (files.hasOwnProperty(j)) {
+                        modulsList.push(dirs[i] + '/' + files[j]);
+                    }
+                }
+            } catch(e) {
+                if (e.code === 'ENOTDIR') {
+                    continue;
+                } else {
+                    throw e;
                 }
             }
         }
