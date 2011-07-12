@@ -8,17 +8,12 @@
 	<title>modul.io</title>
 	<link rel="shortcut icon" href="/favicon.ico" />
 	<link href="http://fonts.googleapis.com/css?family=Droid+Sans+Mono" rel="stylesheet" type="text/css" />
-	<style type="text/css">
-		body,
-		button{font:26px 'Droid Sans Mono', sans-serif;}
-		body{color:#fff;margin-top:200px;text-align:center;background:#0b1728;}
-		button{color:#0b1728;cursor:pointer;}
-	</style>
+	<link href="styles/server.css" rel="stylesheet" type="text/css" />
 </head>
-<body>
-	<h1><%- user %>/<%- modul %> does not exist.</h1>
+<body class="board">
+	<h2><%- user %>/<%- modul %> does not exist.</h2>
 	<form method="post" action="">
-		<button>Wanna create “<%- user %>/<%- modul %>”?</button>
+		<button>Create it</button>
 	</form>
 </body>
 </html>
