@@ -117,6 +117,9 @@ function getEnv() {
             curModul.emit('move', oldPosition, curModul.position); // move event
         }
     };
+    modul.getDimensions = function() {
+      return [50, 50];
+    };
     // modul.actions: {
         // Exposed functions in UI buttons and HTTP API
     // };

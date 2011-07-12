@@ -15,6 +15,10 @@ Get the 2D Context of the modul. It is a regular [Canvas.getContext('2d')](https
 
 Move the modul in a direction. Direction must be one of these: `"top"`, `"right"`, `"bottom"`, `"left"`.
 
+### modul.getDimensions()
+
+Returns the modul dimensions, as a `[width, height]` Array.
+
 ## onInterval()
 
 Add a function to the world interval. The world interval is triggered once per second.
