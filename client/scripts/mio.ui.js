@@ -252,4 +252,42 @@
     mio.consoles = (function(){
         
     });
+    
+    var modulInfosList = [];
+    function styleModulInfos(modulInfo) {
+      modulInfo.wrapper.style.left = (mio.world.canvas.style.left.slice(0,-2)-0) + (50 * (modulInfo.position.x-4)) + 'px';
+      modulInfo.wrapper.style.top = (mio.world.canvas.style.top.slice(0,-2)-0) + (50 * (modulInfo.position.y)) + 'px';
+    }
+    mio.ui.modulInfos = function(name, position) {
+        var wrapper = document.createElement("div");
+        wrapper.className = 'modul-info';
+        wrapper.innerHTML = name;
+        document.body.appendChild(wrapper);
+        wrapper.onclick = function(){
+            delete wrapper.onclick;
+            document.body.removeChild(wrapper);
+            modulInfosList.splice(modulInfosList.indexOf(wrapper), 1);
+        };
+        var modulInfos = {
+          wrapper: wrapper,
+          name: name,
+          position: position
+        };
+        modulInfosList.push(modulInfos);
+        styleModulInfos(modulInfos);
+    };
+    
+    mio.ui.refreshModulInfos = function() {
+      modulInfosList.forEach(function(modulInfos) {
+        styleModulInfos(modulInfos);
+      });
+    };
+    
+    mio.ui.closeModulInfos = function() {
+      modulInfosList.forEach(function(modulInfos) {
+        delete modulInfos.wrapper.onclick;
+        document.body.removeChild(modulInfos.wrapper);
+      });
+      modulInfosList = [];
+    };
 })();

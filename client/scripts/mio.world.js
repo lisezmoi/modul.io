@@ -182,8 +182,8 @@
         };
         
         // Init world
-        pub.init = function(canvasId) {
-            canvas = mio.util.gid('world');
+        pub.init = function() {
+            canvas = pub.canvas = mio.util.gid('world');
             ctx = canvas.getContext('2d');
             screenDims = getScreenDims.call(this);
             if (window.MIO_DEBUG) {
@@ -199,7 +199,7 @@
         
         // Update grid size
         pub.updateGrid = function(newGrid, newSize) {
-            grid = newGrid;
+            grid = this.grid = newGrid;
             gridSize = newSize;
             this.realign(true);
             this.draw();

@@ -159,7 +159,7 @@ ClientDisplay.getDisplaysByMove = function(oldPosition, newPosition) {
 ClientDisplay.getDisplaysByModulId = function(modulId) {
     var displays = [];
     for (var i = clientsList.length - 1; i >= 0; i--) {
-        if (clientsList[i].modul.id === modulId) {
+        if (clientsList[i].modul && clientsList[i].modul.id === modulId) {
             displays.push(clientsList[i]);
         }
     }
