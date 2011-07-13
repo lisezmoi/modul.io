@@ -18,6 +18,10 @@ h2 {
   border-top:1px solid rgba(200, 200, 255, 0.1);
   border-bottom:1px solid rgba(0, 0, 25, 0.5);
 }
+.board img {
+  float:left;
+  margin:0 40px 150px 150px;
+}
 h3 {
   font-size:18px;
   font-weight:normal;
@@ -25,13 +29,6 @@ h3 {
 button {
   color:#0b1728;
   cursor:pointer;
-}
-iframe {
-  float:left;
-  width:200px;
-  height:200px;
-  margin:0 40px 0 0;
-  border:rgba(200, 200, 255, 0.1) solid 1px;
 }
 input {
   width:50%;

@@ -44,7 +44,8 @@ exports.start = function(port) {
     server.get('/', function(req, res, next) {
         res.render('index.ejs', {
             layout: false,
-            host: req.headers.host
+            host: req.headers.host,
+            moduls: world.getModuls()
         });
     });
     

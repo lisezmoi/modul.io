@@ -7,7 +7,7 @@
 	<meta charset="utf-8">
 	<title>modul.io</title>
 	<link rel="shortcut icon" href="/favicon.ico" />
-	<link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Droid+Sans+Mono" />
+	<link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Inconsolata&amp;v2">
 	<link rel="stylesheet" href="<%- site_url %>styles/web.css" />
 </head>
 <body class="board">
@@ -19,22 +19,34 @@
 	<hr>
 	<h2>Connected moduls</h2>
 	<ul>
+		<% for (var i in moduls) { %>
 		<li>
-			<iframe src="<%- site_url %>pierre/default" title="Modul: pierre/default"></iframe>
-			<p>Modul Name: default</p>
-			<p>Owner: pierre</p>
-			<p>Position: 38 x 43</p>
-			<p>Connected since: 6 hours</p>
-			<button type="button">Join</button>
+			<img src="<%- site_url + moduls[i].id %>/skin" alt="Modul: pierre/default" width="50" heigth="50" />
+			<p>Modul Name: <%= moduls[i].id.split('/')[1] %></p>
+			<p>Owner: <%= moduls[i].id.split('/')[0] %></p>
+			<p>Position: <%= moduls[i].position.x + ' x ' + moduls[i].position.x %></p>
+			<p>Connected since:
+				<%
+					var since = (new Date() - moduls[i].connectedAt) / 1000;
+					var seconds = Math.floor(since % 60);
+					since /= 60;
+					var minutes = Math.floor(since % 60);
+					since /= 60;
+					var hours = Math.floor(since % 24);
+					since /= 24;
+					var days = Math.floor(since);
+					
+					var sinceHuman = '';
+					if (days) sinceHuman += days + ' days, ';
+					if (hours) sinceHuman += hours + ' hours, ';
+					if (minutes) sinceHuman += minutes + ' minutes and ';
+					if (seconds) sinceHuman += seconds + ' seconds';
+				%>
+				<%= sinceHuman %>
+			</p>
+			<button type="button" onclick="window.location = '<%- site_url + moduls[i].id %>'">Join</button>
 		</li>
-		<li>
-			<iframe src="<%- site_url %>raphael/default" title="Modul: pierre/default"></iframe>
-			<p>Modul Name: default</p>
-			<p>Owner: pierre</p>
-			<p>Position: 38 x 43</p>
-			<p>Connected since: 6 hours</p>
-			<button type="button">Join</button>
-		</li>
+		<% } %>
 	</ul>
 </body>
 </html>
