@@ -88,7 +88,7 @@ exports.start = function(port, hostname) {
                     user: req.params.user,
                     modul: req.params.modul,
                     host: req.headers.host,
-                    domain: req.headers.host.slice(0,-5),
+                    domain: req.headers.host.split(':')[0],
                     sessionID: req.sessionID
                 }
             });
