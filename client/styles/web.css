@@ -2,7 +2,7 @@ html {
   background:#0b1728 url(i/logo_198x38.png) no-repeat 50% 50px;
 }
 body, input, h2, button {
-  font:30px 'InconsolataMedium', monospace;
+  font:30px 'Inconsolata', monospace;
 }
 h2 {
   margin:40px 0 50px;
@@ -58,16 +58,3 @@ hr {
   border:0;
   border-top:1px solid rgba(200, 200, 255, 0.1);
 }
-
-@font-face {
-    font-family: 'InconsolataMedium';
-    src: url('font/inconsolata/inconsolata-webfont.eot');
-    src: url('font/inconsolata/inconsolata-webfont.eot?#iefix') format('embedded-opentype'),
-         url('font/inconsolata/inconsolata-webfont.woff') format('woff'),
-         url('font/inconsolata/inconsolata-webfont.ttf') format('truetype'),
-         url('font/inconsolata/inconsolata-webfont.svg#InconsolataMedium') format('svg');
-    font-weight: normal;
-    font-style: normal;
-
-}
-
