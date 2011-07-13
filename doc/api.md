@@ -19,6 +19,10 @@ Move the modul in a direction. Direction must be one of these: `"top"`, `"right"
 
 Returns the modul dimensions, as a `[width, height]` Array.
 
+### modul.getUpTime()
+
+Returns the number of milliseconds since the modul has been connected to the world, or `false` if the modul is not connected.
+
 ## onInterval()
 
 Add a function to the world interval. The world interval is triggered once per second.

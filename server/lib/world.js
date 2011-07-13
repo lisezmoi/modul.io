@@ -70,6 +70,7 @@ World.prototype.addModul = function(modul, x, y) {
     this.moduls[modul.id] = modul;
     this.moduls[modul.id].position = {x: x, y: y};
     modul.world = this;
+    modul.connectedAt = new Date();
     this.emit('modulAdded', modul);
     return true;
 };
@@ -139,8 +140,8 @@ World.prototype.getGridFragment = function(position, dims) {
     }
     return gridFrag;
 };
-World.prototype.getModuls = function(callback) {
-    callback(this.moduls);
+World.prototype.getModuls = function() {
+    return this.moduls;
 };
 World.prototype.getModul = function(modulId) {
     return this.moduls[modulId];

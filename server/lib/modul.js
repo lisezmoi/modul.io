@@ -25,6 +25,7 @@ function Modul(id) {
         'Error.prepareStackTrace = prepareStackTrace;',
         'Object.freeze(Error);'
     ];
+    this.connectedAt = false;
 }
 util.inherits(Modul, EventEmitter);
 exports.Modul = Modul;
@@ -119,6 +120,10 @@ function getEnv() {
     };
     modul.getDimensions = function() {
       return [50, 50];
+    };
+    
+    modul.getUpTime = function() {
+      return curModul.connectedAt;
     };
     // modul.actions: {
         // Exposed functions in UI buttons and HTTP API
