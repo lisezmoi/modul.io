@@ -1,5 +1,6 @@
 var sys = require('sys'),
     sio = require('socket.io'),
+    logger = require('./lib/logger'),
     web = require('./lib/web'),
     getDataManager = require('./lib/data-manager').getDataManager,
     getWorld = require('./lib/world').getWorld,
@@ -40,7 +41,7 @@ exports.start = function(startCallback) {
     
     // Moduls events
     world.on('modulAdded', function(modul) {
-        console.log('++ ' + modul.id + ' at ['+modul.position.x + ',' + modul.position.y+']');
+        logger.info('added ' + modul.id + ' at ['+modul.position.x + ',' + modul.position.y+']');
         
         modul.on('move', function(oldPosition, newPosition) {
             var displays = ClientDisplay.getDisplaysByMove(oldPosition, newPosition);
@@ -80,7 +81,7 @@ exports.start = function(startCallback) {
     }
     
     isStarted = true;
-    console.log('modul.io started.');
+    logger.info('modul.io started.');
     
     if (startCallback) return startCallback();
 };

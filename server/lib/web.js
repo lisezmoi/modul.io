@@ -1,4 +1,5 @@
 var express = require('express'),
+    logger = require('./logger'),
     world = require('./world').getWorld(),
     util = require('util'),
     server = null;
@@ -136,7 +137,7 @@ exports.start = function(port, hostname) {
     });
     
     server.listen(port, hostname);
-    console.log('webserver started: http://127.0.0.1:'+port);
+    logger.info('webserver started at http://127.0.0.1:'+port);
     
     return server;
 };
