@@ -3,7 +3,7 @@ var express = require('express'),
     util = require('util'),
     server = null;
 
-exports.start = function(port) {
+exports.start = function(port, hostname) {
     
     if (server) {
         return server;
@@ -135,7 +135,7 @@ exports.start = function(port) {
         }
     });
     
-    server.listen(port);
+    server.listen(port, hostname);
     console.log('webserver started: http://127.0.0.1:'+port);
     
     return server;

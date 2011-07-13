@@ -23,7 +23,12 @@ exports.start = function(startCallback) {
     var world = getWorld();
     
     // HTTP server
-    var webServer = web.start(3000);
+    var webServer = null;
+    if (ENV === 'prod') {
+      webServer = web.start(3000, '127.0.0.1');
+    } else {
+      webServer = web.start(3000);
+    }
     
     var io = sio.listen(webServer);
     io.configure(function() {
