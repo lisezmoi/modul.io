@@ -35,6 +35,10 @@ The `name` (`string`) is used for the button label.
 
 The `action` (`function`) is triggered when the button is clicked. If the function takes params, they will be requested to the user when he clicks (a simple `window.prompt()`), and passed as `string` to the function.
 
+## (new Button).setLabel(label)
+
+Change the label of a button.
+
 ## ButtonsPanel(name, [buttons])
 
 The `ButtonsPanel` is a container for buttons. When instancied, it creates a new panel on the interface.
