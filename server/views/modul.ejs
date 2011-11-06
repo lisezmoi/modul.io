@@ -1,0 +1,39 @@
+<!doctype html>
+<%
+	var site_url = "http://"+host+"/";
+%>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>modul.io</title>
+	<link rel="shortcut icon" href="/favicon.ico" />
+	<link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Droid+Sans+Mono" />
+	<link rel="stylesheet" href="<%- site_url %>styles/mio.css" />
+</head>
+<body>
+	<h1>modul.io / <%- user %> / <%- modul %></h1>
+	<div id="world-container"><canvas id="world" width="800" height="600"></canvas></div>
+	<script src="<%- site_url %>socket.io/socket.io.js"></script>
+	<script src="<%- site_url %>ace/src/ace.js"></script>
+	<script src="<%- site_url %>ace/src/theme-twilight.js"></script>
+	<script src="<%- site_url %>ace/src/mode-javascript.js"></script>
+	<script src="<%- site_url %>scripts/mio.util.js"></script>
+	<script src="<%- site_url %>scripts/mio.ui.js"></script>
+	<script src="<%- site_url %>scripts/mio.actions.js"></script>
+	<script src="<%- site_url %>scripts/mio.editor.js"></script>
+	<script src="<%- site_url %>scripts/mio.console.js"></script>
+	<script src="<%- site_url %>scripts/mio.modul.js"></script>
+	<script src="<%- site_url %>scripts/mio.world.js"></script>
+	<script src="<%- site_url %>scripts/mio.main.js"></script>
+	<script src="<%- site_url %>scripts/mio.debug.js"></script>
+	<script>
+		// var MIO_DEBUG = true;
+		mio.main({
+			domain: '<%- domain %>',
+			url: '<%- site_url %>',
+			modulId: '<%- user %>/<%- modul %>',
+			sessionId: '<%- sessionID %>'
+		});
+	</script>
+</body>
+</html>

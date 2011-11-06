@@ -1,0 +1,343 @@
+/* Env:
+ * modul
+ * LogPanel()
+ * ButtonsPanel()
+ * Button()
+ * 
+ */
+
+var ctx = modul.getCanvas();
+
+function getRandomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function rocket() {
+
+ctx.clearRect(0,0,50,50);
+    // rocket/defs
+    ctx.save();
+
+    // rocket/defs/perspective4876
+    ctx.save();
+
+    // rocket/defs/perspective4876/
+    ctx.save();
+
+    // rocket/base
+    ctx.restore();
+    ctx.restore();
+
+    // rocket/base/
+    ctx.save();
+
+    // rocket/layer1
+    ctx.restore();
+
+    // rocket/layer1/path3297
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(9.0, 29.8);
+    ctx.lineTo(18.3, 38.6);
+    ctx.bezierCurveTo(30.2, 28.8, 45.4, 20.3, 46.2, 1.2);
+    ctx.bezierCurveTo(26.8, 2.6, 18.3, 17.5, 9.0, 29.8);
+    ctx.closePath();
+    ctx.fillStyle = "rgb(255, 255, 0)";
+    ctx.fill();
+    ctx.lineWidth = 2.4;
+    ctx.lineJoin = "round";
+    ctx.stroke();
+
+    // rocket/layer1/path3301
+    ctx.beginPath();
+    ctx.moveTo(40.3, 11.0);
+    ctx.bezierCurveTo(39.2, 12.1, 37.4, 12.2, 36.2, 11.1);
+    ctx.bezierCurveTo(35.1, 10.0, 35.1, 8.2, 36.2, 7.1);
+    ctx.bezierCurveTo(36.2, 7.1, 36.2, 7.1, 36.2, 7.1);
+    ctx.bezierCurveTo(37.3, 6.0, 39.1, 6.0, 40.2, 7.0);
+    ctx.bezierCurveTo(41.4, 8.1, 41.4, 9.9, 40.3, 11.0);
+    ctx.bezierCurveTo(40.3, 11.0, 40.3, 11.0, 40.3, 11.0);
+    ctx.closePath();
+    ctx.fillStyle = "rgb(0, 127, 127)";
+    ctx.fill();
+    ctx.lineWidth = 1.4;
+    ctx.stroke();
+
+    // rocket/layer1/path3303
+    ctx.beginPath();
+    ctx.moveTo(34.7, 16.7);
+    ctx.bezierCurveTo(33.5, 17.9, 31.7, 17.9, 30.6, 16.8);
+    ctx.bezierCurveTo(29.5, 15.8, 29.5, 14.0, 30.6, 12.9);
+    ctx.bezierCurveTo(30.6, 12.9, 30.6, 12.9, 30.6, 12.9);
+    ctx.bezierCurveTo(31.7, 11.7, 33.5, 11.7, 34.6, 12.8);
+    ctx.bezierCurveTo(35.7, 13.8, 35.8, 15.6, 34.7, 16.7);
+    ctx.bezierCurveTo(34.7, 16.7, 34.7, 16.7, 34.7, 16.7);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // rocket/layer1/path3305
+    ctx.beginPath();
+    ctx.moveTo(28.9, 22.5);
+    ctx.bezierCurveTo(27.8, 23.7, 26.0, 23.7, 24.9, 22.6);
+    ctx.bezierCurveTo(23.8, 21.6, 23.8, 19.8, 24.9, 18.7);
+    ctx.bezierCurveTo(24.9, 18.7, 24.9, 18.7, 24.9, 18.7);
+    ctx.bezierCurveTo(26.0, 17.5, 27.8, 17.5, 28.9, 18.6);
+    ctx.bezierCurveTo(30.0, 19.6, 30.0, 21.4, 28.9, 22.5);
+    ctx.bezierCurveTo(28.9, 22.5, 28.9, 22.5, 28.9, 22.5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // rocket/layer1/path3307
+    ctx.beginPath();
+    ctx.moveTo(9.0, 29.8);
+    ctx.lineTo(1.2, 32.5);
+    ctx.bezierCurveTo(2.9, 27.5, 5.6, 21.1, 9.2, 18.9);
+    ctx.bezierCurveTo(11.6, 17.5, 17.3, 18.6, 17.3, 18.6);
+    ctx.lineTo(9.0, 29.8);
+    ctx.closePath();
+    ctx.fillStyle = "rgb(255, 0, 0)";
+    ctx.fill();
+    ctx.lineWidth = 2.4;
+    ctx.stroke();
+
+    // rocket/layer1/path3309
+    ctx.beginPath();
+    ctx.moveTo(18.6, 38.4);
+    ctx.lineTo(16.1, 46.2);
+    ctx.bezierCurveTo(21.1, 44.4, 27.5, 41.5, 29.6, 37.9);
+    ctx.bezierCurveTo(31.0, 35.5, 29.8, 29.9, 29.8, 29.9);
+    ctx.lineTo(18.6, 38.4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+    ctx.restore();
+}
+
+function avatar() {
+    ctx.clearRect(0,0,50,50);
+    //TOP
+    ctx.fillStyle="#4E505B";
+    ctx.fillRect(0,0,1,50);
+    ctx.fillRect(1,1,1,48);
+    ctx.fillRect(2,2,1,46);
+    ctx.fillRect(3,3,1,44);
+    ctx.fillRect(4,4,1,42);
+    ctx.fillRect(5,5,1,40);
+    ctx.fillRect(6,6,1,38);
+    ctx.fillRect(7,7,1,36);
+    ctx.fillRect(8,8,1,34);
+    //RIGHT
+    ctx.fillStyle="#1E1F27";
+    ctx.fillRect(49,0,1,50);
+    ctx.fillRect(48,1,1,48);
+    ctx.fillRect(47,2,1,46);
+    ctx.fillRect(46,3,1,44);
+    ctx.fillRect(45,4,1,42);
+    ctx.fillRect(44,5,1,40);
+    ctx.fillRect(43,6,1,38);
+    ctx.fillRect(42,7,1,36);
+    ctx.fillRect(41,8,1,34);
+    //BOTTOM
+    ctx.fillStyle="#151517";
+    ctx.fillRect(0,49,50,1);
+    ctx.fillRect(1,48,48,1);
+    ctx.fillRect(2,47,46,1);
+    ctx.fillRect(3,46,44,1);
+    ctx.fillRect(4,45,42,1);
+    ctx.fillRect(5,44,40,1);
+    ctx.fillRect(6,43,38,1);
+    ctx.fillRect(7,42,36,1);
+    ctx.fillRect(8,41,34,1);
+    //LEFT
+    ctx.fillStyle="#5A5D6B";
+    ctx.fillRect(0,0,50,1);
+    ctx.fillRect(1,1,48,1);
+    ctx.fillRect(2,2,46,1);
+    ctx.fillRect(3,3,44,1);
+    ctx.fillRect(4,4,42,1);
+    ctx.fillRect(5,5,40,1);
+    ctx.fillRect(6,6,38,1);
+    ctx.fillRect(7,7,36,1);
+    ctx.fillRect(8,8,34,1);
+    //CENTER
+    ctx.fillStyle="#272933";
+    ctx.fillRect(9,9,32,32);
+    //bZzZ
+}
+
+function flag() {
+  ctx.fillStyle="rgb("+getRandomInt(0, 255)+","+getRandomInt(0, 255)+","+getRandomInt(0, 255)+")";
+  ctx.fillRect(0,0,50,10);
+  ctx.fillStyle="rgb("+getRandomInt(0, 255)+","+getRandomInt(0, 255)+","+getRandomInt(0, 255)+")";
+  ctx.fillRect(0,10,50,10);
+  ctx.fillStyle="rgb("+getRandomInt(0, 255)+","+getRandomInt(0, 255)+","+getRandomInt(0, 255)+")";
+  ctx.fillRect(0,20,50,10);
+  ctx.fillStyle="rgb("+getRandomInt(0, 255)+","+getRandomInt(0, 255)+","+getRandomInt(0, 255)+")";
+  ctx.fillRect(0,30,50,10);
+  ctx.fillStyle="rgb("+getRandomInt(0, 255)+","+getRandomInt(0, 255)+","+getRandomInt(0, 255)+")";
+  ctx.fillRect(0,40,50,10);
+}
+
+var cursorPoints = [
+  //[[20, 0], [20, 40], [20, 10], [20, 30]],
+  [[40, 0], [0, 40], [30, 10], [10, 30]],
+  //[[0, 20], [40, 20], [10, 20], [30, 20]]
+  [[0, 0], [40, 40], [10, 10], [30, 30]]
+];
+var cursorCurrent = 0;
+var activeCursor = false;
+
+function cursor() {
+  ctx.clearRect(0,0,50,50);
+  ctx.fillStyle="#000";
+  //ctx.fillRect(0,0,50,50);
+  ctx.fillStyle="#fff";
+  if (cursorCurrent === 2) {
+    cursorCurrent = 0;
+  }
+  var c = cursorPoints[cursorCurrent];
+  ctx.fillRect(c[0][0],c[0][1],10,10);
+  ctx.fillRect(c[1][0],c[1][1],10,10);
+  //ctx.fillRect(c[2][0],c[2][1],10,10);
+  //ctx.fillRect(c[3][0],c[3][1],10,10);
+  ctx.fillRect(20,20,10,10);
+  cursorCurrent++;
+}
+
+function smole() {
+    ctx.clearRect(0,0,50,50);
+    ctx.strokeStyle = "#ffffff";
+    ctx.beginPath();
+    ctx.arc(25,25,25,0,Math.PI*2,true); // Outer circle
+    ctx.moveTo(35,28);
+    ctx.arc(25,25,10,0,Math.PI,true); // Mouth (clockwise)
+    ctx.moveTo(20,15);
+    ctx.arc(15,15,5,0,Math.PI*2,true); // Left eye
+    ctx.moveTo(40,15);
+    ctx.arc(35,15,5,0,Math.PI*2,true); // Right eye
+    ctx.stroke();
+    ctx.fillStyle    = '#fff';
+    ctx.font         = '10px sans';
+    ctx.textBaseline = 'top';
+    ctx.fillText ("BAH", 10, 35);
+}
+
+function say(msg1, msg2, msg3, msg4, msg5) {
+    ctx.clearRect(0,0,50,50);
+    ctx.fillStyle    = '#fff';
+    ctx.font         = '10px sans';
+    ctx.textBaseline = 'top';
+    ctx.fillText (msg1 || "", 0, 0);
+    ctx.fillText (msg2 || "", 0, 10);
+    ctx.fillText (msg3 || "", 0, 20);
+    ctx.fillText (msg4 || "", 0, 30);
+    ctx.fillText (msg5 || "", 0, 40);
+}
+
+function topLeft(){
+    var iterations = 200;
+    while (iterations--){
+        modul.move("left");
+        modul.move("top");
+    }
+}
+
+var animFn,
+    animActive = false;
+
+function animate() {
+    animActive = true;
+}
+function stopAnimate() {
+    animActive = false;
+}
+
+
+var activeGoto = false;
+var posGoto = [0,0];
+function goto() {
+    var c = modul.getCoordinates();
+    if (c[0] > posGoto[0]) {
+        modul.move("left");
+    } else if (c[0] < posGoto[0]) {
+        modul.move("right");
+    }
+    if (c[1] > posGoto[1]) {
+        modul.move("top");
+    } else if (c[1] < posGoto[1]) {
+        modul.move("bottom");
+    }
+    
+    if (c[0] === posGoto[0] && c[1] === posGoto[1]) {
+        activeGoto = false;
+    }
+}
+function initGoto(x, y) {
+    posGoto = [x, y];
+    activeGoto = true;
+}
+function stopGoto() {
+    activeGoto = false;
+}
+
+smole();
+
+var iBtn = 0;
+// You can fill your panel on creation...
+var actionsPanel = new ButtonsPanel("Actions", [
+    new Button("__________________Top__________________", function(){
+        modul.move("top");
+    }),
+    
+    new Button("___Left___", function(){
+        modul.move("left");
+    }),
+    new Button("___Bottom___", function(){
+        modul.move("bottom");
+    }),
+    new Button("___Right___", function(){
+        modul.move("right");
+    }),
+    new Button("Say", say),
+    new Button("addbutton", function(){
+        actionsPanel.add(new Button("TEST"+iBtn, function(){}));
+        iBtn++;
+    }),
+    new Button("pos", function(){
+        say(modul.getCoordinates()[0], modul.getCoordinates()[1], "");
+    }),
+    new Button("flag", function(){
+        animFn = flag;
+    }),
+    new Button("cursor", function(){
+        animFn = cursor;
+    }),
+    
+    new Button("topleft", topLeft),
+    new Button("goto", initGoto),
+    new Button("stopGoto", stopGoto),
+    new Button("animate", animate),
+    new Button("stopAnimate", stopAnimate),
+    new Button("rocket", rocket)
+]);
+
+var activeFlag = false;
+
+//var i = 1;
+onInterval(function(){
+     //actionsPanel.add(new Button("button:"+i, function(){}));
+     //i++;
+    
+    if (animActive && !!animFn) {
+        animFn();
+    }
+    if (activeGoto) goto();
+});
+
+
+// ...or at any moment, with add()
+actionsPanel.add(new Button("Cube", avatar));
+actionsPanel.add(new Button("Smole", smole));

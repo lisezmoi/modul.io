@@ -1,0 +1,19 @@
+<!doctype html>
+<%
+	var site_url = "http://"+host+"/";
+%>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>modul.io</title>
+	<link rel="shortcut icon" href="/favicon.ico" />
+	<link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Droid+Sans+Mono" />
+	<link rel="stylesheet" href="<%- site_url %>styles/web.css" />
+</head>
+<body class="board">
+	<h2><%- user %>/<%- modul %> does not exist.</h2>
+	<form method="post" action="">
+		<button>Create it</button>
+	</form>
+</body>
+</html>

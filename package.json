@@ -1,0 +1,34 @@
+{
+    "author": "Pierre Bertet <bonjour@pierrebertet.net> (http://www.pierrebertet.net)",
+    "name": "modul.io",
+    "description": "Change the rules!",
+    "version": "0.1.0",
+    "homepage": "http://modul.io",
+    "contributors": [
+      { "name": "Raphaël Bastide", "email": "bonjour@raphaelbastide.com" },
+      { "name": "Pierre Bertet", "email": "bonjour@pierrebertet.net" }
+    ],
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/bpierre/modul.io.git"
+    },
+    "engines": {
+        "node": "~0.4.8"
+    },
+    "dependencies": {
+        "canvas": "~0.8.0",
+        "ejs": "~0.4.3",
+        "express": "~2.5.0",
+        "socket.io": "~0.8.6",
+        "underscore": "~1.2.1"
+    },
+    "devDependencies": {},
+    "bin" : {
+        "modul.io" : "./bin/modul.io.js"
+    },
+    "scripts" : {
+        "start": "scripts/start.js",
+        "stop": "scripts/stop.js"
+    },
+    "private": true
+}
