@@ -1,57 +1,210 @@
 html {
-  background:#0b1728 url(i/logo_198x38.png) no-repeat 50% 50px;
+  color: #000;
+  background: #fff;
+  height: 100%;
 }
-body, input, h2, button {
-  font:30px 'Inconsolata', monospace;
+body,
+div,
+dl,
+dt,
+dd,
+ul,
+ol,
+li,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+pre,
+code,
+form,
+fieldset,
+legend,
+input,
+button,
+textarea,
+p,
+blockquote,
+th,
+td {
+  margin: 0;
+  padding: 0;
 }
-h2 {
-  margin:40px 0 50px;
-  font-weight:normal;
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
 }
-.board {
-  width:60%;
-  margin:200px auto 50px;
-  padding:20px;
-  text-align:center;
-  color:#fff;
-  background:rgba(200, 200, 255, 0.1);
-  border-top:1px solid rgba(200, 200, 255, 0.1);
-  border-bottom:1px solid rgba(0, 0, 25, 0.5);
+fieldset,
+img {
+  border: 0;
 }
-.board img {
-  float:left;
-  margin:0 40px 150px 150px;
+address,
+caption,
+cite,
+code,
+dfn,
+em,
+strong,
+th,
+var,
+optgroup {
+  font-style: inherit;
+  font-weight: inherit;
 }
-h3 {
-  font-size:18px;
-  font-weight:normal;
-}
-button {
-  color:#0b1728;
-  cursor:pointer;
-}
-input {
-  width:50%;
-}
-ul {
-  list-style:none;
+del,
+ins {
+  text-decoration: none;
 }
 li {
-  clear:both;
-  overflow:hidden;
-  margin:50px 0 0;
-  text-align:left;
+  list-style: none;
 }
-li button {
-  font-size:20px;
+caption,
+th {
+  text-align: left;
 }
-p {
-  line-height:28px;
-  margin:0;
-  font-size:16px;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-size: 100%;
+  font-weight: normal;
 }
-hr {
-  margin:60px 0 30px;
-  border:0;
-  border-top:1px solid rgba(200, 200, 255, 0.1);
+q:before,
+q:after {
+  content: '';
+}
+abbr,
+acronym {
+  border: 0;
+  font-variant: normal;
+}
+sup {
+  vertical-align: baseline;
+}
+sub {
+  vertical-align: baseline;
+}
+legend {
+  color: #000;
+}
+input,
+button,
+textarea,
+select,
+optgroup,
+option {
+  font-family: inherit;
+  font-size: inherit;
+  font-style: inherit;
+  font-weight: inherit;
+}
+input,
+button,
+textarea,
+select {
+  *font-size: 100%;
+}
+html {
+  background: #0b1728 url("i/logo_198x38.png") no-repeat 50% 50px;
+}
+body {
+  font: 16px "Inconsolata", courier new, monospace;
+  padding: 120px 0;
+}
+h2 {
+  color: #0b1728;
+  font-size: 20px;
+  margin: 0 0 40px 0;
+  text-shadow: 0px 1px 1px #fff;
+}
+#create,
+#modulist {
+  margin: 40px auto;
+  width: 600px;
+  padding: 20px;
+  background: #ececec;
+  -webkit-box-shadow: inset 0px 0px 40px 0px #bbb;
+  -moz-box-shadow: inset 0px 0px 40px 0px #bbb;
+  box-shadow: inset 0px 0px 40px 0px #bbb;
+  border: 1px solid #ececec;
+}
+#create input {
+  font: 25px "Inconsolata", courier new, monospace;
+  height: 60px;
+  width: 420px;
+  padding: 0 0 0 20px;
+  background: #f4f4f4;
+  border-top: #bbb solid 1px;
+  border-left: #bbb solid 1px;
+  letter-spacing: 1px;
+}
+#create button {
+  font: 25px "Inconsolata", courier new, monospace;
+  width: 120px;
+  height: 60px;
+  margin: 0 0 0 20px;
+}
+#modulist li {
+  overflow: hidden;
+  padding: 0 0 40px 0;
+  margin: 0 0 40px 0;
+  border-bottom: 2px solid #e6e6e6;
+}
+#modulist li:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+#modulist li .modulview {
+  float: left;
+  background: #0b1728;
+  margin: 0 20px 0 0;
+  border-top: 1px solid #000;
+  border-left: 1px solid #000;
+  border-bottom: 1px solid #fff;
+  border-right: 1px solid #fff;
+}
+#modulist li .modulview img {
+  padding: 33px;
+}
+#modulist li .modulinfo {
+  float: left;
+  width: 320px;
+}
+#modulist li .modulinfo p {
+  border-bottom: 1px #fff solid;
+  padding: 5px 0;
+}
+#modulist li .modulinfo p .label {
+  width: 140px;
+  display: inline-block;
+  color: #888;
+}
+#modulist li .join {
+  float: right;
+  width: 120px;
+  height: 120px;
+  margin: 0 0 0 20px;
+}
+button {
+  background: #eee;
+  font: 16px "Inconsolata", courier new, monospace;
+  border-right: #bbb solid 1px;
+  border-bottom: #bbb solid 1px;
+}
+button:hover {
+  background: #e4e4e4;
+}
+button:active {
+  background: #e1e1e1;
+}
+@font-face {
+  font-family: 'Inconsolata';
+  src: url("font/inconsolata/inconsolata-webfont.eot");
+  src: url("font/inconsolata/inconsolata-webfont.eot?#iefix") format('embedded-opentype'), url("font/inconsolata/inconsolata-webfont.woff") format('woff'), url("font/inconsolata/inconsolata-webfont.ttf") format('truetype'), url("font/inconsolata/inconsolata-webfont.svg#UrbanoLight") format('svg');
+  font-weight: normal;
+  font-style: normal;
 }
