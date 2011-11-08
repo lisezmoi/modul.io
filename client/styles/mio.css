@@ -1,31 +1,177 @@
-body, button{font-family:'Droid Sans Mono', monospace;}
-pre{margin:0;padding:0;}
-body, html{width:100%;height:100%;margin:0;padding:0;background:#0b1728;}
-body > h1{position:absolute;z-index:1;left:10px;bottom:10px;margin:0;font-weight:700;font-size:20px;line-height:20px;color:#eee;}
-#world{position:absolute;left:0;top:0;display:block;margin:0 auto;}
-#world.hover{cursor:pointer;}
-#world-container{position:absolute;left:0;top:0;overflow:hidden;width:100%;height:100%;}
-#actions{position:absolute;left:0;bottom:0;line-height:40px;}
-#actions button{margin-right:5px;white-space:pre;}
-#loading{position:absolute;top:10px;left:10px;z-index:999;margin:0;font-weight:700;font-size:12px;line-height:20px;color:#fff;}
-
-.panel{width:300px;}
+html,
+body {
+  margin: 0;
+}
+h1,
+h2 {
+  font-weight: normal;
+}
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+button {
+  margin: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+}
+button::-moz-focus-inner {
+  padding: 0;
+  border: 0;
+}
+@font-face {
+  font-family: 'Inconsolata';
+  src: url("font/inconsolata/inconsolata-webfont.eot");
+  src: url("font/inconsolata/inconsolata-webfont.eot?#iefix") format('embedded-opentype'), url("font/inconsolata/inconsolata-webfont.woff") format('woff'), url("font/inconsolata/inconsolata-webfont.ttf") format('truetype'), url("font/inconsolata/inconsolata-webfont.svg#UrbanoLight") format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+body {
+  font: 14px "Inconsolata", courier new, monospace;
+}
+pre {
+  margin: 0;
+  padding: 0;
+}
+body,
+html {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: #0b1728;
+  -webkit-font-smoothing: antialiased;
+}
+#logo {
+  position: absolute;
+  z-index: 1;
+  left: 15px;
+  bottom: 15px;
+  margin: 0;
+  width: 104px;
+  height: 21px;
+  background: url("i/logo_100x21.png") no-repeat;
+}
+#world {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+  margin: 0 auto;
+}
+#world.hover {
+  cursor: pointer;
+}
+#world-container {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+}
+#loading {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 999;
+  margin: 0;
+  font-size: 12px;
+  line-height: 20px;
+  color: #fff;
+}
+.panel {
+  width: 300px;
+}
+.panel h1 {
+  margin: 0;
+  height: 32px;
+  font-size: 16px;
+  line-height: 32px;
+  color: #dbe3e2;
+  cursor: pointer;
+}
+.panel .content {
+  overflow: hidden;
+  height: 270px;
+  background: rgba(0,5,20,0.50);
+}
 .panel-position-tr,
-.panel-position-tl{border-bottom:1px solid #fff;}
-.panel-position-br{border-top:1px solid #fff;}
-.panel h1{margin:0;height:32px;font-weight:400;font-size:16px;line-height:32px;color:#fff;cursor:pointer;}
-.panel .content{overflow:hidden;height:270px;background:rgba(0, 5, 20, 0.5);}
-
-#panel-codepad{width:600px;}
-#panel-codepad .content{background:#e8e8e8;}
-#panel-codepad button{height:30px;margin:5px;font-size:14px;cursor:pointer;}
-#ace-editor{position:relative;width:600px;}
-
-#panel-console{position:relative;}
-#panel-console .content{overflow:auto;}
-#panel-console button{position:absolute;top:37px;right:5px;}
-#panel-console .console{padding:10px;font-size:12px;color:#fff;}
-
-#panel-Actions button{white-space:pre;}
-
-.modul-info{position:absolute;width:250px;height:200px;color:#dbe3e2;background:rgba(0, 5, 20, 0.5);}
+.panel-position-tl {
+  border-bottom: 1px solid #dbe3e2;
+}
+.panel-position-tl {
+  margin-left: 10px;
+}
+.panel-position-br {
+  border-top: 1px solid #dbe3e2;
+}
+#panel-codepad {
+  width: 600px;
+}
+#panel-codepad .content {
+  background: none;
+}
+#ace-editor {
+  position: relative;
+  width: 600px;
+}
+#panel-console {
+  position: relative;
+}
+#panel-console .console pre {
+  color: #dbe3e2;
+  font: 14px "Inconsolata", courier new, monospace;
+  color: #75787f;
+}
+.modul-info {
+  position: absolute;
+  width: 250px;
+  height: 200px;
+  color: #dbe3e2;
+  background: rgba(0,5,20,0.50);
+}
+button {
+  color: #dbe3e2;
+  border: solid 1px #435165;
+  background: rgba(255,255,255,0.10);
+  cursor: pointer;
+  width: 48.2%;
+  margin: 0 0 4px 0;
+  padding: 2px 0;
+  cursor: pointer;
+}
+button:hover {
+  border: solid 1px #dbe3e2;
+}
+.panel button:nth-child(2n+1) {
+  margin-right: 5px;
+}
+#panel-console button,
+#panel-codepad button {
+  background: #398d69;
+  border: 0;
+  color: #cafae4;
+  font-size: 17px;
+  padding: 2px 5px;
+  width: auto;
+  cursor: pointer;
+  border-bottom: 1px solid #155b39;
+  border-right: 1px solid #155b39;
+}
+#panel-console button {
+  position: absolute;
+  top: 33px;
+  right: -5px;
+}
+#panel-Actions button {
+  white-space: pre;
+}
+#playground button.keyActive {
+  color: #fff;
+  border: solid 1px #fff;
+}

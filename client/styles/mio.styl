@@ -1,0 +1,171 @@
+@import 'reset'
+
+// Typography
+@font-face
+    font-family 'Inconsolata'
+    src url('font/inconsolata/inconsolata-webfont.eot')
+    src url('font/inconsolata/inconsolata-webfont.eot?#iefix') format('embedded-opentype'), url('font/inconsolata/inconsolata-webfont.woff') format('woff'), url('font/inconsolata/inconsolata-webfont.ttf') format('truetype'), url('font/inconsolata/inconsolata-webfont.svg#UrbanoLight') format('svg')
+    font-weight normal
+    font-style normal
+mono = "Inconsolata", courier new, monospace
+tall = 17px
+medium = 14px
+small = 10px
+
+// Colors
+bg = #0b1728
+bone = #dbe3e2
+light = #2D3741
+green = #398D69
+
+// Grid
+u = 10px
+
+body
+    font medium mono
+
+pre
+    margin 0
+    padding 0
+
+body, html
+    width 100%
+    height 100%
+    margin 0
+    padding 0
+    background #0b1728
+    -webkit-font-smoothing: antialiased;
+    
+#logo
+    position absolute
+    z-index 1
+    left u+5
+    bottom u+5
+    margin 0
+    width 104px
+    height 21px
+    background url(i/logo_100x21.png) no-repeat
+
+#world
+    position absolute
+    left 0
+    top 0
+    display block
+    margin 0 auto
+
+#world.hover
+    cursor pointer
+
+#world-container
+    position absolute
+    left 0
+    top 0
+    overflow hidden
+    width 100%
+    height 100%
+
+#loading
+    position absolute
+    top u
+    left u
+    z-index 999
+    margin 0
+    font-size 12px
+    line-height 20px
+    color #fff
+
+// Panels
+
+.panel
+    width u*30
+
+.panel h1
+    margin 0
+    height 32px
+    font-size 16px
+    line-height 32px
+    color bone
+    cursor pointer
+
+.panel .content
+    overflow hidden
+    height u*27
+    background rgba(0, 5, 20, 0.5)
+
+.panel-position-tr, .panel-position-tl
+    border-bottom 1px solid bone
+.panel-position-tl
+    margin-left u
+.panel-position-br
+    border-top 1px solid bone
+
+// Codepad
+
+#panel-codepad
+    width u*60
+
+#panel-codepad .content
+    background none
+
+#ace-editor
+    position relative
+    width u*60
+
+// Console
+
+#panel-console
+    position relative
+    
+#panel-console .console
+    pre
+        color bone
+        font medium mono
+        color #75787F
+
+.modul-info
+    position absolute
+    width 250px
+    height 200px
+    color #dbe3e2
+    background rgba(0, 5, 20, 0.5)
+
+// Buttons
+
+button
+    color bone
+    border solid 1px #435165
+    background rgba(255, 255, 255, 0.1)
+    cursor pointer
+    width 48.2%
+    margin 0 0 4px 0
+    padding 2px 0
+    cursor pointer 
+    &:hover
+        border solid 1px bone
+
+.panel button
+    &:nth-child(2n+1)
+        margin-right 5px
+
+#panel-console button, #panel-codepad button
+    background green
+    border 0
+    color #CAFAE4
+    font-size tall
+    padding 2px 5px
+    width auto
+    cursor pointer
+    border-bottom 1px solid #155B39  
+    border-right 1px solid #155B39 
+#panel-console button
+    position absolute
+    top 33px
+    right -5px
+
+#panel-Actions button
+    white-space pre
+
+#playground button.keyActive
+    color #fff 
+    border solid 1px #fff 
+    
