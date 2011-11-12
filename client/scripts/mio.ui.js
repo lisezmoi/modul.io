@@ -253,26 +253,6 @@
         return pub;
     })();
 
-    mio.ui.console = (function(){
-        var pub = {};
-
-        var Console = function() {
-
-        };
-
-        Console.prototype.write = function(text) {
-            this.lines.push(text);
-            if (this.lines.length > 5) {
-                this.lines.shift();
-            }
-            this.elt.innerHTML = this.lines.join("\n");
-        };
-    });
-
-    mio.consoles = (function(){
-
-    });
-
     var modulInfosList = [];
     function styleModulInfos(modulInfo) {
       modulInfo.wrapper.style.left = (mio.world.canvas.style.left.slice(0,-2)-0) + (50 * (modulInfo.position.x-4)) + 'px';
