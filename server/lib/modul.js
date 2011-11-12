@@ -34,7 +34,6 @@ function compileScript() {
     this.panels = {};
     this.intervalFunctions = [];
     this.env = getEnv.call(this);
-
     try {
         Script.runInNewContext(
             this.preScript.join('\n') + '\n' + this.code,
@@ -58,25 +57,33 @@ function emitSkinChanges(oldImgData) {
 function getEnv() {
     var curModul = this;
 
-    /* Base Panel */
-    function Panel(name, buttons) {
+    /* Console panel */
+    function ConsolePanel(name, buttons) {
         this.name = name;
-        this.buttons = buttons;
-        curModul.panels[name] = this; // Add panel to modul panels
+        curModul.panels[name] = this;
     }
 
-    /* ButtonsPanel */
+    /* Buttons panel */
     function ButtonsPanel(name, buttons) {
-        this.panel = curModul.panels[name] = new Panel(name, []);
-        if (!!buttons) {
-            var buttonsLen = buttons.length;
-            for (var i = 0; i < buttonsLen; i++) {
-                this.add(buttons[i]);
-            }
+        this.name = name;
+        this.buttons = [];
+        if (buttons !== undefined) {
+            this.add(buttons);
         }
+        curModul.panels[name] = this;
     }
+
+    /* Insert a Button to a ButtonsPanel */
     ButtonsPanel.prototype.add = function(button) {
-        this.panel.buttons.push(button);
+        if (_.isArray(button)) {
+            for (var i=0; i < button.length; i++) {
+                if (button[i] instanceof Button) {
+                    this.buttons.push(button[i]);
+                }
+            }
+        } else if (button instanceof Button) {
+            this.buttons.push(button);
+        }
         curModul.emit('panelsUpdate', curModul.getPanels());
     };
 
@@ -85,6 +92,8 @@ function getEnv() {
         this.label = label;
         this.callback = callback;
     }
+
+    /* Change the label of a Button */
     Button.prototype.setLabel = function(label) {
       this.label = label;
       curModul.emit('panelsUpdate', curModul.getPanels());
@@ -133,20 +142,33 @@ function getEnv() {
         // Exposed functions in UI buttons and HTTP API
     // };
 
-    function onInterval(fn) {
+    function World() {
+      EventEmitter.call(this);
+    }
+    util.inherits(World, EventEmitter);
+
+    World.prototype.onInterval = function(fn) {
         curModul.intervalFunctions.push(fn);
     }
 
+    // Returns the world dimension
+    World.prototype.getDimensions = function() {
+        return [curModul.world.width, curModul.world.height];
+    }
+
+    function log(msg) {
+      curModul.emit('log', msg);
+    }
+
+    /* Exports the public API */
     var env = {};
-    env.ButtonsPanel = ButtonsPanel;
-    env.Button = Button;
+    env.ui = {};
+    env.ui.ConsolePanel = ConsolePanel;
+    env.ui.ButtonsPanel = ButtonsPanel;
+    env.ui.Button = Button;
+    env.ui.log = log;
     env.modul = modul;
-    env.onInterval = onInterval;
-    env.world = {
-        getDimensions: function() {
-            return [curModul.world.width, curModul.world.height];
-        }
-    };
+    env.world = new World();
 
     // Special stack trace
     env.prepareStackTrace = function(e, structuredStack) {
@@ -203,8 +225,10 @@ Modul.prototype.getPanels = function() {
     for (var panelName in this.panels) {
         clientPanels[panelName] = [];
         var buttons = this.panels[panelName].buttons;
-        for (var i=0; i < buttons.length; i++) {
-          clientPanels[panelName].push([buttons[i].label, buttons[i].callback.length]);
+        if (buttons) {
+            for (var i=0; i < buttons.length; i++) {
+              clientPanels[panelName].push([buttons[i].label, buttons[i].callback.length]);
+            }
         }
     }
     return clientPanels;
