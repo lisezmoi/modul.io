@@ -23,11 +23,9 @@ Returns the modul dimensions, as a `[width, height]` Array.
 
 Returns the number of milliseconds since the modul has been connected to the world, or `false` if the modul is not connected.
 
-## onInterval()
+## ui
 
-Add a function to the world interval. The world interval is triggered once per second.
-
-## new Button(name, action)
+### ui.Button(name, action)
 
 The `button` object can be instancied to create a new button on the interface.
 
@@ -35,11 +33,11 @@ The `name` (`string`) is used for the button label.
 
 The `action` (`function`) is triggered when the button is clicked. If the function takes params, they will be requested to the user when he clicks (a simple `window.prompt()`), and passed as `string` to the function.
 
-## (new Button).setLabel(label)
+### ui.Button.setLabel(label)
 
 Change the label of a button.
 
-## ButtonsPanel(name, [buttons])
+### ui.ButtonsPanel(name, [buttons])
 
 The `ButtonsPanel` is a container for buttons. When instancied, it creates a new panel on the interface.
 
@@ -49,7 +47,15 @@ The `buttons` Array is optional, and could contain a list of `Button`s.
 
 The instanciated object has a `add(button)` method wich can be used to add a button after the instanciation.
 
+### ui.log(message)
+
+Log a message in the main Console panel.
+
 ## world
+
+### world.onInterval()
+
+Add a function to the world interval. The world interval is triggered once per second.
 
 ### world.getDimensions()
 

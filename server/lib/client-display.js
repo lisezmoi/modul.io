@@ -11,13 +11,13 @@ var EventEmitter = require('events').EventEmitter,
 function ClientDisplay(socket) {
     // ClientDisplay is an EventEmitter
     EventEmitter.call(this);
-    
+
     this.socket = socket;
     this.modul = null;
     this.gridSize = null;
-    
+
     initSocketEvents.call(this, socket);
-    
+
     clientsList.push(this);
 }
 util.inherits(ClientDisplay, EventEmitter);
@@ -25,38 +25,38 @@ exports.ClientDisplay = ClientDisplay;
 
 // Init Socket.IO events
 function initSocketEvents(socket) {
-    
+
     var self = this;
-    
+
     // Send grounds IDs
     self.socket.emit('grounds', world.ground.groundIds);
-    
+
     // Init socket transmission
     socket.on('modulId', function(modulId) {
-        
+
         // Get modul
         if (!( self.modul = world.getModul(modulId) )) return; // Modul not found
-        
+
         // Stop listening for 'modulId' event
         socket.removeAllListeners('modulId');
-        
+
         // Send code and panels
         socket.emit('code', self.modul.getCode());
         socket.emit('panels', self.modul.getPanels());
-        
+
         // Update grid size
         socket.on('gridSize', function(gridSize) {
             self.gridSize = gridSize;
             self.sendGridFragment();
         });
-        
+
         // Executes an action on the modul
         socket.on('action', function(action) {
             if (action.panel && action.name && action.params) {
                 self.modul.execAction(action.panel, action.name, action.params);
             }
         });
-        
+
         // Update modul's code
         socket.on('code', function(code) {
             self.modul.updateCode(code, function() {
@@ -66,7 +66,7 @@ function initSocketEvents(socket) {
             });
         });
     });
-    
+
     socket.on('disconnect', function() {
         ClientDisplay.remove(self);
     });
@@ -100,9 +100,13 @@ ClientDisplay.prototype.sendModulMove = function(modulId, newPosition) {
     }
 };
 
-// Send log
-ClientDisplay.prototype.sendLog = function(err) {
+// Error log
+ClientDisplay.prototype.logError = function(err) {
     this.socket.emit('log', '[error] '+ err.message + '\n' + err.stack);
+};
+// Simple log
+ClientDisplay.prototype.log = function(msg) {
+    this.socket.emit('log', msg + '\n');
 };
 
 // Returns a list of currently displayed moduls
@@ -131,9 +135,9 @@ ClientDisplay.prototype.getFragmentPosition = function() {
 // Returns a list of clients wich displays the given position
 ClientDisplay.getDisplaysByPosition = function(position) {
     var displays = clientsList.filter(function(client) {
-        
+
         if (!client.modul || !client.gridSize) return false;
-        
+
         var xRange = [
             client.modul.position.x - (client.gridSize[0]-1) / 2,
             client.modul.position.x + (client.gridSize[0]-1) / 2

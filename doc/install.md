@@ -25,6 +25,6 @@ Or NPM:
 
     npm start
 
-Or with command, if installed with `npm install -g`:
+Or with the command, if it was installed with `npm install -g`:
 
     modul.io
