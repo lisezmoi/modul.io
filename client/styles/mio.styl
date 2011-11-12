@@ -15,12 +15,13 @@ small = 10px
 // Colors
 bg = #0b1728
 bone = #dbe3e2
+innactiveBone = #3D4F71
 light = #2D3741
 green = #398D69
 
 // Grid
 u = 10px
-
+p = 6px
 body
     font medium mono
 
@@ -79,7 +80,7 @@ body, html
 .panel
     width u*30
 
-.panel h1
+.panel h1, .panel footer
     margin 0
     height 32px
     font-size 16px
@@ -89,6 +90,7 @@ body, html
 
 .panel .content
     overflow hidden
+    position relative
     height u*27
     background rgba(0, 5, 20, 0.5)
 
@@ -98,6 +100,17 @@ body, html
     margin-left u
 .panel-position-br
     border-top 1px solid bone
+.panel footer
+    position absolute
+    bottom 0
+    text-align right
+    padding 0 0 0 0
+    color innactiveBone
+    width u*29
+    &:hover
+        background rgba(0, 0, 0, 0.2)
+        color bone
+
 
 // Codepad
 
@@ -136,8 +149,8 @@ button
     border solid 1px #435165
     background rgba(255, 255, 255, 0.1)
     cursor pointer
-    width 48.2%
-    margin 0 0 4px 0
+    width 49%
+    margin 0 0 6px 0
     padding 2px 0
     cursor pointer 
     &:hover
@@ -145,7 +158,7 @@ button
 
 .panel button
     &:nth-child(2n+1)
-        margin-right 5px
+        margin-right 6px
 
 #panel-console button, #panel-codepad button
     background green

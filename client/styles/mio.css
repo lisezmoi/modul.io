@@ -87,7 +87,8 @@ html {
 .panel {
   width: 300px;
 }
-.panel h1 {
+.panel h1,
+.panel footer {
   margin: 0;
   height: 32px;
   font-size: 16px;
@@ -97,6 +98,7 @@ html {
 }
 .panel .content {
   overflow: hidden;
+  position: relative;
   height: 270px;
   background: rgba(0,5,20,0.50);
 }
@@ -109,6 +111,18 @@ html {
 }
 .panel-position-br {
   border-top: 1px solid #dbe3e2;
+}
+.panel footer {
+  position: absolute;
+  bottom: 0;
+  text-align: right;
+  padding: 0 0 0 0;
+  color: #3d4f71;
+  width: 290px;
+}
+.panel footer:hover {
+  background: rgba(0,0,0,0.20);
+  color: #dbe3e2;
 }
 #panel-codepad {
   width: 600px;
@@ -140,8 +154,8 @@ button {
   border: solid 1px #435165;
   background: rgba(255,255,255,0.10);
   cursor: pointer;
-  width: 48.2%;
-  margin: 0 0 4px 0;
+  width: 49%;
+  margin: 0 0 6px 0;
   padding: 2px 0;
   cursor: pointer;
 }
@@ -149,7 +163,7 @@ button:hover {
   border: solid 1px #dbe3e2;
 }
 .panel button:nth-child(2n+1) {
-  margin-right: 5px;
+  margin-right: 6px;
 }
 #panel-console button,
 #panel-codepad button {
