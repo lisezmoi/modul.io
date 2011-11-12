@@ -3,8 +3,9 @@ var EventEmitter = require('events').EventEmitter,
     Script = require('vm').Script,
     Canvas = require('canvas'),
     crypto = require('crypto'),
-    _ = require('underscore')._;
-    ClientDisplay = require('./client-display').ClientDisplay;
+    _ = require('underscore')._,
+    ClientDisplay = require('./client-display').ClientDisplay,
+    ZONE_SIZE = [11, 11];
 
 // Modul Class
 function Modul(id) {
@@ -14,7 +15,6 @@ function Modul(id) {
     this.id = id;
     this.canvas = new Canvas(50,50);
     this.ctx = this.canvas.getContext('2d');
-    delete this.ctx.canvas; // do not expose canvas
     this.env = null;
     this.code = '';
     this.position = {x: 0, y: 0};
@@ -100,28 +100,34 @@ function getEnv() {
     };
 
     /* Modul */
-    var modul = {};
-    modul.say = function(text) {
+    var Modul = function(){
+      EventEmitter.call(this);
+    };
+    util.inherits(Modul, EventEmitter);
+    Modul.prototype.say = function(text) {
         // Display a message in the text bubble
         console.log('Modul says: "'+ text +'"');
     };
-    modul.selected = function() {
+    Modul.prototype.selected = function() {
         // Return selected modul
     };
-    modul.getOtherMods = function() {
+    Modul.prototype.getOtherMods = function() {
 
     };
-    modul.onMessage = function(func) {
-        // Action to execute when the modul receives a message
-    };
-    modul.getCoordinates = function() {
+
+    // Returns the coordinates: [x, y]
+    Modul.prototype.getCoordinates = function() {
         return [curModul.position.x, curModul.position.y];
     };
-    modul.getCanvas = function() {
+
+    // Returns the canvas context
+    Modul.prototype.getCanvas = function() {
         // Return a 2D context
         return curModul.ctx;
     };
-    modul.move = function(direction) {
+
+    // Move the modul
+    Modul.prototype.move = function(direction) {
         var oldPosition = curModul.position;
 
         // Move the modul (direction = [top,right,bottom,left])
@@ -131,16 +137,35 @@ function getEnv() {
             curModul.emit('move', oldPosition, curModul.position); // move event
         }
     };
-    modul.getDimensions = function() {
+
+    // Returns the dimensions of the Modul
+    Modul.prototype.getDimensions = function() {
       return [50, 50];
     };
 
-    modul.getUpTime = function() {
+    // Returns moduls around the modul
+    Modul.prototype.sonar = function() {
+      var otherModuls = [];
+      function eachBlock(blocks, callback) {
+        for (var i=0; i < blocks.length; i++) {
+          var line = blocks[i];
+          for (var j=0; j < line.length; j++) {
+            callback(line[j]);
+          }
+        }
+      }
+      eachBlock(curModul.getZoneBlocks(), function(block) {
+        if (block.modul !== null && block.modul !== curModul.id) {
+          otherModuls.push(curModul.world.getModul(block.modul).getExternalModul(curModul));
+        }
+      });
+      return otherModuls;
+    };
+
+    // Returns the modul uptime
+    Modul.prototype.getUpTime = function() {
       return curModul.connectedAt;
     };
-    // modul.actions: {
-        // Exposed functions in UI buttons and HTTP API
-    // };
 
     function World() {
       EventEmitter.call(this);
@@ -167,7 +192,7 @@ function getEnv() {
     env.ui.ButtonsPanel = ButtonsPanel;
     env.ui.Button = Button;
     env.ui.log = log;
-    env.modul = modul;
+    env.modul = new Modul();
     env.world = new World();
 
     // Special stack trace
@@ -190,6 +215,24 @@ function getEnv() {
 
     return env;
 }
+
+// Returns the blocks around the modul
+Modul.prototype.getZoneBlocks = function() {
+  return this.world.getGridFragment(this.position, ZONE_SIZE).fragment;
+};
+
+Modul.prototype.getExternalModul = function(fromModul) {
+  var curModul = this;
+  return {
+    id: curModul.id,
+    send: function(msg) {
+      curModul.env.modul.emit('message', fromModul.getExternalModul(curModul), msg);
+    },
+    image: function() {
+      return curModul.ctx.getImageData(0, 0, 50, 50);
+    }
+  };
+};
 
 Modul.prototype.updateCode = function(modulCode, callback) {
     this.code = modulCode;

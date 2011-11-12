@@ -1,6 +1,9 @@
 var ctx = modul.getCanvas();
 ctx.globalAlpha=1;
 
+var ButtonsPanel = ui.ButtonsPanel;
+var Button = ui.Button;
+
 function skin_Default() {
   ctx.clearRect(0,0,50,50);
   // modul.io DEFAULT SKIN
@@ -74,11 +77,11 @@ function skin_Blue() {
   ctx.fill();
 }
 function skin_Glitch() {
- var x = 50;  
+ var x = 50;
   while (x--){
     var y = 50;
     while (y--){
-      ctx.fillStyle = "rgba(" + Math.floor( Math.random() * 255) + "," + Math.floor( Math.random() * 255) + "," + Math.floor( Math.random() * 255) + ",1)";  
+      ctx.fillStyle = "rgba(" + Math.floor( Math.random() * 255) + "," + Math.floor( Math.random() * 255) + "," + Math.floor( Math.random() * 255) + ",1)";
       ctx.fillRect(x, y, 1, 1);
     }
   }

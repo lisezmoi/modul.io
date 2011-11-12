@@ -1,0 +1,13 @@
+var ctx = modul.getCanvas();
+
+ctx.clearRect(0,0,50,50);
+ctx.fillStyle="#FF00FF";
+ctx.fillRect(0,0,50,50);
+
+modul.on('message', function(extModul, msg) {
+  ui.log('From ['+ extModul.id +']: ' + msg);
+
+  if (msg === 'Hello!') {
+    extModul.send('LEAVE ME ALONE I’M A HERMIT');
+  }
+});

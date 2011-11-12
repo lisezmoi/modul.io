@@ -7,6 +7,7 @@ function getRandomInt(min, max) {
 function avatar() {
   ctx.clearRect(0,0,50,50); ctx.fillStyle="#4E505B"; ctx.fillRect(0,0,1,50); ctx.fillRect(1,1,1,48); ctx.fillRect(2,2,1,46); ctx.fillRect(3,3,1,44); ctx.fillRect(4,4,1,42); ctx.fillRect(5,5,1,40); ctx.fillRect(6,6,1,38); ctx.fillRect(7,7,1,36); ctx.fillRect(8,8,1,34); ctx.fillStyle="#1E1F27"; ctx.fillRect(49,0,1,50); ctx.fillRect(48,1,1,48); ctx.fillRect(47,2,1,46); ctx.fillRect(46,3,1,44); ctx.fillRect(45,4,1,42); ctx.fillRect(44,5,1,40); ctx.fillRect(43,6,1,38); ctx.fillRect(42,7,1,36); ctx.fillRect(41,8,1,34); ctx.fillStyle="#151517"; ctx.fillRect(0,49,50,1); ctx.fillRect(1,48,48,1); ctx.fillRect(2,47,46,1); ctx.fillRect(3,46,44,1); ctx.fillRect(4,45,42,1); ctx.fillRect(5,44,40,1); ctx.fillRect(6,43,38,1); ctx.fillRect(7,42,36,1); ctx.fillRect(8,41,34,1); ctx.fillStyle="#5A5D6B"; ctx.fillRect(0,0,50,1); ctx.fillRect(1,1,48,1); ctx.fillRect(2,2,46,1); ctx.fillRect(3,3,44,1); ctx.fillRect(4,4,42,1); ctx.fillRect(5,5,40,1); ctx.fillRect(6,6,38,1); ctx.fillRect(7,7,36,1); ctx.fillRect(8,8,34,1); ctx.fillStyle="#272933"; ctx.fillRect(9,9,32,32);
 }
+avatar();
 
 var actionsPanel = new ui.ButtonsPanel("Actions", [
   new ui.Button("                   top                   ", function() {
@@ -21,13 +22,36 @@ var actionsPanel = new ui.ButtonsPanel("Actions", [
   new ui.Button("  Right  ", function() {
     modul.move("right");
   }),
-  new ui.Button('Test API', function(){
+  new ui.Button('Test API', function() {
     ui.log('\n\Test API');
     ui.log('World.getDimensions(): w:' + world.getDimensions()[0] + ' y:' + world.getDimensions()[1]);
     ui.log('Modul.getCoordinates(): x:' + modul.getCoordinates()[0] + ' y:' + modul.getCoordinates()[1]);
+  }),
+  new ui.Button('Test message', function() {
+    var others = modul.sonar();
+    for (var i=0; i < others.length; i++) {
+      others[i].send('Hello!');
+    }
+  }),
+  new ui.Button('Sonar', function() {
+    var others = modul.sonar();
+    for (var i=0; i < others.length; i++) {
+      ui.log(others[i].id);
+    }
+  }),
+  new ui.Button('steal avatar', function(modulName) {
+    var others = modul.sonar();
+    for (var i=0; i < others.length; i++) {
+      if (others[i].id === modulName) {
+        ctx.putImageData(others[i].image(), 0, 0);
+      }
+    }
   })
 ]);
 
-var chatPanel = new ui.ConsolePanel('Chat');
-chatPanel.log('test');
-avatar();
+modul.on('message', function(extModul, msg) {
+  ui.log('From ['+ extModul.id +']: ' + msg);
+});
+
+// var chatPanel = new ui.ConsolePanel('Chat');
+// chatPanel.log('test');
