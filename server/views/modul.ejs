@@ -7,11 +7,10 @@
 	<meta charset="utf-8" />
 	<title>modul.io</title>
 	<link rel="shortcut icon" href="/favicon.ico" />
-	<link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Droid+Sans+Mono" />
-	<link rel="stylesheet" href="<%- site_url %>styles/mio.css" />
+    <link rel="stylesheet" href="<%- site_url %>styles/mio.css" />
 </head>
 <body>
-	<h1>modul.io / <%- user %> / <%- modul %></h1>
+	<div id="logo"></div>
 	<div id="world-container"><canvas id="world" width="800" height="600"></canvas></div>
 	<script src="<%- site_url %>socket.io/socket.io.js"></script>
 	<script src="<%- site_url %>ace/src/ace.js"></script>
