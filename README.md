@@ -1,4 +1,4 @@
 modul.io
 ========
 
-See doc/install.md
+See [doc/install.md](doc/install.md)
