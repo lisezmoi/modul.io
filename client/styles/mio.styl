@@ -36,7 +36,7 @@ body, html
     padding 0
     background #0b1728
     -webkit-font-smoothing: antialiased;
-    
+
 #logo
     position absolute
     z-index 1
@@ -76,11 +76,10 @@ body, html
     color #fff
 
 // Panels
-
 .panel
     width u*30
 
-.panel h1, .panel footer
+.panel h1
     margin 0
     height 32px
     font-size 16px
@@ -88,8 +87,22 @@ body, html
     color bone
     cursor pointer
 
+.panel button.close
+    width u*30
+    height 32px
+    margin 0
+    padding 0 10px 0 0
+    text-align right
+    color innactiveBone
+    background rgba(0, 5, 20, 0.5)
+    border 0
+    cursor pointer
+    &:hover
+        background rgba(0, 0, 0, 0.2)
+        color bone
+
 .panel .content
-    overflow hidden
+    overflow auto
     position relative
     height u*27
     background rgba(0, 5, 20, 0.5)
@@ -100,20 +113,8 @@ body, html
     margin-left u
 .panel-position-br
     border-top 1px solid bone
-.panel footer
-    position absolute
-    bottom 0
-    text-align right
-    padding 0 0 0 0
-    color innactiveBone
-    width u*29
-    &:hover
-        background rgba(0, 0, 0, 0.2)
-        color bone
-
 
 // Codepad
-
 #panel-codepad
     width u*60
 
@@ -125,10 +126,9 @@ body, html
     width u*60
 
 // Console
-
 #panel-console
     position relative
-    
+
 #panel-console .console
     pre
         color bone
@@ -143,7 +143,6 @@ body, html
     background rgba(0, 5, 20, 0.5)
 
 // Buttons
-
 button
     color bone
     border solid 1px #435165
@@ -152,7 +151,7 @@ button
     width 49%
     margin 0 0 6px 0
     padding 2px 0
-    cursor pointer 
+    cursor pointer
     &:hover
         border solid 1px bone
 
@@ -168,8 +167,8 @@ button
     padding 2px 5px
     width auto
     cursor pointer
-    border-bottom 1px solid #155B39  
-    border-right 1px solid #155B39 
+    border-bottom 1px solid #155B39
+    border-right 1px solid #155B39
 #panel-console button
     position absolute
     top 33px
@@ -178,7 +177,6 @@ button
 #panel-Actions button
     white-space pre
 
-#playground button.keyActive
-    color #fff 
-    border solid 1px #fff 
-    
+#playground button.key-active
+    color #fff
+    border solid 1px #fff

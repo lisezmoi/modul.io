@@ -12,7 +12,7 @@
 
             // Clear button
             var buttonContainer = mio.util.createElt("div");
-            var button = mio.util.createElt("button", {textContent: "Clear", events: {
+            var button = mio.util.createElt("button", {content: "Clear", events: {
                 click: pub.clear
             }});
             buttonContainer.appendChild(button);
@@ -33,6 +33,7 @@
             if (!silent) {
               consolePanel.show();
             }
+            consolePanel.contentElt.scrollTop = consolePanel.contentElt.scrollHeight;
         };
 
         pub.clear = function() {
