@@ -89,16 +89,13 @@
 
         // On browser resize
         window.addEventListener('resize', function() {
-
             var newGridSize = mio.world.getGridSize();
-
             if ( gridSize[0] !== newGridSize[0] ||
                  gridSize[1] !== newGridSize[1] ) {
                 mio.ui.waitFor('gridfragment');
                 mio.socket.emit('gridSize', newGridSize);
             }
             mio.world.realign();
-
             mio.ui.panels.refresh();
             mio.editor.refresh();
             mio.ui.refreshModulInfos();
