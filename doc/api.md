@@ -7,25 +7,25 @@ modul.io API
 
 The Canvas 2D Context of the modul. It is a regular [Canvas.getContext('2d')](https://developer.mozilla.org/en/HTML/Canvas) object with dimensions of 50x50 pixels.
 
-### modul.move(direction)
+### modul.move( direction )
 
 Move the modul in a direction. Direction must be one of these: `"top"`, `"right"`, `"bottom"`, `"left"`.
 
-### modul.getCoordinates()
+### modul.coordinates()
 
 Get the modul coordinates, as a `[x, y]` Array.
 
-### modul.getDimensions()
+### modul.dimensions()
 
 Returns the modul dimensions, as a `[width, height]` Array.
 
-### modul.getUpTime()
+### modul.uptime()
 
 Returns the number of milliseconds since the modul has been connected to the world, or `false` if the modul is not connected.
 
 ## Modul events
 
-### modul.on('message', function( fromModul, message ))
+### modul.on( 'message', function( fromModul, message ) )
 
 Receive a `message` and the modul where it comes (`fromModul`). A message can be any JavaScript object.
 
@@ -38,46 +38,46 @@ It is similar to the Modul object, but very restricted.
 
 Returns the current avatar of the external modul. It is a simple [ImageData](https://developer.mozilla.org/En/HTML/Canvas/Pixel_manipulation_with_canvas) object.
 
-### extModul.send(message)
+### extModul.send( message )
 
 Sends a message to the external modul. The cibled modul can listen to incoming message with the `message` event.
 
 ## UI
 
-### ui.Button(name, action)
+### ui.button( name, action )
 
-The `button` object can be instancied to create a new button on the interface.
+Creates and returns a `Button` object. You need to add it to a `ButtonsPanel`.
 
 The `name` (`string`) is used for the button label.
 
 The `action` (`function`) is triggered when the button is clicked. If the function takes params, they will be requested to the user when he clicks (a simple `window.prompt()`), and passed as `string` to the function.
 
-### ui.Button.setLabel(label)
+#### Button: button.label( [label] )
 
-Change the label of a button.
+Change the label of a button if a `label` is provided, otherwise returns the current label.
 
-### ui.ButtonsPanel(name, [buttons])
+### ui.buttonsPanel( name, [buttons] )
 
-The `ButtonsPanel` is a container for buttons. When instancied, it creates a new panel on the interface.
+Creates and returns a `ButtonsPanel` object, which is a container for buttons. When called, the new panel is automatically added on the interface.
 
 The `name` (`string`) parameter is used for the panel label.
 
 The `buttons` Array is optional, and could contain a list of `Button`s.
 
-The instanciated object has a `add(button)` method wich can be used to add a button after the instanciation.
+The returned `ButtonsPanel` object has a `add(button)` method wich can be used to add a button after its creation.
 
-### ui.log(message)
+### ui.log( message )
 
 Log a message in the main Console panel.
 
 ## World
 
-### world.getDimensions()
+### world.dimensions()
 
 Returns the world dimensions, as a `[width, height]` Array.
 
 ## World events
 
-### world.on('interval', function( date ))
+### world.on( 'interval', function( date ) )
 
 The world `interval` event is triggered once per second. The parameter is a `Date` object of the current world time.

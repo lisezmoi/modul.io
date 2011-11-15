@@ -56,7 +56,7 @@ function getEnv() {
     var curModul = this;
 
     /* Console panel */
-    function ConsolePanel(name, buttons) {
+    function ConsolePanel(name) {
         this.name = name;
         curModul.panels[name] = this;
     }
@@ -87,14 +87,18 @@ function getEnv() {
 
     /* Button */
     function Button(label, callback) {
-        this.label = label;
+        this._label = label;
         this.callback = callback;
     }
 
     /* Change the label of a Button */
-    Button.prototype.setLabel = function(label) {
-      this.label = label;
-      curModul.emit('panelsUpdate', curModul.getPanels());
+    Button.prototype.label = function(label) {
+      if (!label) {
+        return this._label;
+      } else {
+        this._label = label;
+        curModul.emit('panelsUpdate', curModul.getPanels());
+      }
     };
 
     /* Modul */
@@ -112,14 +116,8 @@ function getEnv() {
     };
 
     // Returns the coordinates: [x, y]
-    Modul.prototype.getCoordinates = function() {
+    Modul.prototype.coordinates = function() {
         return [curModul.position.x, curModul.position.y];
-    };
-
-    // DEPRECATED: returns the canvas context
-    Modul.prototype.getCanvas = function() {
-        // Return a 2D context
-        return this.context;
     };
 
     // Move the modul
@@ -135,7 +133,7 @@ function getEnv() {
     };
 
     // Returns the dimensions of the Modul
-    Modul.prototype.getDimensions = function() {
+    Modul.prototype.dimensions = function() {
       return [50, 50];
     };
 
@@ -159,7 +157,7 @@ function getEnv() {
     };
 
     // Returns the modul uptime
-    Modul.prototype.getUpTime = function() {
+    Modul.prototype.uptime = function() {
       return curModul.connectedAt;
     };
 
@@ -173,7 +171,7 @@ function getEnv() {
     }
 
     // Returns the world dimension
-    World.prototype.getDimensions = function() {
+    World.prototype.dimensions = function() {
         return [curModul.world.width, curModul.world.height];
     }
 
@@ -184,9 +182,15 @@ function getEnv() {
     /* Exports the public API */
     var env = {};
     env.ui = {};
-    env.ui.ConsolePanel = ConsolePanel;
-    env.ui.ButtonsPanel = ButtonsPanel;
-    env.ui.Button = Button;
+    env.ui.consolePanel = function(name) {
+      return new ConsolePanel(name);
+    };
+    env.ui.buttonsPanel = function(name, buttons) {
+      return new ButtonsPanel(name, buttons);
+    };
+    env.ui.button = function(label, callback){
+      return new Button(label, callback);
+    };
     env.ui.log = log;
     env.modul = new Modul();
     env.world = new World();
@@ -266,7 +270,7 @@ Modul.prototype.getPanels = function() {
         var buttons = this.panels[panelName].buttons;
         if (buttons) {
             for (var i=0; i < buttons.length; i++) {
-              clientPanels[panelName].push([buttons[i].label, buttons[i].callback.length]);
+              clientPanels[panelName].push([buttons[i].label(), buttons[i].callback.length]);
             }
         }
     }
@@ -280,7 +284,7 @@ Modul.prototype.execAction = function(panel, action, params, callback) {
     var panelButtons = this.panels[panel].buttons;
     var curAction = null;
     for (var i=0; i < panelButtons.length; i++) {
-      if (panelButtons[i].label === action) {
+      if (panelButtons[i].label() === action) {
         curAction = panelButtons[i].callback;
       }
     }
