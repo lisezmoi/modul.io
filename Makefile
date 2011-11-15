@@ -14,13 +14,13 @@ doc: $(docs_out) $(docs_html)
 $(docs_out):
 	mkdir -p $@
 	mkdir -p $@/assets
-	cp doc/doc.css out/doc/assets/doc.css
+	cp doc/template/doc.css out/doc/assets/doc.css
 
 out/doc/%: doc/%
 	cp $< $@
 
 out/doc/%.html: doc/%.md
-	$(NODE_BIN) tools/doctool/doctool.js doc/template.html $< > $@
+	$(NODE_BIN) tools/doctool/doctool.js doc/template/template.html $< > $@
 
 .DEFAULT_GOAL := all
 
