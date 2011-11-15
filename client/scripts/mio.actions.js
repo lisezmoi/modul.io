@@ -39,6 +39,7 @@
                     // Actions updated
                 });
             }
+            mio.ui.panels.refresh();
         };
 
         pub.removePanels = function() {

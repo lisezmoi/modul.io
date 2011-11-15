@@ -3,19 +3,19 @@ Install modul.io
 
 ## Instructions
 
-Create a directory:
+### Create a directory
 
     mkdir modul.io && cd modul.io
 
-Clone the repository:
+### Clone the repository
 
     git clone git://github.com/bpierre/modul.io.git
 
-Install dependencies:
+### Install dependencies
 
     npm install .
 
-Launch modul.io:
+### Launch modul.io
 
 Node:
 

@@ -1,6 +1,7 @@
-var ctx = modul.getCanvas();
+var ctx = modul.context;
+
 // Let's draw the modul
-function default_skin() {
+function defaultSkin() {
   ctx.clearRect(0,0,50,50);
   // modul.io DEFAULT SKIN
   ctx.beginPath();
@@ -75,9 +76,9 @@ var actionsPanel = new ui.ButtonsPanel("Actions", [
         modul.move("right");
     }),
     new ui.Button("RainbowRandom", function(){
-        default_skin();
+        defaultSkin();
     }),
 ]);
 
 // Finally the skin is drawn
-default_skin();
+defaultSkin();

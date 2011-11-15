@@ -1,6 +1,6 @@
 var EventEmitter = require('events').EventEmitter,
     util = require('util'),
-    Script = require('vm').Script,
+    vm = require('vm'),
     Canvas = require('canvas'),
     crypto = require('crypto'),
     _ = require('underscore')._,
@@ -35,11 +35,10 @@ function compileScript() {
     this.intervalFunctions = [];
     this.env = getEnv.call(this);
     try {
-        Script.runInNewContext(
-            this.preScript.join('\n') + '\n' + this.code,
-            this.env,
-            'modulCode'
-        );
+        var script = vm.createScript(
+          this.preScript.join('\n') + '\n' +
+          this.code, 'modulCode');
+        script.runInNewContext(this.env);
     } catch (e) {
         this.emit('codeError', e);
     }
@@ -47,7 +46,6 @@ function compileScript() {
 
 function emitSkinChanges(oldImgData) {
     var updateSkin = false;
-
     var newImgData = this.canvas.toDataURL('image/png');
     if (oldImgData !== newImgData) {
         this.emit('skinUpdate', this.getSkinHash(newImgData));
@@ -58,7 +56,7 @@ function getEnv() {
     var curModul = this;
 
     /* Console panel */
-    function ConsolePanel(name, buttons) {
+    function ConsolePanel(name) {
         this.name = name;
         curModul.panels[name] = this;
     }
@@ -67,10 +65,10 @@ function getEnv() {
     function ButtonsPanel(name, buttons) {
         this.name = name;
         this.buttons = [];
+        curModul.panels[name] = this;
         if (buttons !== undefined) {
             this.add(buttons);
         }
-        curModul.panels[name] = this;
     }
 
     /* Insert a Button to a ButtonsPanel */
@@ -89,19 +87,24 @@ function getEnv() {
 
     /* Button */
     function Button(label, callback) {
-        this.label = label;
+        this._label = label;
         this.callback = callback;
     }
 
     /* Change the label of a Button */
-    Button.prototype.setLabel = function(label) {
-      this.label = label;
-      curModul.emit('panelsUpdate', curModul.getPanels());
+    Button.prototype.label = function(label) {
+      if (!label) {
+        return this._label;
+      } else {
+        this._label = label;
+        curModul.emit('panelsUpdate', curModul.getPanels());
+      }
     };
 
     /* Modul */
     var Modul = function(){
       EventEmitter.call(this);
+      this.context = curModul.ctx;
     };
     util.inherits(Modul, EventEmitter);
     Modul.prototype.say = function(text) {
@@ -111,19 +114,10 @@ function getEnv() {
     Modul.prototype.selected = function() {
         // Return selected modul
     };
-    Modul.prototype.getOtherMods = function() {
-
-    };
 
     // Returns the coordinates: [x, y]
-    Modul.prototype.getCoordinates = function() {
+    Modul.prototype.coordinates = function() {
         return [curModul.position.x, curModul.position.y];
-    };
-
-    // Returns the canvas context
-    Modul.prototype.getCanvas = function() {
-        // Return a 2D context
-        return curModul.ctx;
     };
 
     // Move the modul
@@ -139,7 +133,7 @@ function getEnv() {
     };
 
     // Returns the dimensions of the Modul
-    Modul.prototype.getDimensions = function() {
+    Modul.prototype.dimensions = function() {
       return [50, 50];
     };
 
@@ -163,7 +157,7 @@ function getEnv() {
     };
 
     // Returns the modul uptime
-    Modul.prototype.getUpTime = function() {
+    Modul.prototype.uptime = function() {
       return curModul.connectedAt;
     };
 
@@ -177,7 +171,7 @@ function getEnv() {
     }
 
     // Returns the world dimension
-    World.prototype.getDimensions = function() {
+    World.prototype.dimensions = function() {
         return [curModul.world.width, curModul.world.height];
     }
 
@@ -188,9 +182,15 @@ function getEnv() {
     /* Exports the public API */
     var env = {};
     env.ui = {};
-    env.ui.ConsolePanel = ConsolePanel;
-    env.ui.ButtonsPanel = ButtonsPanel;
-    env.ui.Button = Button;
+    env.ui.consolePanel = function(name) {
+      return new ConsolePanel(name);
+    };
+    env.ui.buttonsPanel = function(name, buttons) {
+      return new ButtonsPanel(name, buttons);
+    };
+    env.ui.button = function(label, callback){
+      return new Button(label, callback);
+    };
     env.ui.log = log;
     env.modul = new Modul();
     env.world = new World();
@@ -270,7 +270,7 @@ Modul.prototype.getPanels = function() {
         var buttons = this.panels[panelName].buttons;
         if (buttons) {
             for (var i=0; i < buttons.length; i++) {
-              clientPanels[panelName].push([buttons[i].label, buttons[i].callback.length]);
+              clientPanels[panelName].push([buttons[i].label(), buttons[i].callback.length]);
             }
         }
     }
@@ -284,7 +284,7 @@ Modul.prototype.execAction = function(panel, action, params, callback) {
     var panelButtons = this.panels[panel].buttons;
     var curAction = null;
     for (var i=0; i < panelButtons.length; i++) {
-      if (panelButtons[i].label === action) {
+      if (panelButtons[i].label() === action) {
         curAction = panelButtons[i].callback;
       }
     }
@@ -299,15 +299,11 @@ Modul.prototype.execAction = function(panel, action, params, callback) {
         emitSkinChanges.call(this, imgData);
     }
 };
-Modul.prototype.execIntervals = function() {
-    var i = this.intervalFunctions.length;
-    while (i--) {
-        var imgData = this.canvas.toDataURL('image/png');
-        try {
-            this.intervalFunctions[i]();
-        } catch (e) {
-            this.emit('codeError', e);
-        }
-        emitSkinChanges.call(this, imgData);
-    }
+Modul.prototype.execIntervals = function(currentDate) {
+    var curModul = this,
+        imgData = this.canvas.toDataURL('image/png');
+    this.env.world.emit('interval', currentDate);
+    setTimeout(function(){ // FIXME
+      emitSkinChanges.call(curModul, imgData);
+    }, 100);
 };

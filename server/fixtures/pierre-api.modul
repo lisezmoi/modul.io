@@ -1,4 +1,6 @@
-var ctx = modul.getCanvas();
+var ctx = modul.context;
+
+// modul.context = null;
 
 function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -9,37 +11,37 @@ function avatar() {
 }
 avatar();
 
-var actionsPanel = new ui.ButtonsPanel("Actions", [
-  new ui.Button("                   top                   ", function() {
+var actionsPanel = ui.buttonsPanel("Actions", [
+  ui.button("top", function() {
     modul.move("top");
   }),
-  new ui.Button("  left  ", function() {
+  ui.button("left", function() {
     modul.move("left");
   }),
-  new ui.Button("      bottom      ", function() {
+  ui.button("bottom", function() {
     modul.move("bottom");
   }),
-  new ui.Button("  Right  ", function() {
+  ui.button("Right", function() {
     modul.move("right");
   }),
-  new ui.Button('Test API', function() {
+  ui.button('Test API', function() {
     ui.log('\n\Test API');
     ui.log('World.getDimensions(): w:' + world.getDimensions()[0] + ' y:' + world.getDimensions()[1]);
     ui.log('Modul.getCoordinates(): x:' + modul.getCoordinates()[0] + ' y:' + modul.getCoordinates()[1]);
   }),
-  new ui.Button('Test message', function() {
+  ui.button('Test message', function() {
     var others = modul.sonar();
     for (var i=0; i < others.length; i++) {
       others[i].send('Hello!');
     }
   }),
-  new ui.Button('Sonar', function() {
+  ui.button('Sonar', function() {
     var others = modul.sonar();
     for (var i=0; i < others.length; i++) {
       ui.log(others[i].id);
     }
   }),
-  new ui.Button('steal avatar', function(modulName) {
+  ui.button('steal avatar', function(modulName) {
     var others = modul.sonar();
     for (var i=0; i < others.length; i++) {
       if (others[i].id === modulName) {
@@ -51,6 +53,10 @@ var actionsPanel = new ui.ButtonsPanel("Actions", [
 
 modul.on('message', function(extModul, msg) {
   ui.log('From ['+ extModul.id +']: ' + msg);
+});
+
+world.on('interval', function(time) {
+  ui.log(time);
 });
 
 // var chatPanel = new ui.ConsolePanel('Chat');

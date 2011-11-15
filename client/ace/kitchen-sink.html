@@ -11,7 +11,7 @@
     
     Ace
       version 0.2.0
-      commit  e8914acd7b46e7fe73d8001ddae68c2f2ffa5f3b
+      commit  392a80d23c89dc087fdd29ee898d2afd8520da19
 
     
     -->
@@ -189,21 +189,20 @@
 <!-- 
   <script type="text/javascript">
       var require = {
+          baseUrl: "/" + window.location.pathname.split("/").slice(0, -1).join("/"),
           paths: {
-              demo: "..",
-              ace: "../../lib/ace",
-              cockpit: "../../support/cockpit/lib/cockpit",
-              pilot: "../../support/pilot/lib/pilot"
+              ace: "lib/ace"
           }
       };
   </script>
-  <script src="demo/kitchen-sink/require.js" data-main="demo/kitchen-sink/boot" type="text/javascript" charset="utf-8"></script>
+  <script src="demo/kitchen-sink/require.js" data-main="demo/kitchen-sink/demo" type="text/javascript"></script>
+
  -->
   
 
   <script src="demo/kitchen-sink/kitchen-sink-uncompressed.js" data-ace-base="src" type="text/javascript" charset="utf-8"></script>
   <script type="text/javascript" charset="utf-8">
-    require("demo/kitchen-sink/boot");
+    require("kitchen-sink/demo");
   </script>
 <!--
 

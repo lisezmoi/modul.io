@@ -139,7 +139,9 @@
 
         Panel.prototype.show = function() {
             this.contentElt.style.display = "block";
-            this.footerElt.style.display = "block";
+            if (this.footerElt) {
+                this.footerElt.style.display = "block";
+            }
             stylePanel.call(this);
             this.trigger('show');
 
@@ -153,7 +155,9 @@
 
         Panel.prototype.hide = function() {
             this.contentElt.style.display = "none";
-            this.footerElt.style.display = "none";
+            if (this.footerElt) {
+                this.footerElt.style.display = "none";
+            }
             stylePanel.call(this);
             this.trigger('hide');
 
@@ -186,10 +190,14 @@
             this.contentElt = document.createElement("div");
             this.contentElt.className = "content";
             this.titleElt = createTitle.call(this, this.contentElt);
-            this.footerElt = createFooter.call();
+
             panelElt.appendChild(this.titleElt);
             panelElt.appendChild(this.contentElt);
-            panelElt.appendChild(this.footerElt);
+
+            if (!this.opts.overlap) {
+                this.footerElt = createFooter.call(this, this.contentElt);
+                panelElt.appendChild(this.footerElt);
+            }
 
             return panelElt;
         }
@@ -197,19 +205,23 @@
         function createTitle(contentElt) {
             var panel = this;
             return mio.util.createElt("h1", {
-                textContent: this.label,
+                content: this.label,
                 events: {click: function() {
                     panel.toggle();
                 }}
             });
         }
 
-        function createFooter() {
+        function createFooter(contentElt) {
             var panel = this;
-            return mio.util.createElt("footer", {
-                textContent: "✕",
+            return mio.util.createElt("button", {
+                attributes: {
+                  type: "button",
+                  class: "close"
+                },
+                content: "\u2715",
                 events: {click: function() {
-                    panel.toggle();
+                    panel.hide();
                 }}
             });
         }

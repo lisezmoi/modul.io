@@ -7,9 +7,10 @@ var EventEmitter = require('events').EventEmitter,
 function initInterval(interval) {
     var self = this;
     setInterval(function(){
+        var currentDate = Date.now();
         for (var i in self.moduls) {
             if (self.moduls.hasOwnProperty(i)) {
-                self.moduls[i].execIntervals();
+                self.moduls[i].execIntervals(currentDate);
             }
         }
     }, interval);
@@ -33,7 +34,7 @@ function initGrid(w, h) {
             }
         }
     }
-    
+
     return grid;
 }
 
@@ -41,7 +42,7 @@ function initGrid(w, h) {
 function World(width, height, interval) {
     // Modul is an EventEmitter
     EventEmitter.call(this);
-    
+
     this.width = width;
     this.height = height;
     this.moduls = {};
@@ -78,7 +79,7 @@ World.prototype.moveModul = function(modul, dir) {
     if (!!this.moduls[modul.id]) {
         var curPos = this.moduls[modul.id].position;
         var newPos = {};
-        
+
         switch (dir) {
             case "top":
                 newPos = {x: curPos.x, y: curPos.y-1};
@@ -115,7 +116,7 @@ World.prototype.getGrid = function() {
 World.prototype.getGridFragment = function(position, dims) {
     var xSlice = position.x - (dims[0]-1)/2;
     var ySlice = position.y - (dims[1]-1)/2;
-    
+
     if (xSlice < 0) { // Left border
         xSlice = 0;
     } else if (xSlice+dims[0] > this.width) { // Right border
@@ -126,7 +127,7 @@ World.prototype.getGridFragment = function(position, dims) {
     } else if (ySlice+dims[1] > this.height) { // Bottom border
         ySlice = this.height-dims[1];
     }
-    
+
     var gridFrag = {
         fragment: null,
         position: {

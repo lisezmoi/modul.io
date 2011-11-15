@@ -24,9 +24,9 @@ button::-moz-focus-inner {
   border: 0;
 }
 @font-face {
-  font-family: 'Inconsolata';
+  font-family: "Inconsolata";
   src: url("font/inconsolata/inconsolata-webfont.eot");
-  src: url("font/inconsolata/inconsolata-webfont.eot?#iefix") format('embedded-opentype'), url("font/inconsolata/inconsolata-webfont.woff") format('woff'), url("font/inconsolata/inconsolata-webfont.ttf") format('truetype'), url("font/inconsolata/inconsolata-webfont.svg#UrbanoLight") format('svg');
+  src: url("font/inconsolata/inconsolata-webfont.eot?#iefix") format("embedded-opentype"), url("font/inconsolata/inconsolata-webfont.woff") format("woff"), url("font/inconsolata/inconsolata-webfont.ttf") format("truetype"), url("font/inconsolata/inconsolata-webfont.svg#UrbanoLight") format("svg");
   font-weight: normal;
   font-style: normal;
 }
@@ -87,8 +87,7 @@ html {
 .panel {
   width: 300px;
 }
-.panel h1,
-.panel footer {
+.panel h1 {
   margin: 0;
   height: 32px;
   font-size: 16px;
@@ -96,10 +95,25 @@ html {
   color: #dbe3e2;
   cursor: pointer;
 }
+.panel button.close {
+  width: 300px;
+  height: 32px;
+  margin: 0;
+  padding: 0 10px 0 0;
+  font-size: 16px;
+  text-align: right;
+  color: #3d4f71;
+  background: rgba(0,5,20,0.50);
+  border: 0;
+  cursor: pointer;
+}
+.panel button.close:hover {
+  background: rgba(0,5,20,0.80);
+  color: #dbe3e2;
+}
 .panel .content {
-  overflow: hidden;
+  overflow: auto;
   position: relative;
-  height: 270px;
   background: rgba(0,5,20,0.50);
 }
 .panel-position-tr,
@@ -111,18 +125,6 @@ html {
 }
 .panel-position-br {
   border-top: 1px solid #dbe3e2;
-}
-.panel footer {
-  position: absolute;
-  bottom: 0;
-  text-align: right;
-  padding: 0 0 0 0;
-  color: #3d4f71;
-  width: 290px;
-}
-.panel footer:hover {
-  background: rgba(0,0,0,0.20);
-  color: #dbe3e2;
 }
 #panel-codepad {
   width: 600px;
@@ -185,7 +187,7 @@ button:hover {
 #panel-Actions button {
   white-space: pre;
 }
-#playground button.keyActive {
+#playground button.key-active {
   color: #fff;
   border: solid 1px #fff;
 }
