@@ -100,6 +100,7 @@ html {
   height: 32px;
   margin: 0;
   padding: 0 10px 0 0;
+  font-size: 16px;
   text-align: right;
   color: #3d4f71;
   background: rgba(0,5,20,0.50);
@@ -107,13 +108,12 @@ html {
   cursor: pointer;
 }
 .panel button.close:hover {
-  background: rgba(0,0,0,0.20);
+  background: rgba(0,5,20,0.80);
   color: #dbe3e2;
 }
 .panel .content {
   overflow: auto;
   position: relative;
-  height: 270px;
   background: rgba(0,5,20,0.50);
 }
 .panel-position-tr,
