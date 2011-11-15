@@ -47,7 +47,6 @@ function compileScript() {
 
 function emitSkinChanges(oldImgData) {
     var updateSkin = false;
-
     var newImgData = this.canvas.toDataURL('image/png');
     if (oldImgData !== newImgData) {
         this.emit('skinUpdate', this.getSkinHash(newImgData));
@@ -67,10 +66,10 @@ function getEnv() {
     function ButtonsPanel(name, buttons) {
         this.name = name;
         this.buttons = [];
+        curModul.panels[name] = this;
         if (buttons !== undefined) {
             this.add(buttons);
         }
-        curModul.panels[name] = this;
     }
 
     /* Insert a Button to a ButtonsPanel */
