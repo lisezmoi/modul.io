@@ -385,53 +385,53 @@ var myCell = new Cell;
     ctx.fillRect(newx,newy-2, 1, 5);
   }
 // ------- Panel
-var actionsPanel = new ButtonsPanel("Actions", [
-  new Button("Left", function(){
+var actionsPanel = new ui.ButtonsPanel("Actions", [
+  new ui.Button("Left", function(){
     modul.move("left");
     bousole();
   }),
-  new Button("Top", function(){
+  new ui.Button("Top", function(){
     modul.move("top");
     bousole();
   }),
-  new Button("Bottom", function(){
+  new ui.Button("Bottom", function(){
     modul.move("bottom");
     bousole();
   }),
-  new Button("Right", function(){
+  new ui.Button("Right", function(){
     modul.move("right");
     bousole();
   }),
-  new Button("Say", function(msg){
+  new ui.Button("Say", function(msg){
     // say
   }),
-  new Button("Balise", function(){
+  new ui.Button("Balise", function(){
     skinPosition();
   }),
-  new Button("zombie", function(){
+  new ui.Button("zombie", function(){
     zombieState = !zombieState
   }),
-  new Button("cellular", function(){
+  new ui.Button("cellular", function(){
     cellularState = !cellularState
   }),
-  new Button("bousole", function(){
+  new ui.Button("bousole", function(){
     bousole();
   })
 ]);
 
 // ------- Panel
-var skinPanel = new ButtonsPanel("skins", [
-    new Button("default", skin_Default),
-    new Button("blank", skin_Blank),
-    new Button("kirby", skin_Kirby),
-    new Button("mario", skin_Mario),
-    new Button("blue", skin_Blue),
-    new Button("error", skin_Error),
-    new Button("glitch", skin_Glitch),
-    new Button("win", skin_Win)
+var skinPanel = new ui.ButtonsPanel("skins", [
+    new ui.Button("default", skin_Default),
+    new ui.Button("blank", skin_Blank),
+    new ui.Button("kirby", skin_Kirby),
+    new ui.Button("mario", skin_Mario),
+    new ui.Button("blue", skin_Blue),
+    new ui.Button("error", skin_Error),
+    new ui.Button("glitch", skin_Glitch),
+    new ui.Button("win", skin_Win)
 ]);
 
-onInterval(function(){
+world.onInterval(function(){
   if (zombieState) zombie();
   if (cellularState) cellular();
 });

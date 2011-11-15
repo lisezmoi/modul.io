@@ -61,20 +61,20 @@ function default_skin() {
 }
 // You can fill your own panel
 // Here is the default "Actions" panel
-var actionsPanel = new ButtonsPanel("Actions", [
-    new Button("Left", function(){
+var actionsPanel = new ui.ButtonsPanel("Actions", [
+    new ui.Button("Left", function(){
         modul.move("left");
     }),
-    new Button("Top", function(){
+    new ui.Button("Top", function(){
         modul.move("top");
     }),
-    new Button("Bottom", function(){
+    new ui.Button("Bottom", function(){
         modul.move("bottom");
     }),
-    new Button("Right", function(){
+    new ui.Button("Right", function(){
         modul.move("right");
     }),
-    new Button("RainbowRandom", function(){
+    new ui.Button("RainbowRandom", function(){
         default_skin();
     }),
 ]);
@@ -83,7 +83,7 @@ function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-onInterval(function(){
+world.onInterval(function(){
     modul.move(["top","right","left","bottom"][getRandomInt(0, 3)]);
 });
 

@@ -1,8 +1,6 @@
 var ctx = modul.getCanvas();
 ctx.globalAlpha=1;
 
-var ButtonsPanel = ui.ButtonsPanel;
-var Button = ui.Button;
 
 function skin_Default() {
   ctx.clearRect(0,0,50,50);
@@ -219,39 +217,39 @@ function skin_Mario() {
   ctx.fillRect(9,40, 4, 4);
 }
 // You can fill your panel on creation...
-var actionsPanel = new ButtonsPanel("Actions", [
-    new Button("Top", function(){
+var actionsPanel = new ui.ButtonsPanel("Actions", [
+    new ui.Button("Top", function(){
         modul.move("top");
         skin_Default();
     }),
-    new Button("Right", function(){
+    new ui.Button("Right", function(){
         modul.move("right");
         skin_Mario();
     }),
-    new Button("Bottom", function(){
+    new ui.Button("Bottom", function(){
         modul.move("bottom");
         skin_Default();
     }),
-    new Button("Left", function(){
+    new ui.Button("Left", function(){
         modul.move("left");
         skin_Kirby();
     }),
-    new Button("Say", function(msg){
+    new ui.Button("Say", function(msg){
         // say
     })
 ]);
 // You can fill your panel on creation...
-var spriteskin_anel = new ButtonsPanel("sprites", [
-    new Button("default", skin_Default),
-    new Button("blank", skin_Blank),
-    new Button("kirby", skin_Kirby),
-    new Button("mario", skin_Mario),
-    new Button("blue", skin_Blue),
-    new Button("glitch", skin_Glitch)
+var spriteskin_anel = new ui.ButtonsPanel("sprites", [
+    new ui.Button("default", skin_Default),
+    new ui.Button("blank", skin_Blank),
+    new ui.Button("kirby", skin_Kirby),
+    new ui.Button("mario", skin_Mario),
+    new ui.Button("blue", skin_Blue),
+    new ui.Button("glitch", skin_Glitch)
 ]);
 
 //Automated action
-//onInterval(function(){
+//world.onInterval(function(){
 //       modul.move("right");
 //});
 
