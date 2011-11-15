@@ -3,17 +3,17 @@ modul.io API
 
 ## Modul
 
-### modul.getCoordinates()
+### modul.context
 
-Get the modul coordinates, as a `[x, y]` Array.
-
-### modul.getContext()
-
-Get the 2D Context of the modul. It is a regular [Canvas.getContext('2d')](https://developer.mozilla.org/en/HTML/Canvas) object of dimensions 50x50 pixels.
+The Canvas 2D Context of the modul. It is a regular [Canvas.getContext('2d')](https://developer.mozilla.org/en/HTML/Canvas) object with dimensions of 50x50 pixels.
 
 ### modul.move(direction)
 
 Move the modul in a direction. Direction must be one of these: `"top"`, `"right"`, `"bottom"`, `"left"`.
+
+### modul.getCoordinates()
+
+Get the modul coordinates, as a `[x, y]` Array.
 
 ### modul.getDimensions()
 
@@ -72,10 +72,12 @@ Log a message in the main Console panel.
 
 ## World
 
-### world.onInterval()
-
-Add a function to the world interval. The world interval is triggered once per second.
-
 ### world.getDimensions()
 
 Returns the world dimensions, as a `[width, height]` Array.
+
+## World events
+
+### world.on('interval', function( date ))
+
+The world `interval` event is triggered once per second. The parameter is a `Date` object of the current world time.

@@ -1,6 +1,6 @@
 var EventEmitter = require('events').EventEmitter,
     util = require('util'),
-    Script = require('vm').Script,
+    vm = require('vm'),
     Canvas = require('canvas'),
     crypto = require('crypto'),
     _ = require('underscore')._,
@@ -35,11 +35,10 @@ function compileScript() {
     this.intervalFunctions = [];
     this.env = getEnv.call(this);
     try {
-        Script.runInNewContext(
-            this.preScript.join('\n') + '\n' + this.code,
-            this.env,
-            'modulCode'
-        );
+        var script = vm.createScript(
+          this.preScript.join('\n') + '\n' +
+          this.code, 'modulCode');
+        script.runInNewContext(this.env);
     } catch (e) {
         this.emit('codeError', e);
     }
@@ -101,6 +100,7 @@ function getEnv() {
     /* Modul */
     var Modul = function(){
       EventEmitter.call(this);
+      this.context = curModul.ctx;
     };
     util.inherits(Modul, EventEmitter);
     Modul.prototype.say = function(text) {
@@ -110,19 +110,16 @@ function getEnv() {
     Modul.prototype.selected = function() {
         // Return selected modul
     };
-    Modul.prototype.getOtherMods = function() {
-
-    };
 
     // Returns the coordinates: [x, y]
     Modul.prototype.getCoordinates = function() {
         return [curModul.position.x, curModul.position.y];
     };
 
-    // Returns the canvas context
+    // DEPRECATED: returns the canvas context
     Modul.prototype.getCanvas = function() {
         // Return a 2D context
-        return curModul.ctx;
+        return this.context;
     };
 
     // Move the modul
@@ -298,15 +295,11 @@ Modul.prototype.execAction = function(panel, action, params, callback) {
         emitSkinChanges.call(this, imgData);
     }
 };
-Modul.prototype.execIntervals = function() {
-    var i = this.intervalFunctions.length;
-    while (i--) {
-        var imgData = this.canvas.toDataURL('image/png');
-        try {
-            this.intervalFunctions[i]();
-        } catch (e) {
-            this.emit('codeError', e);
-        }
-        emitSkinChanges.call(this, imgData);
-    }
+Modul.prototype.execIntervals = function(currentDate) {
+    var curModul = this,
+        imgData = this.canvas.toDataURL('image/png');
+    this.env.world.emit('interval', currentDate);
+    setTimeout(function(){ // FIXME
+      emitSkinChanges.call(curModul, imgData);
+    }, 100);
 };

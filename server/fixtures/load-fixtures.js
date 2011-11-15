@@ -79,4 +79,4 @@ loadFixture('pierre', 'api2', 12, 12);
 // console.log(output);
 
 
-// loadDefaults(100);
+loadDefaults(100);

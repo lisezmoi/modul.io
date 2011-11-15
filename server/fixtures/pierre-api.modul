@@ -1,4 +1,6 @@
-var ctx = modul.getCanvas();
+var ctx = modul.context;
+
+// modul.context = null;
 
 function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -10,16 +12,16 @@ function avatar() {
 avatar();
 
 var actionsPanel = new ui.ButtonsPanel("Actions", [
-  new ui.Button("                   top                   ", function() {
+  new ui.Button("top", function() {
     modul.move("top");
   }),
-  new ui.Button("  left  ", function() {
+  new ui.Button("left", function() {
     modul.move("left");
   }),
-  new ui.Button("      bottom      ", function() {
+  new ui.Button("bottom", function() {
     modul.move("bottom");
   }),
-  new ui.Button("  Right  ", function() {
+  new ui.Button("Right", function() {
     modul.move("right");
   }),
   new ui.Button('Test API', function() {
@@ -51,6 +53,10 @@ var actionsPanel = new ui.ButtonsPanel("Actions", [
 
 modul.on('message', function(extModul, msg) {
   ui.log('From ['+ extModul.id +']: ' + msg);
+});
+
+world.on('interval', function(time) {
+  ui.log(time);
 });
 
 // var chatPanel = new ui.ConsolePanel('Chat');
