@@ -78,11 +78,11 @@ global.define = _define;
 /**
  * Get at functionality define()ed using the function above
  */
-var _require = function(module, callback) {
+var _require = function(parentId, module, callback) {
     if (Object.prototype.toString.call(module) === "[object Array]") {
         var params = [];
         for (var i = 0, l = module.length; i < l; ++i) {
-            var dep = lookup(module[i]);
+            var dep = lookup(parentId, module[i]);
             if (!dep && _require.original)
                 return _require.original.apply(window, arguments);
             params.push(dep);
@@ -92,7 +92,7 @@ var _require = function(module, callback) {
         }
     }
     else if (typeof module === 'string') {
-        var payload = lookup(module);
+        var payload = lookup(parentId, module);
         if (!payload && _require.original)
             return _require.original.apply(window, arguments);
         
@@ -107,19 +107,45 @@ var _require = function(module, callback) {
             return _require.original.apply(window, arguments);
     }
 };
-_require.packaged = true;
 
 if (global.require)
     _require.original = global.require;
     
-global.require = _require;
+global.require = function(module, callback) {
+    return _require("", module, callback);
+};
+
+global.require.packaged = true;
+
+var normalizeModule = function(parentId, moduleName) {
+    // normalize plugin requires
+    if (moduleName.indexOf("!") !== -1) {
+        var chunks = moduleName.split("!");
+        return normalizeModule(parentId, chunks[0]) + "!" + normalizeModule(parentId, chunks[1]);
+    }
+    // normalize relative requires
+    if (moduleName.charAt(0) == ".") {
+        var base = parentId.split("/").slice(0, -1).join("/");
+        var moduleName = base + "/" + moduleName;
+        
+        while(moduleName.indexOf(".") !== -1 && previous != moduleName) {
+            var previous = moduleName;
+            var moduleName = moduleName.replace(/\/\.\//, "/").replace(/[^\/]+\/\.\.\//, "");
+        }
+    }
+    
+    return moduleName;
+}
 
 
 /**
  * Internal function to lookup moduleNames and resolve them by calling the
  * definition function if needed.
  */
-var lookup = function(moduleName) {
+var lookup = function(parentId, moduleName) {
+
+    moduleName = normalizeModule(parentId, moduleName);
+
     var module = define.modules[moduleName];
     if (module == null) {
         return null;
@@ -127,7 +153,19 @@ var lookup = function(moduleName) {
 
     if (typeof module === 'function') {
         var exports = {};
-        module(require, exports, { id: moduleName, uri: '' });
+        var mod = {
+            id: moduleName, 
+            uri: '',
+            exports: exports
+        }
+        
+        var req = function(module, callback) {
+            return _require(moduleName, module, callback);
+        };
+        
+        var returnValue = module(req, exports, mod);
+        exports = returnValue || mod.exports;
+            
         // cache the resulting module object for next time
         define.modules[moduleName] = exports;
         return exports;
@@ -157,7 +195,9 @@ var lookup = function(moduleName) {
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *      Fabian Jakobs <fabian AT ajax DOT org>
  *      Kevin Dangoor (kdangoor@mozilla.com)
+ *      Julian Viereck <julian DOT viereck AT gmail DOT com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -173,32 +213,527 @@ var lookup = function(moduleName) {
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('pilot/index', ['require', 'exports', 'module' , 'pilot/fixoldbrowsers', 'pilot/types/basic', 'pilot/types/command', 'pilot/types/settings', 'pilot/commands/settings', 'pilot/commands/basic', 'pilot/settings/canon', 'pilot/canon'], function(require, exports, module) {
 
-require('pilot/fixoldbrowsers');
+define('kitchen-sink/demo', ['require', 'exports', 'module' , 'ace/lib/fixoldbrowsers', 'ace/lib/net', 'ace/lib/event', 'ace/range', 'ace/editor', 'ace/virtual_renderer', 'ace/theme/textmate', 'ace/edit_session', 'ace/undomanager', 'ace/keyboard/keybinding/vim', 'ace/keyboard/keybinding/emacs', 'ace/keyboard/hash_handler', 'ace/mode/c_cpp', 'ace/mode/clojure', 'ace/mode/coffee', 'ace/mode/coldfusion', 'ace/mode/csharp', 'ace/mode/css', 'ace/mode/groovy', 'ace/mode/haxe', 'ace/mode/html', 'ace/mode/java', 'ace/mode/javascript', 'ace/mode/json', 'ace/mode/latex', 'ace/mode/lua', 'ace/mode/markdown', 'ace/mode/ocaml', 'ace/mode/perl', 'ace/mode/php', 'ace/mode/powershell', 'ace/mode/python', 'ace/mode/scala', 'ace/mode/scss', 'ace/mode/ruby', 'ace/mode/sql', 'ace/mode/SVG', 'ace/mode/text', 'ace/mode/textile', 'ace/mode/xml', 'text!kitchen-sink/docs/plaintext.txt', 'text!kitchen-sink/docs/javascript.js', 'text!kitchen-sink/docs/coffeescript.coffee', 'text!kitchen-sink/docs/json.json', 'text!kitchen-sink/docs/css.css', 'text!kitchen-sink/docs/scss.scss', 'text!kitchen-sink/docs/html.html', 'text!kitchen-sink/docs/xml.xml', 'text!kitchen-sink/docs/svg.svg', 'text!kitchen-sink/docs/php.php', 'text!kitchen-sink/docs/coldfusion.cfm', 'text!kitchen-sink/docs/python.py', 'text!kitchen-sink/docs/ruby.rb', 'text!kitchen-sink/docs/perl.pl', 'text!kitchen-sink/docs/ocaml.ml', 'text!kitchen-sink/docs/lua.lua', 'text!kitchen-sink/docs/java.java', 'text!kitchen-sink/docs/clojure.clj', 'text!kitchen-sink/docs/groovy.groovy', 'text!kitchen-sink/docs/scala.scala', 'text!kitchen-sink/docs/csharp.cs', 'text!kitchen-sink/docs/powershell.ps1', 'text!kitchen-sink/docs/cpp.cpp', 'text!kitchen-sink/docs/Haxe.hx', 'text!kitchen-sink/docs/markdown.md', 'text!kitchen-sink/docs/textile.textile', 'text!kitchen-sink/docs/latex.tex', 'ace/split'], function(require, exports, module) {
 
-exports.startup = function(data, reason) {
-    require('pilot/types/basic').startup(data, reason);
-    require('pilot/types/command').startup(data, reason);
-    require('pilot/types/settings').startup(data, reason);
-    require('pilot/commands/settings').startup(data, reason);
-    require('pilot/commands/basic').startup(data, reason);
-    // require('pilot/commands/history').startup(data, reason);
-    require('pilot/settings/canon').startup(data, reason);
-    require('pilot/canon').startup(data, reason);
+require("ace/lib/fixoldbrowsers");
+var env = {};
+    
+var net = require("ace/lib/net");
+var event = require("ace/lib/event");
+var Range = require("ace/range").Range;
+var Editor = require("ace/editor").Editor;
+var Renderer = require("ace/virtual_renderer").VirtualRenderer;
+var theme = require("ace/theme/textmate");
+var EditSession = require("ace/edit_session").EditSession;
+var UndoManager = require("ace/undomanager").UndoManager;
+
+var vim = require("ace/keyboard/keybinding/vim").Vim;
+var emacs = require("ace/keyboard/keybinding/emacs").Emacs;
+var HashHandler = require("ace/keyboard/hash_handler").HashHandler;
+
+
+var modesByName;
+
+var Doc = function(name, desc, file) {
+    this.name = name;
+    this.desc = desc;
+    this.doc = new EditSession(file);
+    this.doc.setMode(modesByName[name].mode);
+    this.doc.setUndoManager(new UndoManager());
 };
 
-exports.shutdown = function(data, reason) {
-    require('pilot/types/basic').shutdown(data, reason);
-    require('pilot/types/command').shutdown(data, reason);
-    require('pilot/types/settings').shutdown(data, reason);
-    require('pilot/commands/settings').shutdown(data, reason);
-    require('pilot/commands/basic').shutdown(data, reason);
-    // require('pilot/commands/history').shutdown(data, reason);
-    require('pilot/settings/canon').shutdown(data, reason);
-    require('pilot/canon').shutdown(data, reason);
+var WrappedDoc = function(name, desc, file) {
+    Doc.apply(this, arguments);
+    
+    this.doc.setUseWrapMode(true);
+    this.doc.setWrapLimitRange(80, 80);
 };
 
+var Mode = function(name, desc, clazz, extensions) {
+    this.name = name;
+    this.desc = desc;
+    this.clazz = clazz;
+    this.mode = new clazz();
+    this.mode.name = name;
+    
+    this.extRe = new RegExp("^.*\\.(" + extensions.join("|") + ")$", "g");
+};
+
+Mode.prototype.supportsFile = function(filename) {
+    return filename.match(this.extRe);
+};
+
+var themes = {};
+function loadTheme(name, callback) {
+    if (themes[name])
+        return callback();
+        
+    themes[name] = 1;
+    var base = name.split("/").pop();
+    var fileName = "src/theme-" + base + ".js";
+    net.loadScript(fileName, callback);
+}
+
+var modes = [
+    new Mode("c_cpp", "C/C++", require("ace/mode/c_cpp").Mode, ["c", "cpp", "cxx", "h", "hpp"]),
+    new Mode("clojure", "Clojure", require("ace/mode/clojure").Mode, ["clj"]),
+    new Mode("coffee", "CoffeeScript", require("ace/mode/coffee").Mode, ["coffee"]),
+    new Mode("coldfusion", "ColdFusion", require("ace/mode/coldfusion").Mode, ["cfm"]),
+    new Mode("csharp", "C#", require("ace/mode/csharp").Mode, ["cs"]),
+    new Mode("css", "CSS", require("ace/mode/css").Mode, ["css"]),
+    new Mode("groovy", "Groovy", require("ace/mode/groovy").Mode, ["groovy"]),
+    new Mode("haxe", "haXe", require("ace/mode/haxe").Mode, ["hx"]),
+    new Mode("html", "HTML", require("ace/mode/html").Mode, ["html", "htm"]),
+    new Mode("java", "Java", require("ace/mode/java").Mode, ["java"]),
+    new Mode("javascript", "JavaScript", require("ace/mode/javascript").Mode, ["js"]),
+    new Mode("json", "JSON", require("ace/mode/json").Mode, ["json"]),
+    new Mode("latex", "LaTeX", require("ace/mode/latex").Mode, ["tex"]),
+    new Mode("lua", "Lua", require("ace/mode/lua").Mode, ["lua"]),
+    new Mode("markdown", "MarkDown", require("ace/mode/markdown").Mode, ["md", "markdown"]),
+    new Mode("ocaml", "OCaml", require("ace/mode/ocaml").Mode, ["ml", "mli"]),
+    new Mode("perl", "Perl", require("ace/mode/perl").Mode, ["pl", "pm"]),
+    new Mode("php", "PHP",require("ace/mode/php").Mode, ["php"]),
+    new Mode("powershell", "Powershell", require("ace/mode/powershell").Mode, ["ps1"]),
+    new Mode("python", "Python", require("ace/mode/python").Mode, ["py"]),
+    new Mode("scala", "Scala", require("ace/mode/scala").Mode, ["scala"]),
+    new Mode("scss", "SCSS", require("ace/mode/scss").Mode, ["scss"]),
+    new Mode("ruby", "Ruby", require("ace/mode/ruby").Mode, ["rb"]),
+    new Mode("sql", "SQL", require("ace/mode/sql").Mode, ["sql"]),
+    new Mode("svg", "SVG", require("ace/mode/SVG").Mode, ["svg"]),
+    new Mode("text", "Text", require("ace/mode/text").Mode, ["txt"]),
+    new Mode("textile", "Textile", require("ace/mode/textile").Mode, ["textile"]),
+    new Mode("xml", "XML", require("ace/mode/xml").Mode, ["xml"])
+];
+
+modesByName = {};
+modes.forEach(function(m) {
+    modesByName[m.name] = m;
+});
+
+var loreIpsum = require("text!./docs/plaintext.txt");
+for (var i = 0; i < 5; i++) {
+    loreIpsum += loreIpsum;
+}
+
+var docs = [
+    new Doc(
+        "javascript", "JavaScript",
+        require("text!./docs/javascript.js")
+    ),
+    new WrappedDoc("text", "Plain Text", loreIpsum),
+    new Doc(
+        "coffee", "Coffeescript",
+        require("text!./docs/coffeescript.coffee")
+    ),
+    new Doc(
+        "json", "JSON",
+        require("text!./docs/json.json")
+    ),
+    new Doc(
+        "css", "CSS",
+        require("text!./docs/css.css")
+    ),
+    new Doc(
+        "scss", "SCSS",
+        require("text!./docs/scss.scss")
+    ),
+    new Doc(
+        "html", "HTML",
+        require("text!./docs/html.html")
+    ),
+    new Doc(
+        "xml", "XML",
+        require("text!./docs/xml.xml")
+    ),
+    new Doc(
+        "svg", "SVG",
+        require("text!./docs/svg.svg")
+    ),
+    new Doc(
+        "php", "PHP",
+        require("text!./docs/php.php")
+    ),
+    new Doc(
+        "coldfusion", "ColdFusion",
+        require("text!./docs/coldfusion.cfm")
+    ),
+    new Doc(
+        "python", "Python",
+        require("text!./docs/python.py")
+    ),
+    new Doc(
+        "ruby", "Ruby",
+        require("text!./docs/ruby.rb")
+    ),
+    new Doc(
+        "perl", "Perl",
+        require("text!./docs/perl.pl")
+    ),
+    new Doc(
+        "ocaml", "OCaml",
+        require("text!./docs/ocaml.ml")
+    ),
+    new Doc(
+        "lua", "Lua",
+        require("text!./docs/lua.lua")
+    ),
+    new Doc(
+        "java", "Java",
+        require("text!./docs/java.java")
+    ),
+    new Doc(
+        "clojure", "Clojure",
+        require("text!./docs/clojure.clj")
+    ),
+    new Doc(
+        "groovy", "Groovy",
+        require("text!./docs/groovy.groovy")
+    ),
+    new Doc(
+        "scala", "Scala",
+        require("text!./docs/scala.scala")
+    ),
+    new Doc(
+        "csharp", "C#",
+        require("text!./docs/csharp.cs")
+    ),
+    new Doc(
+        "powershell", "Powershell",
+        require("text!./docs/powershell.ps1")
+    ),
+    new Doc(
+        "c_cpp", "C/C++",
+        require("text!./docs/cpp.cpp")
+    ),
+    new Doc(
+        "haxe", "haXe",
+        require("text!./docs/Haxe.hx")
+    ),
+    new WrappedDoc(
+        "markdown", "Markdown",
+        require("text!./docs/markdown.md")
+    ),
+    new WrappedDoc(
+        "textile", "Textile",
+        require("text!./docs/textile.textile")
+    ),
+    new WrappedDoc(
+        "latex", "LaTeX",
+        require("text!./docs/latex.tex")
+    )
+];
+
+var docsByName = {};
+docs.forEach(function(d) {
+    docsByName[d.name] = d;
+});
+
+var keybindings = {
+    // Null = use "default" keymapping
+    ace: null,
+    vim: vim,
+    emacs: emacs,
+    // This is a way to define simple keyboard remappings
+    custom: new HashHandler({
+        "gotoright":      "Tab",
+        "indent":         "]",
+        "outdent":        "[",
+        "gotolinestart":  "^",
+        "gotolineend":    "$"
+     })
+};
+
+var container = document.getElementById("editor");
+
+// Splitting.
+var Split = require("ace/split").Split;
+var split = new Split(container, theme, 1);
+env.editor = split.getEditor(0);
+split.on("focus", function(editor) {
+    env.editor = editor;
+    updateUIEditorOptions();
+});
+env.split = split;
+window.env = env;
+window.ace = env.editor;
+
+var docEl = document.getElementById("doc");
+var modeEl = document.getElementById("mode");
+var wrapModeEl = document.getElementById("soft_wrap");
+var themeEl = document.getElementById("theme");
+var selectStyleEl = document.getElementById("select_style");
+var highlightActiveEl = document.getElementById("highlight_active");
+var showHiddenEl = document.getElementById("show_hidden");
+var showGutterEl = document.getElementById("show_gutter");
+var showPrintMarginEl = document.getElementById("show_print_margin");
+var highlightSelectedWordE = document.getElementById("highlight_selected_word");
+var showHScrollEl = document.getElementById("show_hscroll");
+var softTabEl = document.getElementById("soft_tab");
+var behavioursEl = document.getElementById("enable_behaviours");
+
+docs.forEach(function(doc) {
+    var option = document.createElement("option");
+    option.setAttribute("value", doc.name);
+    option.innerHTML = doc.desc;
+    docEl.appendChild(option);
+});
+
+modes.forEach(function(mode) {
+    var option = document.createElement("option");
+    option.setAttribute("value", mode.name);
+    option.innerHTML = mode.desc;
+    modeEl.appendChild(option);
+});
+
+bindDropdown("doc", function(value) {
+    var doc = docsByName[value].doc;
+    var session = env.split.setSession(doc);
+    session.name = doc.name;
+
+    updateUIEditorOptions();
+
+    env.editor.focus();
+});
+
+function updateUIEditorOptions() {
+    var editor = env.editor;
+    var session = editor.session;
+
+    docEl.value = session.name;
+    modeEl.value = session.getMode().name || "text";
+
+    if (!session.getUseWrapMode()) {
+        wrapModeEl.value = "off";
+    } else {
+        wrapModeEl.value = session.getWrapLimitRange().min || "free";
+    }
+
+    selectStyleEl.checked = editor.getSelectionStyle() == "line";
+    themeEl.value = editor.getTheme();
+    highlightActiveEl.checked = editor.getHighlightActiveLine();
+    showHiddenEl.checked = editor.getShowInvisibles();
+    showGutterEl.checked = editor.renderer.getShowGutter();
+    showPrintMarginEl.checked = editor.renderer.getShowPrintMargin();
+    highlightSelectedWordE.checked = editor.getHighlightSelectedWord();
+    showHScrollEl.checked = editor.renderer.getHScrollBarAlwaysVisible();
+    softTabEl.checked = session.getUseSoftTabs();
+    behavioursEl.checked = editor.getBehavioursEnabled();
+}
+
+bindDropdown("mode", function(value) {
+    env.editor.getSession().setMode(modesByName[value].mode || modesByName.text.mode);
+});
+
+bindDropdown("theme", function(value) {
+    if (window.require.packaged) {
+        loadTheme(value, function() {
+            env.editor.setTheme(value);
+        });
+    }
+    else {
+        env.editor.setTheme(value);
+    }
+});
+
+bindDropdown("keybinding", function(value) {
+    env.editor.setKeyboardHandler(keybindings[value]);
+});
+
+bindDropdown("fontsize", function(value) {
+    env.split.setFontSize(value);
+});
+
+bindDropdown("soft_wrap", function(value) {
+    var session = env.editor.getSession();
+    var renderer = env.editor.renderer;
+    switch (value) {
+        case "off":
+            session.setUseWrapMode(false);
+            renderer.setPrintMarginColumn(80);
+            break;
+        case "40":
+            session.setUseWrapMode(true);
+            session.setWrapLimitRange(40, 40);
+            renderer.setPrintMarginColumn(40);
+            break;
+        case "80":
+            session.setUseWrapMode(true);
+            session.setWrapLimitRange(80, 80);
+            renderer.setPrintMarginColumn(80);
+            break;
+        case "free":
+            session.setUseWrapMode(true);
+            session.setWrapLimitRange(null, null);
+            renderer.setPrintMarginColumn(80);
+            break;
+    }
+});
+
+bindCheckbox("select_style", function(checked) {
+    env.editor.setSelectionStyle(checked ? "line" : "text");
+});
+
+bindCheckbox("highlight_active", function(checked) {
+    env.editor.setHighlightActiveLine(checked);
+});
+
+bindCheckbox("show_hidden", function(checked) {
+    env.editor.setShowInvisibles(checked);
+});
+
+bindCheckbox("show_gutter", function(checked) {
+    env.editor.renderer.setShowGutter(checked);
+});
+
+bindCheckbox("show_print_margin", function(checked) {
+    env.editor.renderer.setShowPrintMargin(checked);
+});
+
+bindCheckbox("highlight_selected_word", function(checked) {
+    env.editor.setHighlightSelectedWord(checked);
+});
+
+bindCheckbox("show_hscroll", function(checked) {
+    env.editor.renderer.setHScrollBarAlwaysVisible(checked);
+});
+
+bindCheckbox("soft_tab", function(checked) {
+    env.editor.getSession().setUseSoftTabs(checked);
+});
+
+bindCheckbox("enable_behaviours", function(checked) {
+    env.editor.setBehavioursEnabled(checked);
+});
+
+var secondSession = null;
+bindDropdown("split", function(value) {
+    var sp = env.split;
+    if (value == "none") {
+        if (sp.getSplits() == 2) {
+            secondSession = sp.getEditor(1).session;
+        }
+        sp.setSplits(1);
+    } else {
+        var newEditor = (sp.getSplits() == 1);
+        if (value == "below") {
+            sp.setOriantation(sp.BELOW);
+        } else {
+            sp.setOriantation(sp.BESIDE);
+        }
+        sp.setSplits(2);
+
+        if (newEditor) {
+            var session = secondSession || sp.getEditor(0).session;
+            var newSession = sp.setSession(session, 1);
+            newSession.name = session.name;
+        }
+    }
+});
+
+function bindCheckbox(id, callback) {
+    var el = document.getElementById(id);
+    var onCheck = function() {
+        callback(!!el.checked);
+    };
+    el.onclick = onCheck;
+    onCheck();
+}
+
+function bindDropdown(id, callback) {
+    var el = document.getElementById(id);
+    var onChange = function() {
+        callback(el.value);
+    };
+    el.onchange = onChange;
+    onChange();
+}
+
+function onResize() {
+    var left = env.split.$container.offsetLeft;
+    var width = document.documentElement.clientWidth - left;
+    container.style.width = width + "px";
+    container.style.height = document.documentElement.clientHeight + "px";
+    env.split.resize();
+//        env.editor.resize();
+}
+
+window.onresize = onResize;
+env.editor.renderer.onResize(true);
+
+event.addListener(container, "dragover", function(e) {
+    return event.preventDefault(e);
+});
+
+event.addListener(container, "drop", function(e) {
+    var file;
+    try {
+        file = e.dataTransfer.files[0];
+    } catch(err) {
+        return event.stopEvent();
+    }
+
+    if (window.FileReader) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            env.editor.getSelection().selectAll();
+
+            var mode = modesByName.text;
+            for (var i = 0; i < modes.length; i++) {
+                if (modes[i].supportsFile(file.name)) {
+                    mode = modes[i];
+                    break;
+                }
+            }
+
+            env.editor.onTextInput(reader.result);
+
+            modeEl.value = mode.name;
+            env.editor.getSession().setMode(mode.mode);
+        };
+        reader.readAsText(file);
+    }
+
+    return event.preventDefault(e);
+});
+
+/**
+ * This demonstrates how you can define commands and bind shortcuts to them.
+ */
+
+// Fake-Save, works from the editor and the command line.
+var commands = env.editor.commands;
+
+commands.addCommand({
+    name: "save",
+    bindKey: {
+        win: "Ctrl-S",
+        mac: "Command-S",
+        sender: "editor"
+    },
+    exec: function() {
+        alert("Fake Save File");
+    }
+});
+
+// Fake-Print with custom lookup-sender-match function.
+commands.addCommand({
+    name: "print",
+    bindKey: {
+        win: "Ctrl-P",
+        mac: "Command-P",
+        sender: function(env, sender, hashId, keyString) {
+            if (sender == "editor") {
+                return true;
+            } else {
+                alert("Sorry, can only print from the editor");
+            }
+        }
+    },
+    exec: function() {
+        alert("Fake Print File");
+    }
+});
 
 });
 // vim:set ts=4 sts=4 sw=4 st:
@@ -213,12 +748,12 @@ exports.shutdown = function(data, reason) {
     MIT License. http://github.com/280north/narwhal/blob/master/README.md
 */
 
-define('pilot/fixoldbrowsers', ['require', 'exports', 'module' , 'pilot/regexp', 'pilot/es5-shim'], function(require, exports, module) {
+define('ace/lib/fixoldbrowsers', ['require', 'exports', 'module' , 'ace/lib/regexp', 'ace/lib/es5-shim'], function(require, exports, module) {
 
-require("pilot/regexp");
-require("pilot/es5-shim");
+require("./regexp");
+require("./es5-shim");
 
-});define('pilot/regexp', ['require', 'exports', 'module' ], function(require, exports, module) {
+});define('ace/lib/regexp', ['require', 'exports', 'module' ], function(require, exports, module) {
 
 // Based on code from:
 //
@@ -350,7 +885,7 @@ require("pilot/es5-shim");
     MIT License. http://github.com/280north/narwhal/blob/master/README.md
 */
 
-define('pilot/es5-shim', ['require', 'exports', 'module' ], function(require, exports, module) {
+define('ace/lib/es5-shim', ['require', 'exports', 'module' ], function(require, exports, module) {
 
 /**
  * Brings an environment as close to ECMAScript 5 compliance
@@ -1382,4580 +1917,7 @@ var prepareString = "a"[0] != "a",
         }
         return Object(o);
     };
-});/* ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
- *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
- *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is Mozilla Skywriter.
- *
- * The Initial Developer of the Original Code is
- * Mozilla.
- * Portions created by the Initial Developer are Copyright (C) 2009
- * the Initial Developer. All Rights Reserved.
- *
- * Contributor(s):
- *      Joe Walker (jwalker@mozilla.com)
- *      Kevin Dangoor (kdangoor@mozilla.com)
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or
- * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
- *
- * ***** END LICENSE BLOCK ***** */
-
-define('pilot/types/basic', ['require', 'exports', 'module' , 'pilot/types'], function(require, exports, module) {
-
-var types = require("pilot/types");
-var Type = types.Type;
-var Conversion = types.Conversion;
-var Status = types.Status;
-
-/**
- * These are the basic types that we accept. They are vaguely based on the
- * Jetpack settings system (https://wiki.mozilla.org/Labs/Jetpack/JEP/24)
- * although clearly more restricted.
- *
- * <p>In addition to these types, Jetpack also accepts range, member, password
- * that we are thinking of adding.
- *
- * <p>This module probably should not be accessed directly, but instead used
- * through types.js
- */
-
-/**
- * 'text' is the default if no type is given.
- */
-var text = new Type();
-
-text.stringify = function(value) {
-    return value;
-};
-
-text.parse = function(value) {
-    if (typeof value != 'string') {
-        throw new Error('non-string passed to text.parse()');
-    }
-    return new Conversion(value);
-};
-
-text.name = 'text';
-
-/**
- * We don't currently plan to distinguish between integers and floats
- */
-var number = new Type();
-
-number.stringify = function(value) {
-    if (!value) {
-        return null;
-    }
-    return '' + value;
-};
-
-number.parse = function(value) {
-    if (typeof value != 'string') {
-        throw new Error('non-string passed to number.parse()');
-    }
-
-    if (value.replace(/\s/g, '').length === 0) {
-        return new Conversion(null, Status.INCOMPLETE, '');
-    }
-
-    var reply = new Conversion(parseInt(value, 10));
-    if (isNaN(reply.value)) {
-        reply.status = Status.INVALID;
-        reply.message = 'Can\'t convert "' + value + '" to a number.';
-    }
-
-    return reply;
-};
-
-number.decrement = function(value) {
-    return value - 1;
-};
-
-number.increment = function(value) {
-    return value + 1;
-};
-
-number.name = 'number';
-
-/**
- * One of a known set of options
- */
-function SelectionType(typeSpec) {
-    if (!Array.isArray(typeSpec.data) && typeof typeSpec.data !== 'function') {
-        throw new Error('instances of SelectionType need typeSpec.data to be an array or function that returns an array:' + JSON.stringify(typeSpec));
-    }
-    Object.keys(typeSpec).forEach(function(key) {
-        this[key] = typeSpec[key];
-    }, this);
-};
-
-SelectionType.prototype = new Type();
-
-SelectionType.prototype.stringify = function(value) {
-    return value;
-};
-
-SelectionType.prototype.parse = function(str) {
-    if (typeof str != 'string') {
-        throw new Error('non-string passed to parse()');
-    }
-    if (!this.data) {
-        throw new Error('Missing data on selection type extension.');
-    }
-    var data = (typeof(this.data) === 'function') ? this.data() : this.data;
-
-    // The matchedValue could be the boolean value false
-    var hasMatched = false;
-    var matchedValue;
-    var completions = [];
-    data.forEach(function(option) {
-        if (str == option) {
-            matchedValue = this.fromString(option);
-            hasMatched = true;
-        }
-        else if (option.indexOf(str) === 0) {
-            completions.push(this.fromString(option));
-        }
-    }, this);
-
-    if (hasMatched) {
-        return new Conversion(matchedValue);
-    }
-    else {
-        // This is something of a hack it basically allows us to tell the
-        // setting type to forget its last setting hack.
-        if (this.noMatch) {
-            this.noMatch();
-        }
-
-        if (completions.length > 0) {
-            var msg = 'Possibilities' +
-                (str.length === 0 ? '' : ' for \'' + str + '\'');
-            return new Conversion(null, Status.INCOMPLETE, msg, completions);
-        }
-        else {
-            var msg = 'Can\'t use \'' + str + '\'.';
-            return new Conversion(null, Status.INVALID, msg, completions);
-        }
-    }
-};
-
-SelectionType.prototype.fromString = function(str) {
-    return str;
-};
-
-SelectionType.prototype.decrement = function(value) {
-    var data = (typeof this.data === 'function') ? this.data() : this.data;
-    var index;
-    if (value == null) {
-        index = data.length - 1;
-    }
-    else {
-        var name = this.stringify(value);
-        var index = data.indexOf(name);
-        index = (index === 0 ? data.length - 1 : index - 1);
-    }
-    return this.fromString(data[index]);
-};
-
-SelectionType.prototype.increment = function(value) {
-    var data = (typeof this.data === 'function') ? this.data() : this.data;
-    var index;
-    if (value == null) {
-        index = 0;
-    }
-    else {
-        var name = this.stringify(value);
-        var index = data.indexOf(name);
-        index = (index === data.length - 1 ? 0 : index + 1);
-    }
-    return this.fromString(data[index]);
-};
-
-SelectionType.prototype.name = 'selection';
-
-/**
- * SelectionType is a base class for other types
- */
-exports.SelectionType = SelectionType;
-
-/**
- * true/false values
- */
-var bool = new SelectionType({
-    name: 'bool',
-    data: [ 'true', 'false' ],
-    stringify: function(value) {
-        return '' + value;
-    },
-    fromString: function(str) {
-        return str === 'true' ? true : false;
-    }
 });
-
-
-/**
- * A we don't know right now, but hope to soon.
- */
-function DeferredType(typeSpec) {
-    if (typeof typeSpec.defer !== 'function') {
-        throw new Error('Instances of DeferredType need typeSpec.defer to be a function that returns a type');
-    }
-    Object.keys(typeSpec).forEach(function(key) {
-        this[key] = typeSpec[key];
-    }, this);
-};
-
-DeferredType.prototype = new Type();
-
-DeferredType.prototype.stringify = function(value) {
-    return this.defer().stringify(value);
-};
-
-DeferredType.prototype.parse = function(value) {
-    return this.defer().parse(value);
-};
-
-DeferredType.prototype.decrement = function(value) {
-    var deferred = this.defer();
-    return (deferred.decrement ? deferred.decrement(value) : undefined);
-};
-
-DeferredType.prototype.increment = function(value) {
-    var deferred = this.defer();
-    return (deferred.increment ? deferred.increment(value) : undefined);
-};
-
-DeferredType.prototype.name = 'deferred';
-
-/**
- * DeferredType is a base class for other types
- */
-exports.DeferredType = DeferredType;
-
-
-/**
- * A set of objects of the same type
- */
-function ArrayType(typeSpec) {
-    if (typeSpec instanceof Type) {
-        this.subtype = typeSpec;
-    }
-    else if (typeof typeSpec === 'string') {
-        this.subtype = types.getType(typeSpec);
-        if (this.subtype == null) {
-            throw new Error('Unknown array subtype: ' + typeSpec);
-        }
-    }
-    else {
-        throw new Error('Can\' handle array subtype');
-    }
-};
-
-ArrayType.prototype = new Type();
-
-ArrayType.prototype.stringify = function(values) {
-    // TODO: Check for strings with spaces and add quotes
-    return values.join(' ');
-};
-
-ArrayType.prototype.parse = function(value) {
-    return this.defer().parse(value);
-};
-
-ArrayType.prototype.name = 'array';
-
-/**
- * Registration and de-registration.
- */
-var isStarted = false;
-exports.startup = function() {
-    if (isStarted) {
-        return;
-    }
-    isStarted = true;
-    types.registerType(text);
-    types.registerType(number);
-    types.registerType(bool);
-    types.registerType(SelectionType);
-    types.registerType(DeferredType);
-    types.registerType(ArrayType);
-};
-
-exports.shutdown = function() {
-    isStarted = false;
-    types.unregisterType(text);
-    types.unregisterType(number);
-    types.unregisterType(bool);
-    types.unregisterType(SelectionType);
-    types.unregisterType(DeferredType);
-    types.unregisterType(ArrayType);
-};
-
-
-});
-/* ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
- *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
- *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is Skywriter.
- *
- * The Initial Developer of the Original Code is
- * Mozilla.
- * Portions created by the Initial Developer are Copyright (C) 2009
- * the Initial Developer. All Rights Reserved.
- *
- * Contributor(s):
- *   Joe Walker (jwalker@mozilla.com)
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or
- * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
- *
- * ***** END LICENSE BLOCK ***** */
-
-define('pilot/types', ['require', 'exports', 'module' ], function(require, exports, module) {
-
-/**
- * Some types can detect validity, that is to say they can distinguish between
- * valid and invalid values.
- * TODO: Change these constants to be numbers for more performance?
- */
-var Status = {
-    /**
-     * The conversion process worked without any problem, and the value is
-     * valid. There are a number of failure states, so the best way to check
-     * for failure is (x !== Status.VALID)
-     */
-    VALID: {
-        toString: function() { return 'VALID'; },
-        valueOf: function() { return 0; }
-    },
-
-    /**
-     * A conversion process failed, however it was noted that the string
-     * provided to 'parse()' could be VALID by the addition of more characters,
-     * so the typing may not be actually incorrect yet, just unfinished.
-     * @see Status.INVALID
-     */
-    INCOMPLETE: {
-        toString: function() { return 'INCOMPLETE'; },
-        valueOf: function() { return 1; }
-    },
-
-    /**
-     * The conversion process did not work, the value should be null and a
-     * reason for failure should have been provided. In addition some completion
-     * values may be available.
-     * @see Status.INCOMPLETE
-     */
-    INVALID: {
-        toString: function() { return 'INVALID'; },
-        valueOf: function() { return 2; }
-    },
-
-    /**
-     * A combined status is the worser of the provided statuses
-     */
-    combine: function(statuses) {
-        var combined = Status.VALID;
-        for (var i = 0; i < statuses.length; i++) {
-            if (statuses[i].valueOf() > combined.valueOf()) {
-                combined = statuses[i];
-            }
-        }
-        return combined;
-    }
-};
-exports.Status = Status;
-
-/**
- * The type.parse() method returns a Conversion to inform the user about not
- * only the result of a Conversion but also about what went wrong.
- * We could use an exception, and throw if the conversion failed, but that
- * seems to violate the idea that exceptions should be exceptional. Typos are
- * not. Also in order to store both a status and a message we'd still need
- * some sort of exception type...
- */
-function Conversion(value, status, message, predictions) {
-    /**
-     * The result of the conversion process. Will be null if status != VALID
-     */
-    this.value = value;
-
-    /**
-     * The status of the conversion.
-     * @see Status
-     */
-    this.status = status || Status.VALID;
-
-    /**
-     * A message to go with the conversion. This could be present for any status
-     * including VALID in the case where we want to note a warning for example.
-     * I18N: On the one hand this nasty and un-internationalized, however with
-     * a command line it is hard to know where to start.
-     */
-    this.message = message;
-
-    /**
-     * A array of strings which are the systems best guess at better inputs than
-     * the one presented.
-     * We generally expect there to be about 7 predictions (to match human list
-     * comprehension ability) however it is valid to provide up to about 20,
-     * or less. It is the job of the predictor to decide a smart cut-off.
-     * For example if there are 4 very good matches and 4 very poor ones,
-     * probably only the 4 very good matches should be presented.
-     */
-    this.predictions = predictions || [];
-}
-exports.Conversion = Conversion;
-
-/**
- * Most of our types are 'static' e.g. there is only one type of 'text', however
- * some types like 'selection' and 'deferred' are customizable. The basic
- * Type type isn't useful, but does provide documentation about what types do.
- */
-function Type() {
-};
-Type.prototype = {
-    /**
-     * Convert the given <tt>value</tt> to a string representation.
-     * Where possible, there should be round-tripping between values and their
-     * string representations.
-     */
-    stringify: function(value) { throw new Error("not implemented"); },
-
-    /**
-     * Convert the given <tt>str</tt> to an instance of this type.
-     * Where possible, there should be round-tripping between values and their
-     * string representations.
-     * @return Conversion
-     */
-    parse: function(str) { throw new Error("not implemented"); },
-
-    /**
-     * The plug-in system, and other things need to know what this type is
-     * called. The name alone is not enough to fully specify a type. Types like
-     * 'selection' and 'deferred' need extra data, however this function returns
-     * only the name, not the extra data.
-     * <p>In old bespin, equality was based on the name. This may turn out to be
-     * important in Ace too.
-     */
-    name: undefined,
-
-    /**
-     * If there is some concept of a higher value, return it,
-     * otherwise return undefined.
-     */
-    increment: function(value) {
-        return undefined;
-    },
-
-    /**
-     * If there is some concept of a lower value, return it,
-     * otherwise return undefined.
-     */
-    decrement: function(value) {
-        return undefined;
-    },
-
-    /**
-     * There is interesting information (like predictions) in a conversion of
-     * nothing, the output of this can sometimes be customized.
-     * @return Conversion
-     */
-    getDefault: function() {
-        return this.parse('');
-    }
-};
-exports.Type = Type;
-
-/**
- * Private registry of types
- * Invariant: types[name] = type.name
- */
-var types = {};
-
-/**
- * Add a new type to the list available to the system.
- * You can pass 2 things to this function - either an instance of Type, in
- * which case we return this instance when #getType() is called with a 'name'
- * that matches type.name.
- * Also you can pass in a constructor (i.e. function) in which case when
- * #getType() is called with a 'name' that matches Type.prototype.name we will
- * pass the typeSpec into this constructor. See #reconstituteType().
- */
-exports.registerType = function(type) {
-    if (typeof type === 'object') {
-        if (type instanceof Type) {
-            if (!type.name) {
-                throw new Error('All registered types must have a name');
-            }
-            types[type.name] = type;
-        }
-        else {
-            throw new Error('Can\'t registerType using: ' + type);
-        }
-    }
-    else if (typeof type === 'function') {
-        if (!type.prototype.name) {
-            throw new Error('All registered types must have a name');
-        }
-        types[type.prototype.name] = type;
-    }
-    else {
-        throw new Error('Unknown type: ' + type);
-    }
-};
-
-exports.registerTypes = function registerTypes(types) {
-    Object.keys(types).forEach(function (name) {
-        var type = types[name];
-        type.name = name;
-        exports.registerType(type);
-    });
-};
-
-/**
- * Remove a type from the list available to the system
- */
-exports.deregisterType = function(type) {
-    delete types[type.name];
-};
-
-/**
- * See description of #exports.registerType()
- */
-function reconstituteType(name, typeSpec) {
-    if (name.substr(-2) === '[]') { // i.e. endsWith('[]')
-        var subtypeName = name.slice(0, -2);
-        return new types['array'](subtypeName);
-    }
-
-    var type = types[name];
-    if (typeof type === 'function') {
-        type = new type(typeSpec);
-    }
-    return type;
-}
-
-/**
- * Find a type, previously registered using #registerType()
- */
-exports.getType = function(typeSpec) {
-    if (typeof typeSpec === 'string') {
-        return reconstituteType(typeSpec);
-    }
-
-    if (typeof typeSpec === 'object') {
-        if (!typeSpec.name) {
-            throw new Error('Missing \'name\' member to typeSpec');
-        }
-        return reconstituteType(typeSpec.name, typeSpec);
-    }
-
-    throw new Error('Can\'t extract type from ' + typeSpec);
-};
-
-
-});
-/* ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
- *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
- *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is Mozilla Skywriter.
- *
- * The Initial Developer of the Original Code is
- * Mozilla.
- * Portions created by the Initial Developer are Copyright (C) 2009
- * the Initial Developer. All Rights Reserved.
- *
- * Contributor(s):
- *      Joe Walker (jwalker@mozilla.com)
- *      Kevin Dangoor (kdangoor@mozilla.com)
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or
- * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
- *
- * ***** END LICENSE BLOCK ***** */
-
-define('pilot/types/command', ['require', 'exports', 'module' , 'pilot/canon', 'pilot/types/basic', 'pilot/types'], function(require, exports, module) {
-
-var canon = require("pilot/canon");
-var SelectionType = require("pilot/types/basic").SelectionType;
-var types = require("pilot/types");
-
-
-/**
- * Select from the available commands
- */
-var command = new SelectionType({
-    name: 'command',
-    data: function() {
-        return canon.getCommandNames();
-    },
-    stringify: function(command) {
-        return command.name;
-    },
-    fromString: function(str) {
-        return canon.getCommand(str);
-    }
-});
-
-
-/**
- * Registration and de-registration.
- */
-exports.startup = function() {
-    types.registerType(command);
-};
-
-exports.shutdown = function() {
-    types.unregisterType(command);
-};
-
-
-});
-/* ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
- *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
- *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is Mozilla Skywriter.
- *
- * The Initial Developer of the Original Code is
- * Mozilla.
- * Portions created by the Initial Developer are Copyright (C) 2009
- * the Initial Developer. All Rights Reserved.
- *
- * Contributor(s):
- *   Joe Walker (jwalker@mozilla.com)
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or
- * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
- *
- * ***** END LICENSE BLOCK ***** */
-
-define('pilot/canon', ['require', 'exports', 'module' , 'pilot/console', 'pilot/stacktrace', 'pilot/oop', 'pilot/useragent', 'pilot/keys', 'pilot/event_emitter', 'pilot/typecheck', 'pilot/catalog', 'pilot/types', 'pilot/lang'], function(require, exports, module) {
-
-var console = require('pilot/console');
-var Trace = require('pilot/stacktrace').Trace;
-var oop = require('pilot/oop');
-var useragent = require('pilot/useragent');
-var keyUtil = require('pilot/keys');
-var EventEmitter = require('pilot/event_emitter').EventEmitter;
-var typecheck = require('pilot/typecheck');
-var catalog = require('pilot/catalog');
-var Status = require('pilot/types').Status;
-var types = require('pilot/types');
-var lang = require('pilot/lang');
-
-/*
-// TODO: this doesn't belong here - or maybe anywhere?
-var dimensionsChangedExtensionSpec = {
-    name: 'dimensionsChanged',
-    description: 'A dimensionsChanged is a way to be notified of ' +
-            'changes to the dimension of Skywriter'
-};
-exports.startup = function(data, reason) {
-    catalog.addExtensionSpec(commandExtensionSpec);
-};
-exports.shutdown = function(data, reason) {
-    catalog.removeExtensionSpec(commandExtensionSpec);
-};
-*/
-
-var commandExtensionSpec = {
-    name: 'command',
-    description: 'A command is a bit of functionality with optional ' +
-            'typed arguments which can do something small like moving ' +
-            'the cursor around the screen, or large like cloning a ' +
-            'project from VCS.',
-    indexOn: 'name'
-};
-
-exports.startup = function(data, reason) {
-    // TODO: this is probably all kinds of evil, but we need something working
-    catalog.addExtensionSpec(commandExtensionSpec);
-};
-
-exports.shutdown = function(data, reason) {
-    catalog.removeExtensionSpec(commandExtensionSpec);
-};
-
-/**
- * Manage a list of commands in the current canon
- */
-
-/**
- * A Command is a discrete action optionally with a set of ways to customize
- * how it happens. This is here for documentation purposes.
- * TODO: Document better
- */
-var thingCommand = {
-    name: 'thing',
-    description: 'thing is an example command',
-    params: [{
-        name: 'param1',
-        description: 'an example parameter',
-        type: 'text',
-        defaultValue: null
-    }],
-    exec: function(env, args, request) {
-        thing();
-    }
-};
-
-/**
- * A lookup hash of our registered commands
- */
-var commands = {};
-
-/**
- * A lookup has for command key bindings that use a string as sender.
- */
-var commmandKeyBinding = {};
-
-/**
- * Array with command key bindings that use a function to determ the sender.
- */
-var commandKeyBindingFunc = { };
-
-function splitSafe(s, separator, limit, bLowerCase) {
-    return (bLowerCase && s.toLowerCase() || s)
-        .replace(/(?:^\s+|\n|\s+$)/g, "")
-        .split(new RegExp("[\\s ]*" + separator + "[\\s ]*", "g"), limit || 999);
-}
-
-function parseKeys(keys, val, ret) {
-    var key,
-        hashId = 0,
-        parts  = splitSafe(keys, "\\-", null, true),
-        i      = 0,
-        l      = parts.length;
-
-    for (; i < l; ++i) {
-        if (keyUtil.KEY_MODS[parts[i]])
-            hashId = hashId | keyUtil.KEY_MODS[parts[i]];
-        else
-            key = parts[i] || "-"; //when empty, the splitSafe removed a '-'
-    }
-
-    if (ret == null) {
-        return {
-            key: key,
-            hashId: hashId
-        }
-    } else {
-        (ret[hashId] || (ret[hashId] = {}))[key] = val;
-    }
-}
-
-var platform = useragent.isMac ? "mac" : "win";
-function buildKeyHash(command) {
-    var binding = command.bindKey,
-        key = binding[platform],
-        ckb = commmandKeyBinding,
-        ckbf = commandKeyBindingFunc
-
-    if (!binding.sender) {
-        throw new Error('All key bindings must have a sender');   
-    }
-    if (!binding.mac && binding.mac !== null) {
-        throw new Error('All key bindings must have a mac key binding');
-    }
-    if (!binding.win && binding.win !== null) {
-        throw new Error('All key bindings must have a windows key binding');
-    }
-    if(!binding[platform]) {
-        // No keymapping for this platform.
-        return;   
-    }
-    if (typeof binding.sender == 'string') {
-        var targets = splitSafe(binding.sender, "\\|", null, true);
-        targets.forEach(function(target) {
-            if (!ckb[target]) {
-                ckb[target] = { };
-            }
-            key.split("|").forEach(function(keyPart) {
-                parseKeys(keyPart, command, ckb[target]);        
-            });
-        });
-    } else if (typecheck.isFunction(binding.sender)) {
-        var val = {
-            command: command,
-            sender:  binding.sender
-        };
-        
-        keyData = parseKeys(key);
-        if (!ckbf[keyData.hashId]) {
-            ckbf[keyData.hashId] = { };
-        }
-        if (!ckbf[keyData.hashId][keyData.key]) {
-            ckbf[keyData.hashId][keyData.key] = [ val ];   
-        } else {
-            ckbf[keyData.hashId][keyData.key].push(val);
-        }
-    } else {
-        throw new Error('Key binding must have a sender that is a string or function');   
-    }
-}
-
-function findKeyCommand(env, sender, hashId, textOrKey) {
-    // Convert keyCode to the string representation.
-    if (typecheck.isNumber(textOrKey)) {
-        textOrKey = keyUtil.keyCodeToString(textOrKey);
-    }
-    
-    // Check bindings with functions as sender first.    
-    var bindFuncs = (commandKeyBindingFunc[hashId]  || {})[textOrKey] || [];
-    for (var i = 0; i < bindFuncs.length; i++) {
-        if (bindFuncs[i].sender(env, sender, hashId, textOrKey)) {
-            return bindFuncs[i].command;
-        }
-    }
-    
-    var ckbr = commmandKeyBinding[sender];
-    return ckbr && ckbr[hashId] && ckbr[hashId][textOrKey];
-}
-
-function execKeyCommand(env, sender, hashId, textOrKey) {
-    var command = findKeyCommand(env, sender, hashId, textOrKey);
-    if (command) {
-        return exec(command, env, sender, { });   
-    } else {
-        return false;
-    }
-}
-
-/**
- * A sorted list of command names, we regularly want them in order, so pre-sort
- */
-var commandNames = [];
-
-/**
- * This registration method isn't like other Ace registration methods because
- * it doesn't return a decorated command because there is no functional
- * decoration to be done.
- * TODO: Are we sure that in the future there will be no such decoration?
- */
-function addCommand(command) {
-    if (!command.name) {
-        throw new Error('All registered commands must have a name');
-    }
-    if (command.params == null) {
-        command.params = [];
-    }
-    if (!Array.isArray(command.params)) {
-        throw new Error('command.params must be an array in ' + command.name);
-    }
-    // Replace the type
-    command.params.forEach(function(param) {
-        if (!param.name) {
-            throw new Error('In ' + command.name + ': all params must have a name');
-        }
-        upgradeType(command.name, param);
-    }, this);
-    commands[command.name] = command;
-
-    if (command.bindKey) {
-        buildKeyHash(command);   
-    }
-
-    commandNames.push(command.name);
-    commandNames.sort();
-};
-
-function upgradeType(name, param) {
-    var lookup = param.type;
-    param.type = types.getType(lookup);
-    if (param.type == null) {
-        throw new Error('In ' + name + '/' + param.name +
-            ': can\'t find type for: ' + JSON.stringify(lookup));
-    }
-}
-
-function removeCommand(command) {
-    var name = (typeof command === 'string' ? command : command.name);
-    command = commands[name];
-    delete commands[name];
-    lang.arrayRemove(commandNames, name);
-
-    // exaustive search is a little bit brute force but since removeCommand is
-    // not a performance critical operation this should be OK
-    var ckb = commmandKeyBinding;
-    for (var k1 in ckb) {
-        for (var k2 in ckb[k1]) {
-            for (var k3 in ckb[k1][k2]) {
-                if (ckb[k1][k2][k3] == command)
-                    delete ckb[k1][k2][k3];
-            }
-        }
-    }
-    
-    var ckbf = commandKeyBindingFunc;
-    for (var k1 in ckbf) {
-        for (var k2 in ckbf[k1]) {
-            ckbf[k1][k2].forEach(function(cmd, i) {
-                if (cmd.command == command) {
-                    ckbf[k1][k2].splice(i, 1);
-                }
-            })
-        }
-    }
-};
-
-function getCommand(name) {
-    return commands[name];
-};
-
-function getCommandNames() {
-    return commandNames;
-};
-
-/**
- * Default ArgumentProvider that is used if no ArgumentProvider is provided
- * by the command's sender.
- */
-function defaultArgsProvider(request, callback) {
-    var args  = request.args,
-        params = request.command.params;
-
-    for (var i = 0; i < params.length; i++) {
-        var param = params[i];
-
-        // If the parameter is already valid, then don't ask for it anymore.
-        if (request.getParamStatus(param) != Status.VALID ||
-            // Ask for optional parameters as well.
-            param.defaultValue === null) 
-        {
-            var paramPrompt = param.description;
-            if (param.defaultValue === null) {
-                paramPrompt += " (optional)";
-            }
-            var value = prompt(paramPrompt, param.defaultValue || "");
-            // No value but required -> nope.
-            if (!value) {
-                callback();
-                return;
-            } else {
-                args[param.name] = value;
-            }           
-        }
-    }
-    callback();
-}
-
-/**
- * Entry point for keyboard accelerators or anything else that wants to execute
- * a command. A new request object is created and a check performed, if the
- * passed in arguments are VALID/INVALID or INCOMPLETE. If they are INCOMPLETE
- * the ArgumentProvider on the sender is called or otherwise the default 
- * ArgumentProvider to get the still required arguments.
- * If they are valid (or valid after the ArgumentProvider is done), the command
- * is executed.
- * 
- * @param command   Either a command, or the name of one
- * @param env       Current environment to execute the command in
- * @param sender    String that should be the same as the senderObject stored on 
- *                  the environment in env[sender]
- * @param args      Arguments for the command
- * @param typed     (Optional)
- */
-function exec(command, env, sender, args, typed) {
-    if (typeof command === 'string') {
-        command = commands[command];
-    }
-    if (!command) {
-        // TODO: Should we complain more than returning false?
-        return false;
-    }
-
-    var request = new Request({
-        sender: sender,
-        command: command,
-        args: args || {},
-        typed: typed
-    });
-    
-    /**
-     * Executes the command and ensures request.done is called on the request in 
-     * case it's not marked to be done already or async.
-     */
-    function execute() {
-        command.exec(env, request.args, request);
-        
-        // If the request isn't asnync and isn't done, then make it done.
-        if (!request.isAsync && !request.isDone) {
-            request.done();
-        }
-    }
-    
-    
-    if (request.getStatus() == Status.INVALID) {
-        console.error("Canon.exec: Invalid parameter(s) passed to " + 
-                            command.name);
-        return false;   
-    } 
-    // If the request isn't complete yet, try to complete it.
-    else if (request.getStatus() == Status.INCOMPLETE) {
-        // Check if the sender has a ArgsProvider, otherwise use the default
-        // build in one.
-        var argsProvider;
-        var senderObj = env[sender];
-        if (!senderObj || !senderObj.getArgsProvider ||
-            !(argsProvider = senderObj.getArgsProvider())) 
-        {
-            argsProvider = defaultArgsProvider;
-        }
-
-        // Ask the paramProvider to complete the request.
-        argsProvider(request, function() {
-            if (request.getStatus() == Status.VALID) {
-                execute();
-            }
-        });
-        return true;
-    } else {
-        execute();
-        return true;
-    }
-};
-
-exports.removeCommand = removeCommand;
-exports.addCommand = addCommand;
-exports.getCommand = getCommand;
-exports.getCommandNames = getCommandNames;
-exports.findKeyCommand = findKeyCommand;
-exports.exec = exec;
-exports.execKeyCommand = execKeyCommand;
-exports.upgradeType = upgradeType;
-
-
-/**
- * We publish a 'output' event whenever new command begins output
- * TODO: make this more obvious
- */
-oop.implement(exports, EventEmitter);
-
-
-/**
- * Current requirements are around displaying the command line, and provision
- * of a 'history' command and cursor up|down navigation of history.
- * <p>Future requirements could include:
- * <ul>
- * <li>Multiple command lines
- * <li>The ability to recall key presses (i.e. requests with no output) which
- * will likely be needed for macro recording or similar
- * <li>The ability to store the command history either on the server or in the
- * browser local storage.
- * </ul>
- * <p>The execute() command doesn't really live here, except as part of that
- * last future requirement, and because it doesn't really have anywhere else to
- * live.
- */
-
-/**
- * The array of requests that wish to announce their presence
- */
-var requests = [];
-
-/**
- * How many requests do we store?
- */
-var maxRequestLength = 100;
-
-/**
- * To create an invocation, you need to do something like this (all the ctor
- * args are optional):
- * <pre>
- * var request = new Request({
- *     command: command,
- *     args: args,
- *     typed: typed
- * });
- * </pre>
- * @constructor
- */
-function Request(options) {
-    options = options || {};
-
-    // Will be used in the keyboard case and the cli case
-    this.command = options.command;
-
-    // Will be used only in the cli case
-    this.args = options.args;
-    this.typed = options.typed;
-
-    // Have we been initialized?
-    this._begunOutput = false;
-
-    this.start = new Date();
-    this.end = null;
-    this.completed = false;
-    this.error = false;
-};
-
-oop.implement(Request.prototype, EventEmitter);
-
-/**
- * Return the status of a parameter on the request object.
- */
-Request.prototype.getParamStatus = function(param) {
-    var args = this.args || {};
-    
-    // Check if there is already a value for this parameter.
-    if (param.name in args) {
-        // If there is no value set and then the value is VALID if it's not
-        // required or INCOMPLETE if not set yet.
-        if (args[param.name] == null) {
-            if (param.defaultValue === null) {
-                return Status.VALID;
-            } else {
-                return Status.INCOMPLETE;   
-            } 
-        }
-        
-        // Check if the parameter value is valid.
-        var reply,
-            // The passed in value when parsing a type is a string.
-            argsValue = args[param.name].toString();
-        
-        // Type.parse can throw errors. 
-        try {
-            reply = param.type.parse(argsValue);
-        } catch (e) {
-            return Status.INVALID;   
-        }
-        
-        if (reply.status != Status.VALID) {
-            return reply.status;   
-        }
-    } 
-    // Check if the param is marked as required.
-    else if (param.defaultValue === undefined) {
-        // The parameter is not set on the args object but it's required,
-        // which means, things are invalid.
-        return Status.INCOMPLETE;
-    }
-    
-    return Status.VALID;
-}
-
-/**
- * Return the status of a parameter name on the request object.
- */
-Request.prototype.getParamNameStatus = function(paramName) {
-    var params = this.command.params || [];
-    
-    for (var i = 0; i < params.length; i++) {
-        if (params[i].name == paramName) {
-            return this.getParamStatus(params[i]);   
-        }
-    }
-    
-    throw "Parameter '" + paramName + 
-                "' not defined on command '" + this.command.name + "'"; 
-}
-
-/**
- * Checks if all required arguments are set on the request such that it can
- * get executed.
- */
-Request.prototype.getStatus = function() {
-    var args = this.args || {},
-        params = this.command.params;
-
-    // If there are not parameters, then it's valid.
-    if (!params || params.length == 0) {
-        return Status.VALID;
-    }
-
-    var status = [];
-    for (var i = 0; i < params.length; i++) {
-        status.push(this.getParamStatus(params[i]));        
-    }
-
-    return Status.combine(status);
-}
-
-/**
- * Lazy init to register with the history should only be done on output.
- * init() is expensive, and won't be used in the majority of cases
- */
-Request.prototype._beginOutput = function() {
-    this._begunOutput = true;
-    this.outputs = [];
-
-    requests.push(this);
-    // This could probably be optimized with some maths, but 99.99% of the
-    // time we will only be off by one, and I'm feeling lazy.
-    while (requests.length > maxRequestLength) {
-        requests.shiftObject();
-    }
-
-    exports._dispatchEvent('output', { requests: requests, request: this });
-};
-
-/**
- * Sugar for:
- * <pre>request.error = true; request.done(output);</pre>
- */
-Request.prototype.doneWithError = function(content) {
-    this.error = true;
-    this.done(content);
-};
-
-/**
- * Declares that this function will not be automatically done when
- * the command exits
- */
-Request.prototype.async = function() {
-    this.isAsync = true;
-    if (!this._begunOutput) {
-        this._beginOutput();
-    }
-};
-
-/**
- * Complete the currently executing command with successful output.
- * @param output Either DOM node, an SproutCore element or something that
- * can be used in the content of a DIV to create a DOM node.
- */
-Request.prototype.output = function(content) {
-    if (!this._begunOutput) {
-        this._beginOutput();
-    }
-
-    if (typeof content !== 'string' && !(content instanceof Node)) {
-        content = content.toString();
-    }
-
-    this.outputs.push(content);
-    this.isDone = true;
-    this._dispatchEvent('output', {});
-
-    return this;
-};
-
-/**
- * All commands that do output must call this to indicate that the command
- * has finished execution.
- */
-Request.prototype.done = function(content) {
-    this.completed = true;
-    this.end = new Date();
-    this.duration = this.end.getTime() - this.start.getTime();
-
-    if (content) {
-        this.output(content);
-    }
-    
-    // Ensure to finish the request only once.
-    if (!this.isDone) {
-        this.isDone = true;
-        this._dispatchEvent('output', {});   
-    }
-};
-exports.Request = Request;
-
-
-});
-/* ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
- *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
- *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is Mozilla Skywriter.
- *
- * The Initial Developer of the Original Code is
- * Mozilla.
- * Portions created by the Initial Developer are Copyright (C) 2009
- * the Initial Developer. All Rights Reserved.
- *
- * Contributor(s):
- *   Joe Walker (jwalker@mozilla.com)
- *   Patrick Walton (pwalton@mozilla.com)
- *   Julian Viereck (jviereck@mozilla.com)
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or
- * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
- *
- * ***** END LICENSE BLOCK ***** */
-define('pilot/console', ['require', 'exports', 'module' ], function(require, exports, module) {
-    
-/**
- * This object represents a "safe console" object that forwards debugging
- * messages appropriately without creating a dependency on Firebug in Firefox.
- */
-
-var noop = function() {};
-
-// These are the functions that are available in Chrome 4/5, Safari 4
-// and Firefox 3.6. Don't add to this list without checking browser support
-var NAMES = [
-    "assert", "count", "debug", "dir", "dirxml", "error", "group", "groupEnd",
-    "info", "log", "profile", "profileEnd", "time", "timeEnd", "trace", "warn"
-];
-
-if (typeof(window) === 'undefined') {
-    // We're in a web worker. Forward to the main thread so the messages
-    // will show up.
-    NAMES.forEach(function(name) {
-        exports[name] = function() {
-            var args = Array.prototype.slice.call(arguments);
-            var msg = { op: 'log', method: name, args: args };
-            postMessage(JSON.stringify(msg));
-        };
-    });
-} else {
-    // For each of the console functions, copy them if they exist, stub if not
-    NAMES.forEach(function(name) {
-        if (window.console && window.console[name]) {
-            exports[name] = Function.prototype.bind.call(window.console[name], window.console);
-        } else {
-            exports[name] = noop;
-        }
-    });
-}
-
-});
-define('pilot/stacktrace', ['require', 'exports', 'module' , 'pilot/useragent', 'pilot/console'], function(require, exports, module) {
-    
-var ua = require("pilot/useragent");
-var console = require('pilot/console');
-
-// Changed to suit the specific needs of running within Skywriter
-
-// Domain Public by Eric Wendelin http://eriwen.com/ (2008)
-//                  Luke Smith http://lucassmith.name/ (2008)
-//                  Loic Dachary <loic@dachary.org> (2008)
-//                  Johan Euphrosine <proppy@aminche.com> (2008)
-//                  Øyvind Sean Kinsey http://kinsey.no/blog
-//
-// Information and discussions
-// http://jspoker.pokersource.info/skin/test-printstacktrace.html
-// http://eriwen.com/javascript/js-stack-trace/
-// http://eriwen.com/javascript/stacktrace-update/
-// http://pastie.org/253058
-// http://browsershots.org/http://jspoker.pokersource.info/skin/test-printstacktrace.html
-//
-
-//
-// guessFunctionNameFromLines comes from firebug
-//
-// Software License Agreement (BSD License)
-//
-// Copyright (c) 2007, Parakey Inc.
-// All rights reserved.
-//
-// Redistribution and use of this software in source and binary forms, with or without modification,
-// are permitted provided that the following conditions are met:
-//
-// * Redistributions of source code must retain the above
-//   copyright notice, this list of conditions and the
-//   following disclaimer.
-//
-// * Redistributions in binary form must reproduce the above
-//   copyright notice, this list of conditions and the
-//   following disclaimer in the documentation and/or other
-//   materials provided with the distribution.
-//
-// * Neither the name of Parakey Inc. nor the names of its
-//   contributors may be used to endorse or promote products
-//   derived from this software without specific prior
-//   written permission of Parakey Inc.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
-// IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-// FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-// DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
-// IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
-// OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-
-
-/**
- * Different browsers create stack traces in different ways.
- * <strike>Feature</strike> Browser detection baby ;).
- */
-var mode = (function() {
-
-    // We use SC's browser detection here to avoid the "break on error"
-    // functionality provided by Firebug. Firebug tries to do the right
-    // thing here and break, but it happens every time you load the page.
-    // bug 554105
-    if (ua.isGecko) {
-        return 'firefox';
-    } else if (ua.isOpera) {
-        return 'opera';
-    } else {
-        return 'other';
-    }
-
-    // SC doesn't do any detection of Chrome at this time.
-
-    // this is the original feature detection code that is used as a
-    // fallback.
-    try {
-        (0)();
-    } catch (e) {
-        if (e.arguments) {
-            return 'chrome';
-        }
-        if (e.stack) {
-            return 'firefox';
-        }
-        if (window.opera && !('stacktrace' in e)) { //Opera 9-
-            return 'opera';
-        }
-    }
-    return 'other';
-})();
-
-/**
- *
- */
-function stringifyArguments(args) {
-    for (var i = 0; i < args.length; ++i) {
-        var argument = args[i];
-        if (typeof argument == 'object') {
-            args[i] = '#object';
-        } else if (typeof argument == 'function') {
-            args[i] = '#function';
-        } else if (typeof argument == 'string') {
-            args[i] = '"' + argument + '"';
-        }
-    }
-    return args.join(',');
-}
-
-/**
- * Extract a stack trace from the format emitted by each browser.
- */
-var decoders = {
-    chrome: function(e) {
-        var stack = e.stack;
-        if (!stack) {
-            console.log(e);
-            return [];
-        }
-        return stack.replace(/^.*?\n/, '').
-                replace(/^.*?\n/, '').
-                replace(/^.*?\n/, '').
-                replace(/^[^\(]+?[\n$]/gm, '').
-                replace(/^\s+at\s+/gm, '').
-                replace(/^Object.<anonymous>\s*\(/gm, '{anonymous}()@').
-                split('\n');
-    },
-
-    firefox: function(e) {
-        var stack = e.stack;
-        if (!stack) {
-            console.log(e);
-            return [];
-        }
-        // stack = stack.replace(/^.*?\n/, '');
-        stack = stack.replace(/(?:\n@:0)?\s+$/m, '');
-        stack = stack.replace(/^\(/gm, '{anonymous}(');
-        return stack.split('\n');
-    },
-
-    // Opera 7.x and 8.x only!
-    opera: function(e) {
-        var lines = e.message.split('\n'), ANON = '{anonymous}',
-            lineRE = /Line\s+(\d+).*?script\s+(http\S+)(?:.*?in\s+function\s+(\S+))?/i, i, j, len;
-
-        for (i = 4, j = 0, len = lines.length; i < len; i += 2) {
-            if (lineRE.test(lines[i])) {
-                lines[j++] = (RegExp.$3 ? RegExp.$3 + '()@' + RegExp.$2 + RegExp.$1 : ANON + '()@' + RegExp.$2 + ':' + RegExp.$1) +
-                ' -- ' +
-                lines[i + 1].replace(/^\s+/, '');
-            }
-        }
-
-        lines.splice(j, lines.length - j);
-        return lines;
-    },
-
-    // Safari, Opera 9+, IE, and others
-    other: function(curr) {
-        var ANON = '{anonymous}', fnRE = /function\s*([\w\-$]+)?\s*\(/i, stack = [], j = 0, fn, args;
-
-        var maxStackSize = 10;
-        while (curr && stack.length < maxStackSize) {
-            fn = fnRE.test(curr.toString()) ? RegExp.$1 || ANON : ANON;
-            args = Array.prototype.slice.call(curr['arguments']);
-            stack[j++] = fn + '(' + stringifyArguments(args) + ')';
-
-            //Opera bug: if curr.caller does not exist, Opera returns curr (WTF)
-            if (curr === curr.caller && window.opera) {
-                //TODO: check for same arguments if possible
-                break;
-            }
-            curr = curr.caller;
-        }
-        return stack;
-    }
-};
-
-/**
- *
- */
-function NameGuesser() {
-}
-
-NameGuesser.prototype = {
-
-    sourceCache: {},
-
-    ajax: function(url) {
-        var req = this.createXMLHTTPObject();
-        if (!req) {
-            return;
-        }
-        req.open('GET', url, false);
-        req.setRequestHeader('User-Agent', 'XMLHTTP/1.0');
-        req.send('');
-        return req.responseText;
-    },
-
-    createXMLHTTPObject: function() {
-	    // Try XHR methods in order and store XHR factory
-        var xmlhttp, XMLHttpFactories = [
-            function() {
-                return new XMLHttpRequest();
-            }, function() {
-                return new ActiveXObject('Msxml2.XMLHTTP');
-            }, function() {
-                return new ActiveXObject('Msxml3.XMLHTTP');
-            }, function() {
-                return new ActiveXObject('Microsoft.XMLHTTP');
-            }
-        ];
-        for (var i = 0; i < XMLHttpFactories.length; i++) {
-            try {
-                xmlhttp = XMLHttpFactories[i]();
-                // Use memoization to cache the factory
-                this.createXMLHTTPObject = XMLHttpFactories[i];
-                return xmlhttp;
-            } catch (e) {}
-        }
-    },
-
-    getSource: function(url) {
-        if (!(url in this.sourceCache)) {
-            this.sourceCache[url] = this.ajax(url).split('\n');
-        }
-        return this.sourceCache[url];
-    },
-
-    guessFunctions: function(stack) {
-        for (var i = 0; i < stack.length; ++i) {
-            var reStack = /{anonymous}\(.*\)@(\w+:\/\/([-\w\.]+)+(:\d+)?[^:]+):(\d+):?(\d+)?/;
-            var frame = stack[i], m = reStack.exec(frame);
-            if (m) {
-                var file = m[1], lineno = m[4]; //m[7] is character position in Chrome
-                if (file && lineno) {
-                    var functionName = this.guessFunctionName(file, lineno);
-                    stack[i] = frame.replace('{anonymous}', functionName);
-                }
-            }
-        }
-        return stack;
-    },
-
-    guessFunctionName: function(url, lineNo) {
-        try {
-            return this.guessFunctionNameFromLines(lineNo, this.getSource(url));
-        } catch (e) {
-            return 'getSource failed with url: ' + url + ', exception: ' + e.toString();
-        }
-    },
-
-    guessFunctionNameFromLines: function(lineNo, source) {
-        var reFunctionArgNames = /function ([^(]*)\(([^)]*)\)/;
-        var reGuessFunction = /['"]?([0-9A-Za-z_]+)['"]?\s*[:=]\s*(function|eval|new Function)/;
-        // Walk backwards from the first line in the function until we find the line which
-        // matches the pattern above, which is the function definition
-        var line = '', maxLines = 10;
-        for (var i = 0; i < maxLines; ++i) {
-            line = source[lineNo - i] + line;
-            if (line !== undefined) {
-                var m = reGuessFunction.exec(line);
-                if (m) {
-                    return m[1];
-                }
-                else {
-                    m = reFunctionArgNames.exec(line);
-                }
-                if (m && m[1]) {
-                    return m[1];
-                }
-            }
-        }
-        return '(?)';
-    }
-};
-
-var guesser = new NameGuesser();
-
-var frameIgnorePatterns = [
-    /http:\/\/localhost:4020\/sproutcore.js:/
-];
-
-exports.ignoreFramesMatching = function(regex) {
-    frameIgnorePatterns.push(regex);
-};
-
-/**
- * Create a stack trace from an exception
- * @param ex {Error} The error to create a stacktrace from (optional)
- * @param guess {Boolean} If we should try to resolve the names of anonymous functions
- */
-exports.Trace = function Trace(ex, guess) {
-    this._ex = ex;
-    this._stack = decoders[mode](ex);
-
-    if (guess) {
-        this._stack = guesser.guessFunctions(this._stack);
-    }
-};
-
-/**
- * Log to the console a number of lines (default all of them)
- * @param lines {number} Maximum number of lines to wrote to console
- */
-exports.Trace.prototype.log = function(lines) {
-    if (lines <= 0) {
-        // You aren't going to have more lines in your stack trace than this
-        // and it still fits in a 32bit integer
-        lines = 999999999;
-    }
-
-    var printed = 0;
-    for (var i = 0; i < this._stack.length && printed < lines; i++) {
-        var frame = this._stack[i];
-        var display = true;
-        frameIgnorePatterns.forEach(function(regex) {
-            if (regex.test(frame)) {
-                display = false;
-            }
-        });
-        if (display) {
-            console.debug(frame);
-            printed++;
-        }
-    }
-};
-
-});
-/* ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
- *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
- *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is Ajax.org Code Editor (ACE).
- *
- * The Initial Developer of the Original Code is
- * Ajax.org B.V.
- * Portions created by the Initial Developer are Copyright (C) 2010
- * the Initial Developer. All Rights Reserved.
- *
- * Contributor(s):
- *      Fabian Jakobs <fabian AT ajax DOT org>
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or
- * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
- *
- * ***** END LICENSE BLOCK ***** */
-
-define('pilot/useragent', ['require', 'exports', 'module' ], function(require, exports, module) {
-
-var os = (navigator.platform.match(/mac|win|linux/i) || ["other"])[0].toLowerCase();
-var ua = navigator.userAgent;
-var av = navigator.appVersion;
-
-/** Is the user using a browser that identifies itself as Windows */
-exports.isWin = (os == "win");
-
-/** Is the user using a browser that identifies itself as Mac OS */
-exports.isMac = (os == "mac");
-
-/** Is the user using a browser that identifies itself as Linux */
-exports.isLinux = (os == "linux");
-
-exports.isIE = 
-    navigator.appName == "Microsoft Internet Explorer"
-    && parseFloat(navigator.userAgent.match(/MSIE ([0-9]+[\.0-9]+)/)[1]);
-    
-exports.isOldIE = exports.isIE && exports.isIE < 9;
-
-/** Is this Firefox or related? */
-exports.isGecko = exports.isMozilla = window.controllers && window.navigator.product === "Gecko";
-
-/** oldGecko == rev < 2.0 **/
-exports.isOldGecko = exports.isGecko && /rv\:1/.test(navigator.userAgent);
-
-/** Is this Opera */
-exports.isOpera = window.opera && Object.prototype.toString.call(window.opera) == "[object Opera]";
-
-/** Is the user using a browser that identifies itself as WebKit */
-exports.isWebKit = parseFloat(ua.split("WebKit/")[1]) || undefined;
-
-exports.isChrome = parseFloat(ua.split(" Chrome/")[1]) || undefined;
-
-exports.isAIR = ua.indexOf("AdobeAIR") >= 0;
-
-exports.isIPad = ua.indexOf("iPad") >= 0;
-
-exports.isTouchPad = ua.indexOf("TouchPad") >= 0;
-
-/**
- * I hate doing this, but we need some way to determine if the user is on a Mac
- * The reason is that users have different expectations of their key combinations.
- *
- * Take copy as an example, Mac people expect to use CMD or APPLE + C
- * Windows folks expect to use CTRL + C
- */
-exports.OS = {
-    LINUX: 'LINUX',
-    MAC: 'MAC',
-    WINDOWS: 'WINDOWS'
-};
-
-/**
- * Return an exports.OS constant
- */
-exports.getOS = function() {
-    if (exports.isMac) {
-        return exports.OS['MAC'];
-    } else if (exports.isLinux) {
-        return exports.OS['LINUX'];
-    } else {
-        return exports.OS['WINDOWS'];
-    }
-};
-
-});
-/* ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
- *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
- *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is Ajax.org Code Editor (ACE).
- *
- * The Initial Developer of the Original Code is
- * Ajax.org B.V.
- * Portions created by the Initial Developer are Copyright (C) 2010
- * the Initial Developer. All Rights Reserved.
- *
- * Contributor(s):
- *      Fabian Jakobs <fabian AT ajax DOT org>
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or
- * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
- *
- * ***** END LICENSE BLOCK ***** */
-
-define('pilot/oop', ['require', 'exports', 'module' ], function(require, exports, module) {
-
-exports.inherits = (function() {
-    var tempCtor = function() {};
-    return function(ctor, superCtor) {
-        tempCtor.prototype = superCtor.prototype;
-        ctor.super_ = superCtor.prototype;
-        ctor.prototype = new tempCtor();
-        ctor.prototype.constructor = ctor;
-    }
-}());
-
-exports.mixin = function(obj, mixin) {
-    for (var key in mixin) {
-        obj[key] = mixin[key];
-    }
-};
-
-exports.implement = function(proto, mixin) {
-    exports.mixin(proto, mixin);
-};
-
-});
-/*! @license
-==========================================================================
-SproutCore -- JavaScript Application Framework
-copyright 2006-2009, Sprout Systems Inc., Apple Inc. and contributors.
-
-Permission is hereby granted, free of charge, to any person obtaining a
-copy of this software and associated documentation files (the "Software"),
-to deal in the Software without restriction, including without limitation
-the rights to use, copy, modify, merge, publish, distribute, sublicense,
-and/or sell copies of the Software, and to permit persons to whom the
-Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-DEALINGS IN THE SOFTWARE.
-
-SproutCore and the SproutCore logo are trademarks of Sprout Systems, Inc.
-
-For more information about SproutCore, visit http://www.sproutcore.com
-
-
-==========================================================================
-@license */
-
-// Most of the following code is taken from SproutCore with a few changes.
-
-define('pilot/keys', ['require', 'exports', 'module' , 'pilot/oop'], function(require, exports, module) {
-
-var oop = require("pilot/oop");
-
-/**
- * Helper functions and hashes for key handling.
- */
-var Keys = (function() {
-    var ret = {
-        MODIFIER_KEYS: {
-            16: 'Shift', 17: 'Ctrl', 18: 'Alt', 224: 'Meta'
-        },
-
-        KEY_MODS: {
-            "ctrl": 1, "alt": 2, "option" : 2,
-            "shift": 4, "meta": 8, "command": 8
-        },
-
-        FUNCTION_KEYS : {
-            8  : "Backspace",
-            9  : "Tab",
-            13 : "Return",
-            19 : "Pause",
-            27 : "Esc",
-            32 : "Space",
-            33 : "PageUp",
-            34 : "PageDown",
-            35 : "End",
-            36 : "Home",
-            37 : "Left",
-            38 : "Up",
-            39 : "Right",
-            40 : "Down",
-            44 : "Print",
-            45 : "Insert",
-            46 : "Delete",
-            112: "F1",
-            113: "F2",
-            114: "F3",
-            115: "F4",
-            116: "F5",
-            117: "F6",
-            118: "F7",
-            119: "F8",
-            120: "F9",
-            121: "F10",
-            122: "F11",
-            123: "F12",
-            144: "Numlock",
-            145: "Scrolllock"
-        },
-
-        PRINTABLE_KEYS: {
-           32: ' ',  48: '0',  49: '1',  50: '2',  51: '3',  52: '4', 53:  '5',
-           54: '6',  55: '7',  56: '8',  57: '9',  59: ';',  61: '=', 65:  'a',
-           66: 'b',  67: 'c',  68: 'd',  69: 'e',  70: 'f',  71: 'g', 72:  'h',
-           73: 'i',  74: 'j',  75: 'k',  76: 'l',  77: 'm',  78: 'n', 79:  'o',
-           80: 'p',  81: 'q',  82: 'r',  83: 's',  84: 't',  85: 'u', 86:  'v',
-           87: 'w',  88: 'x',  89: 'y',  90: 'z', 107: '+', 109: '-', 110: '.',
-          188: ',', 190: '.', 191: '/', 192: '`', 219: '[', 220: '\\',
-          221: ']', 222: '\"'
-        }
-    };
-
-    // A reverse map of FUNCTION_KEYS
-    for (var i in ret.FUNCTION_KEYS) {
-        var name = ret.FUNCTION_KEYS[i].toUpperCase();
-        ret[name] = parseInt(i, 10);
-    }
-
-    // Add the MODIFIER_KEYS, FUNCTION_KEYS and PRINTABLE_KEYS to the KEY
-    // variables as well.
-    oop.mixin(ret, ret.MODIFIER_KEYS);
-    oop.mixin(ret, ret.PRINTABLE_KEYS);
-    oop.mixin(ret, ret.FUNCTION_KEYS);
-
-    return ret;
-})();
-oop.mixin(exports, Keys);
-
-exports.keyCodeToString = function(keyCode) {
-    return (Keys[keyCode] || String.fromCharCode(keyCode)).toLowerCase();
-}
-
-});
-/* vim:ts=4:sts=4:sw=4:
- * ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
- *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
- *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is Ajax.org Code Editor (ACE).
- *
- * The Initial Developer of the Original Code is
- * Ajax.org B.V.
- * Portions created by the Initial Developer are Copyright (C) 2010
- * the Initial Developer. All Rights Reserved.
- *
- * Contributor(s):
- *      Fabian Jakobs <fabian AT ajax DOT org>
- *      Irakli Gozalishvili <rfobic@gmail.com> (http://jeditoolkit.com)
- *      Mike de Boer <mike AT ajax DOT org>
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or
- * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
- *
- * ***** END LICENSE BLOCK ***** */
-
-define('pilot/event_emitter', ['require', 'exports', 'module' ], function(require, exports, module) {
-
-var EventEmitter = {};
-
-EventEmitter._emit =
-EventEmitter._dispatchEvent = function(eventName, e) {
-    this._eventRegistry = this._eventRegistry || {};
-    this._defaultHandlers = this._defaultHandlers || {};
-
-    var listeners = this._eventRegistry[eventName] || [];
-    var defaultHandler = this._defaultHandlers[eventName];
-    if (!listeners.length && !defaultHandler)
-        return;
-
-    e = e || {};
-    e.type = eventName;
-    
-    if (!e.stopPropagation) {
-        e.stopPropagation = function() {
-            this.propagationStopped = true;
-        };
-    }
-    
-    if (!e.preventDefault) {
-        e.preventDefault = function() {
-            this.defaultPrevented = true;
-        };
-    }
-
-    for (var i=0; i<listeners.length; i++) {
-        listeners[i](e);
-        if (e.propagationStopped)
-            break;
-    }
-    
-    if (defaultHandler && !e.defaultPrevented)
-        defaultHandler(e);
-};
-
-EventEmitter.setDefaultHandler = function(eventName, callback) {
-    this._defaultHandlers = this._defaultHandlers || {};
-    
-    if (this._defaultHandlers[eventName])
-        throw new Error("The default handler for '" + eventName + "' is already set");
-        
-    this._defaultHandlers[eventName] = callback;
-};
-
-EventEmitter.on =
-EventEmitter.addEventListener = function(eventName, callback) {
-    this._eventRegistry = this._eventRegistry || {};
-
-    var listeners = this._eventRegistry[eventName];
-    if (!listeners)
-        var listeners = this._eventRegistry[eventName] = [];
-
-    if (listeners.indexOf(callback) == -1)
-        listeners.push(callback);
-};
-
-EventEmitter.removeListener =
-EventEmitter.removeEventListener = function(eventName, callback) {
-    this._eventRegistry = this._eventRegistry || {};
-
-    var listeners = this._eventRegistry[eventName];
-    if (!listeners)
-        return;
-
-    var index = listeners.indexOf(callback);
-    if (index !== -1)
-        listeners.splice(index, 1);
-};
-
-EventEmitter.removeAllListeners = function(eventName) {
-    if (this._eventRegistry) this._eventRegistry[eventName] = [];
-};
-
-exports.EventEmitter = EventEmitter;
-
-});
-/* ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
- *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
- *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is Skywriter.
- *
- * The Initial Developer of the Original Code is
- * Mozilla.
- * Portions created by the Initial Developer are Copyright (C) 2009
- * the Initial Developer. All Rights Reserved.
- *
- * Contributor(s):
- *   Joe Walker (jwalker@mozilla.com)
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or
- * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
- *
- * ***** END LICENSE BLOCK ***** */
-
-define('pilot/typecheck', ['require', 'exports', 'module' ], function(require, exports, module) {
-
-var objectToString = Object.prototype.toString;
-
-/**
- * Return true if it is a String
- */
-exports.isString = function(it) {
-    return it && objectToString.call(it) === "[object String]";
-};
-
-/**
- * Returns true if it is a Boolean.
- */
-exports.isBoolean = function(it) {
-    return it && objectToString.call(it) === "[object Boolean]";
-};
-
-/**
- * Returns true if it is a Number.
- */
-exports.isNumber = function(it) {
-    return it && objectToString.call(it) === "[object Number]" && isFinite(it);
-};
-
-/**
- * Hack copied from dojo.
- */
-exports.isObject = function(it) {
-    return it !== undefined &&
-        (it === null || typeof it == "object" ||
-        Array.isArray(it) || exports.isFunction(it));
-};
-
-/**
- * Is the passed object a function?
- * From dojo.isFunction()
- */
-exports.isFunction = function(it) {
-    return it && objectToString.call(it) === "[object Function]";
-};
-
-});/* ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
- *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
- *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is Mozilla Skywriter.
- *
- * The Initial Developer of the Original Code is
- * Mozilla.
- * Portions created by the Initial Developer are Copyright (C) 2009
- * the Initial Developer. All Rights Reserved.
- *
- * Contributor(s):
- *   Julian Viereck (jviereck@mozilla.com)
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or
- * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
- *
- * ***** END LICENSE BLOCK ***** */
-
-define('pilot/catalog', ['require', 'exports', 'module' ], function(require, exports, module) {
-
-
-var extensionSpecs = {};
-
-exports.addExtensionSpec = function(extensionSpec) {
-    extensionSpecs[extensionSpec.name] = extensionSpec;
-};
-
-exports.removeExtensionSpec = function(extensionSpec) {
-    if (typeof extensionSpec === "string") {
-        delete extensionSpecs[extensionSpec];
-    }
-    else {
-        delete extensionSpecs[extensionSpec.name];
-    }
-};
-
-exports.getExtensionSpec = function(name) {
-    return extensionSpecs[name];
-};
-
-exports.getExtensionSpecs = function() {
-    return Object.keys(extensionSpecs);
-};
-
-
-});
-/* ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
- *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
- *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is Ajax.org Code Editor (ACE).
- *
- * The Initial Developer of the Original Code is
- * Ajax.org B.V.
- * Portions created by the Initial Developer are Copyright (C) 2010
- * the Initial Developer. All Rights Reserved.
- *
- * Contributor(s):
- *      Fabian Jakobs <fabian AT ajax DOT org>
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or
- * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
- *
- * ***** END LICENSE BLOCK ***** */
-
-define('pilot/lang', ['require', 'exports', 'module' ], function(require, exports, module) {
-
-exports.stringReverse = function(string) {
-    return string.split("").reverse().join("");
-};
-
-exports.stringRepeat = function (string, count) {
-     return new Array(count + 1).join(string);
-};
-
-var trimBeginRegexp = /^\s\s*/;
-var trimEndRegexp = /\s\s*$/;
-
-exports.stringTrimLeft = function (string) {
-    return string.replace(trimBeginRegexp, '')
-};
-
-exports.stringTrimRight = function (string) {
-    return string.replace(trimEndRegexp, '');
-};
-
-exports.copyObject = function(obj) {
-    var copy = {};
-    for (var key in obj) {
-        copy[key] = obj[key];
-    }
-    return copy;
-};
-
-exports.copyArray = function(array){
-    var copy = [];
-    for (i=0, l=array.length; i<l; i++) {
-        if (array[i] && typeof array[i] == "object")
-            copy[i] = this.copyObject( array[i] );
-        else 
-            copy[i] = array[i]
-    }
-    return copy;
-};
-
-exports.deepCopy = function (obj) {
-    if (typeof obj != "object") {
-        return obj;
-    }
-    
-    var copy = obj.constructor();
-    for (var key in obj) {
-        if (typeof obj[key] == "object") {
-            copy[key] = this.deepCopy(obj[key]);
-        } else {
-            copy[key] = obj[key];
-        }
-    }
-    return copy;
-}
-
-exports.arrayToMap = function(arr) {
-    var map = {};
-    for (var i=0; i<arr.length; i++) {
-        map[arr[i]] = 1;
-    }
-    return map;
-
-};
-
-/**
- * splice out of 'array' anything that === 'value'
- */
-exports.arrayRemove = function(array, value) {
-  for (var i = 0; i <= array.length; i++) {
-    if (value === array[i]) {
-      array.splice(i, 1);
-    }
-  }
-};
-
-exports.escapeRegExp = function(str) {
-    return str.replace(/([.*+?^${}()|[\]\/\\])/g, '\\$1');
-};
-
-exports.deferredCall = function(fcn) {
-
-    var timer = null;
-    var callback = function() {
-        timer = null;
-        fcn();
-    };
-
-    var deferred = function(timeout) {
-        deferred.cancel();
-        timer = setTimeout(callback, timeout || 0);
-        return deferred;
-    }
-
-    deferred.schedule = deferred;
-
-    deferred.call = function() {
-        this.cancel();
-        fcn();
-        return deferred;
-    };
-
-    deferred.cancel = function() {
-        clearTimeout(timer);
-        timer = null;
-        return deferred;
-    };
-
-    return deferred;
-};
-
-});
-/* ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
- *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
- *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is Mozilla Skywriter.
- *
- * The Initial Developer of the Original Code is
- * Mozilla.
- * Portions created by the Initial Developer are Copyright (C) 2009
- * the Initial Developer. All Rights Reserved.
- *
- * Contributor(s):
- *      Joe Walker (jwalker@mozilla.com)
- *      Kevin Dangoor (kdangoor@mozilla.com)
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or
- * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
- *
- * ***** END LICENSE BLOCK ***** */
-
-define('pilot/types/settings', ['require', 'exports', 'module' , 'pilot/types/basic', 'pilot/types', 'pilot/settings'], function(require, exports, module) {
-
-var SelectionType = require('pilot/types/basic').SelectionType;
-var DeferredType = require('pilot/types/basic').DeferredType;
-var types = require('pilot/types');
-var settings = require('pilot/settings').settings;
-
-
-/**
- * EVIL: This relies on us using settingValue in the same event as setting
- * The alternative is to have some central place where we store the current
- * command line, but this might be a lesser evil for now.
- */
-var lastSetting;
-
-/**
- * Select from the available settings
- */
-var setting = new SelectionType({
-    name: 'setting',
-    data: function() {
-        return env.settings.getSettingNames();
-    },
-    stringify: function(setting) {
-        lastSetting = setting;
-        return setting.name;
-    },
-    fromString: function(str) {
-        lastSetting = settings.getSetting(str);
-        return lastSetting;
-    },
-    noMatch: function() {
-        lastSetting = null;
-    }
-});
-
-/**
- * Something of a hack to allow the set command to give a clearer definition
- * of the type to the command line.
- */
-var settingValue = new DeferredType({
-    name: 'settingValue',
-    defer: function() {
-        if (lastSetting) {
-            return lastSetting.type;
-        }
-        else {
-            return types.getType('text');
-        }
-    },
-    /**
-     * Promote the current value in any list of predictions, and add it if
-     * there are none.
-     */
-    getDefault: function() {
-        var conversion = this.parse('');
-        if (lastSetting) {
-            var current = lastSetting.get();
-            if (conversion.predictions.length === 0) {
-                conversion.predictions.push(current);
-            }
-            else {
-                // Remove current from predictions
-                var removed = false;
-                while (true) {
-                    var index = conversion.predictions.indexOf(current);
-                    if (index === -1) {
-                        break;
-                    }
-                    conversion.predictions.splice(index, 1);
-                    removed = true;
-                }
-                // If the current value wasn't something we would predict, leave it
-                if (removed) {
-                    conversion.predictions.push(current);
-                }
-            }
-        }
-        return conversion;
-    }
-});
-
-var env;
-
-/**
- * Registration and de-registration.
- */
-exports.startup = function(data, reason) {
-    // TODO: this is probably all kinds of evil, but we need something working
-    env = data.env;
-    types.registerType(setting);
-    types.registerType(settingValue);
-};
-
-exports.shutdown = function(data, reason) {
-    types.unregisterType(setting);
-    types.unregisterType(settingValue);
-};
-
-
-});
-/* vim:ts=4:sts=4:sw=4:
- * ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
- *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
- *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is Mozilla Skywriter.
- *
- * The Initial Developer of the Original Code is
- * Mozilla.
- * Portions created by the Initial Developer are Copyright (C) 2009
- * the Initial Developer. All Rights Reserved.
- *
- * Contributor(s):
- *   Joe Walker (jwalker@mozilla.com)
- *   Julian Viereck (jviereck@mozilla.com)
- *   Kevin Dangoor (kdangoor@mozilla.com)
- *   Irakli Gozalishvili <rfobic@gmail.com> (http://jeditoolkit.com)
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or
- * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
- *
- * ***** END LICENSE BLOCK ***** */
-
-define('pilot/settings', ['require', 'exports', 'module' , 'pilot/console', 'pilot/oop', 'pilot/types', 'pilot/event_emitter', 'pilot/catalog'], function(require, exports, module) {
-
-/**
- * This plug-in manages settings.
- */
-
-var console = require('pilot/console');
-var oop = require('pilot/oop');
-var types = require('pilot/types');
-var EventEmitter = require('pilot/event_emitter').EventEmitter;
-var catalog = require('pilot/catalog');
-
-var settingExtensionSpec = {
-    name: 'setting',
-    description: 'A setting is something that the application offers as a ' +
-            'way to customize how it works',
-    register: 'env.settings.addSetting',
-    indexOn: 'name'
-};
-
-exports.startup = function(data, reason) {
-    catalog.addExtensionSpec(settingExtensionSpec);
-};
-
-exports.shutdown = function(data, reason) {
-    catalog.removeExtensionSpec(settingExtensionSpec);
-};
-
-
-/**
- * Create a new setting.
- * @param settingSpec An object literal that looks like this:
- * {
- *   name: 'thing',
- *   description: 'Thing is an example setting',
- *   type: 'string',
- *   defaultValue: 'something'
- * }
- */
-function Setting(settingSpec, settings) {
-    this._settings = settings;
-
-    Object.keys(settingSpec).forEach(function(key) {
-        this[key] = settingSpec[key];
-    }, this);
-
-    this.type = types.getType(this.type);
-    if (this.type == null) {
-        throw new Error('In ' + this.name +
-            ': can\'t find type for: ' + JSON.stringify(settingSpec.type));
-    }
-
-    if (!this.name) {
-        throw new Error('Setting.name == undefined. Ignoring.', this);
-    }
-
-    if (!this.defaultValue === undefined) {
-        throw new Error('Setting.defaultValue == undefined', this);
-    }
-
-    if (this.onChange) {
-        this.on('change', this.onChange.bind(this))
-    }
-
-    this.set(this.defaultValue);
-}
-Setting.prototype = {
-    get: function() {
-        return this.value;
-    },
-
-    set: function(value) {
-        if (this.value === value) {
-            return;
-        }
-
-        this.value = value;
-        if (this._settings.persister) {
-            this._settings.persister.persistValue(this._settings, this.name, value);
-        }
-
-        this._dispatchEvent('change', { setting: this, value: value });
-    },
-
-    /**
-     * Reset the value of the <code>key</code> setting to it's default
-     */
-    resetValue: function() {
-        this.set(this.defaultValue);
-    },
-    toString: function () {
-        return this.name;
-    }
-};
-oop.implement(Setting.prototype, EventEmitter);
-
-
-/**
- * A base class for all the various methods of storing settings.
- * <p>Usage:
- * <pre>
- * // Create manually, or require 'settings' from the container.
- * // This is the manual version:
- * var settings = plugins.catalog.getObject('settings');
- * // Add a new setting
- * settings.addSetting({ name:'foo', ... });
- * // Display the default value
- * alert(settings.get('foo'));
- * // Alter the value, which also publishes the change etc.
- * settings.set('foo', 'bar');
- * // Reset the value to the default
- * settings.resetValue('foo');
- * </pre>
- * @constructor
- */
-function Settings(persister) {
-    // Storage for deactivated values
-    this._deactivated = {};
-
-    // Storage for the active settings
-    this._settings = {};
-    // We often want sorted setting names. Cache
-    this._settingNames = [];
-
-    if (persister) {
-        this.setPersister(persister);
-    }
-};
-
-Settings.prototype = {
-    /**
-     * Function to add to the list of available settings.
-     * <p>Example usage:
-     * <pre>
-     * var settings = plugins.catalog.getObject('settings');
-     * settings.addSetting({
-     *     name: 'tabsize', // For use in settings.get('X')
-     *     type: 'number',  // To allow value checking.
-     *     defaultValue: 4  // Default value for use when none is directly set
-     * });
-     * </pre>
-     * @param {object} settingSpec Object containing name/type/defaultValue members.
-     */
-    addSetting: function(settingSpec) {
-        var setting = new Setting(settingSpec, this);
-        this._settings[setting.name] = setting;
-        this._settingNames.push(setting.name);
-        this._settingNames.sort();
-    },
-
-    addSettings: function addSettings(settings) {
-        Object.keys(settings).forEach(function (name) {
-            var setting = settings[name];
-            if (!('name' in setting)) setting.name = name;
-            this.addSetting(setting);
-        }, this);
-    },
-
-    removeSetting: function(setting) {
-        var name = (typeof setting === 'string' ? setting : setting.name);
-        setting = this._settings[name];
-        delete this._settings[name];
-        util.arrayRemove(this._settingNames, name);
-        settings.removeAllListeners('change');
-    },
-
-    removeSettings: function removeSettings(settings) {
-        Object.keys(settings).forEach(function(name) {
-            var setting = settings[name];
-            if (!('name' in setting)) setting.name = name;
-            this.removeSettings(setting);
-        }, this);
-    },
-
-    getSettingNames: function() {
-        return this._settingNames;
-    },
-
-    getSetting: function(name) {
-        return this._settings[name];
-    },
-
-    /**
-     * A Persister is able to store settings. It is an object that defines
-     * two functions:
-     * loadInitialValues(settings) and persistValue(settings, key, value).
-     */
-    setPersister: function(persister) {
-        this._persister = persister;
-        if (persister) {
-            persister.loadInitialValues(this);
-        }
-    },
-
-    resetAll: function() {
-        this.getSettingNames().forEach(function(key) {
-            this.resetValue(key);
-        }, this);
-    },
-
-    /**
-     * Retrieve a list of the known settings and their values
-     */
-    _list: function() {
-        var reply = [];
-        this.getSettingNames().forEach(function(setting) {
-            reply.push({
-                'key': setting,
-                'value': this.getSetting(setting).get()
-            });
-        }, this);
-        return reply;
-    },
-
-    /**
-     * Prime the local cache with the defaults.
-     */
-    _loadDefaultValues: function() {
-        this._loadFromObject(this._getDefaultValues());
-    },
-
-    /**
-     * Utility to load settings from an object
-     */
-    _loadFromObject: function(data) {
-        // We iterate over data rather than keys so we don't forget values
-        // which don't have a setting yet.
-        for (var key in data) {
-            if (data.hasOwnProperty(key)) {
-                var setting = this._settings[key];
-                if (setting) {
-                    var value = setting.type.parse(data[key]);
-                    this.set(key, value);
-                } else {
-                    this.set(key, data[key]);
-                }
-            }
-        }
-    },
-
-    /**
-     * Utility to grab all the settings and export them into an object
-     */
-    _saveToObject: function() {
-        return this.getSettingNames().map(function(key) {
-            return this._settings[key].type.stringify(this.get(key));
-        }.bind(this));
-    },
-
-    /**
-     * The default initial settings
-     */
-    _getDefaultValues: function() {
-        return this.getSettingNames().map(function(key) {
-            return this._settings[key].spec.defaultValue;
-        }.bind(this));
-    }
-};
-exports.settings = new Settings();
-
-/**
- * Save the settings in a cookie
- * This code has not been tested since reboot
- * @constructor
- */
-function CookiePersister() {
-};
-
-CookiePersister.prototype = {
-    loadInitialValues: function(settings) {
-        settings._loadDefaultValues();
-        var data = cookie.get('settings');
-        settings._loadFromObject(JSON.parse(data));
-    },
-
-    persistValue: function(settings, key, value) {
-        try {
-            var stringData = JSON.stringify(settings._saveToObject());
-            cookie.set('settings', stringData);
-        } catch (ex) {
-            console.error('Unable to JSONify the settings! ' + ex);
-            return;
-        }
-    }
-};
-
-exports.CookiePersister = CookiePersister;
-
-});
-/* ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
- *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
- *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is Skywriter.
- *
- * The Initial Developer of the Original Code is
- * Mozilla.
- * Portions created by the Initial Developer are Copyright (C) 2009
- * the Initial Developer. All Rights Reserved.
- *
- * Contributor(s):
- *   Skywriter Team (skywriter@mozilla.com)
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or
- * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
- *
- * ***** END LICENSE BLOCK ***** */
-
-define('pilot/commands/settings', ['require', 'exports', 'module' , 'pilot/canon'], function(require, exports, module) {
-
-
-var setCommandSpec = {
-    name: 'set',
-    params: [
-        {
-            name: 'setting',
-            type: 'setting',
-            description: 'The name of the setting to display or alter',
-            defaultValue: null
-        },
-        {
-            name: 'value',
-            type: 'settingValue',
-            description: 'The new value for the chosen setting',
-            defaultValue: null
-        }
-    ],
-    description: 'define and show settings',
-    exec: function(env, args, request) {
-        var html;
-        if (!args.setting) {
-            // 'set' by itself lists all the settings
-            var names = env.settings.getSettingNames();
-            html = '';
-            // first sort the settingsList based on the name
-            names.sort(function(name1, name2) {
-                return name1.localeCompare(name2);
-            });
-
-            names.forEach(function(name) {
-                var setting = env.settings.getSetting(name);
-                var url = 'https://wiki.mozilla.org/Labs/Skywriter/Settings#' +
-                        setting.name;
-                html += '<a class="setting" href="' + url +
-                        '" title="View external documentation on setting: ' +
-                        setting.name +
-                        '" target="_blank">' +
-                        setting.name +
-                        '</a> = ' +
-                        setting.value +
-                        '<br/>';
-            });
-        } else {
-            // set with only a setting, shows the value for that setting
-            if (args.value === undefined) {
-                html = '<strong>' + setting.name + '</strong> = ' +
-                        setting.get();
-            } else {
-                // Actually change the setting
-                args.setting.set(args.value);
-                html = 'Setting: <strong>' + args.setting.name + '</strong> = ' +
-                        args.setting.get();
-            }
-        }
-        request.done(html);
-    }
-};
-
-var unsetCommandSpec = {
-    name: 'unset',
-    params: [
-        {
-            name: 'setting',
-            type: 'setting',
-            description: 'The name of the setting to return to defaults'
-        }
-    ],
-    description: 'unset a setting entirely',
-    exec: function(env, args, request) {
-        var setting = env.settings.get(args.setting);
-        if (!setting) {
-            request.doneWithError('No setting with the name <strong>' +
-                args.setting + '</strong>.');
-            return;
-        }
-
-        setting.reset();
-        request.done('Reset ' + setting.name + ' to default: ' +
-                env.settings.get(args.setting));
-    }
-};
-
-var canon = require('pilot/canon');
-
-exports.startup = function(data, reason) {
-    canon.addCommand(setCommandSpec);
-    canon.addCommand(unsetCommandSpec);
-};
-
-exports.shutdown = function(data, reason) {
-    canon.removeCommand(setCommandSpec);
-    canon.removeCommand(unsetCommandSpec);
-};
-
-
-});
-/* ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
- *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
- *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is Skywriter.
- *
- * The Initial Developer of the Original Code is
- * Mozilla.
- * Portions created by the Initial Developer are Copyright (C) 2009
- * the Initial Developer. All Rights Reserved.
- *
- * Contributor(s):
- *   Skywriter Team (skywriter@mozilla.com)
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or
- * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
- *
- * ***** END LICENSE BLOCK ***** */
-
-define('pilot/commands/basic', ['require', 'exports', 'module' , 'pilot/typecheck', 'pilot/canon'], function(require, exports, module) {
-
-
-var checks = require("pilot/typecheck");
-var canon = require('pilot/canon');
-
-/**
- * 'help' command
- */
-var helpCommandSpec = {
-    name: 'help',
-    params: [
-        {
-            name: 'search',
-            type: 'text',
-            description: 'Search string to narrow the output.',
-            defaultValue: null
-        }
-    ],
-    description: 'Get help on the available commands.',
-    exec: function(env, args, request) {
-        var output = [];
-
-        var command = canon.getCommand(args.search);
-        if (command && command.exec) {
-            // caught a real command
-            output.push(command.description ?
-                    command.description :
-                    'No description for ' + args.search);
-        } else {
-            var showHidden = false;
-
-            if (command) {
-                // We must be looking at sub-commands
-                output.push('<h2>Sub-Commands of ' + command.name + '</h2>');
-                output.push('<p>' + command.description + '</p>');
-            }
-            else if (args.search) {
-                if (args.search == 'hidden') { // sneaky, sneaky.
-                    args.search = '';
-                    showHidden = true;
-                }
-                output.push('<h2>Commands starting with \'' + args.search + '\':</h2>');
-            }
-            else {
-                output.push('<h2>Available Commands:</h2>');
-            }
-
-            var commandNames = canon.getCommandNames();
-            commandNames.sort();
-
-            output.push('<table>');
-            for (var i = 0; i < commandNames.length; i++) {
-                command = canon.getCommand(commandNames[i]);
-                if (!showHidden && command.hidden) {
-                    continue;
-                }
-                if (command.description === undefined) {
-                    // Ignore editor actions
-                    continue;
-                }
-                if (args.search && command.name.indexOf(args.search) !== 0) {
-                    // Filtered out by the user
-                    continue;
-                }
-                if (!args.search && command.name.indexOf(' ') != -1) {
-                    // sub command
-                    continue;
-                }
-                if (command && command.name == args.search) {
-                    // sub command, and we've already given that help
-                    continue;
-                }
-
-                // todo add back a column with parameter information, perhaps?
-
-                output.push('<tr>');
-                output.push('<th class="right">' + command.name + '</th>');
-                output.push('<td>' + command.description + '</td>');
-                output.push('</tr>');
-            }
-            output.push('</table>');
-        }
-
-        request.done(output.join(''));
-    }
-};
-
-/**
- * 'eval' command
- */
-var evalCommandSpec = {
-    name: 'eval',
-    params: [
-        {
-            name: 'javascript',
-            type: 'text',
-            description: 'The JavaScript to evaluate'
-        }
-    ],
-    description: 'evals given js code and show the result',
-    hidden: true,
-    exec: function(env, args, request) {
-        var result;
-        var javascript = args.javascript;
-        try {
-            result = eval(javascript);
-        } catch (e) {
-            result = '<b>Error: ' + e.message + '</b>';
-        }
-
-        var msg = '';
-        var type = '';
-        var x;
-
-        if (checks.isFunction(result)) {
-            // converts the function to a well formated string
-            msg = (result + '').replace(/\n/g, '<br>').replace(/ /g, '&#160');
-            type = 'function';
-        } else if (checks.isObject(result)) {
-            if (Array.isArray(result)) {
-                type = 'array';
-            } else {
-                type = 'object';
-            }
-
-            var items = [];
-            var value;
-
-            for (x in result) {
-                if (result.hasOwnProperty(x)) {
-                    if (checks.isFunction(result[x])) {
-                        value = '[function]';
-                    } else if (checks.isObject(result[x])) {
-                        value = '[object]';
-                    } else {
-                        value = result[x];
-                    }
-
-                    items.push({name: x, value: value});
-                }
-            }
-
-            items.sort(function(a,b) {
-                return (a.name.toLowerCase() < b.name.toLowerCase()) ? -1 : 1;
-            });
-
-            for (x = 0; x < items.length; x++) {
-                msg += '<b>' + items[x].name + '</b>: ' + items[x].value + '<br>';
-            }
-
-        } else {
-            msg = result;
-            type = typeof result;
-        }
-
-        request.done('Result for eval <b>\'' + javascript + '\'</b>' +
-                ' (type: '+ type+'): <br><br>'+ msg);
-    }
-};
-
-var canon = require('pilot/canon');
-
-exports.startup = function(data, reason) {
-    canon.addCommand(helpCommandSpec);
-    canon.addCommand(evalCommandSpec);
-};
-
-exports.shutdown = function(data, reason) {
-    canon.removeCommand(helpCommandSpec);
-    canon.removeCommand(evalCommandSpec);
-};
-
-
-});
-/* ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
- *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
- *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is Mozilla Skywriter.
- *
- * The Initial Developer of the Original Code is
- * Mozilla.
- * Portions created by the Initial Developer are Copyright (C) 2009
- * the Initial Developer. All Rights Reserved.
- *
- * Contributor(s):
- *   Joe Walker (jwalker@mozilla.com)
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or
- * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
- *
- * ***** END LICENSE BLOCK ***** */
-
-define('pilot/settings/canon', ['require', 'exports', 'module' ], function(require, exports, module) {
-
-
-var historyLengthSetting = {
-    name: "historyLength",
-    description: "How many typed commands do we recall for reference?",
-    type: "number",
-    defaultValue: 50
-};
-
-exports.startup = function(data, reason) {
-    data.env.settings.addSetting(historyLengthSetting);
-};
-
-exports.shutdown = function(data, reason) {
-    data.env.settings.removeSetting(historyLengthSetting);
-};
-
-
-});
-/* vim:ts=4:sts=4:sw=4:
- * ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
- *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
- *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is Ajax.org Code Editor (ACE).
- *
- * The Initial Developer of the Original Code is
- * Ajax.org B.V.
- * Portions created by the Initial Developer are Copyright (C) 2010
- * the Initial Developer. All Rights Reserved.
- *
- * Contributor(s):
- *      Irakli Gozalishvili <rfobic@gmail.com> (http://jeditoolkit.com)
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or
- * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
- *
- * ***** END LICENSE BLOCK ***** */
-
-define('ace/defaults', ['require', 'exports', 'module' , 'ace/settings/default-settings'], function(require, exports, module) {
-
-var settings = require("ace/settings/default-settings")
-
-exports.startup = function startup(data, reason) {
-    settings.startup(data, reason)
-}
-
-exports.shutdown = function shutdown(data, reason) {
-    settings.shutdown(data, reason)
-}
-
-})
-/* vim:ts=4:sts=4:sw=4:
- * ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
- *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
- *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is Ajax.org Code Editor (ACE).
- *
- * The Initial Developer of the Original Code is
- * Ajax.org B.V.
- * Portions created by the Initial Developer are Copyright (C) 2010
- * the Initial Developer. All Rights Reserved.
- *
- * Contributor(s):
- *      Irakli Gozalishvili <rfobic@gmail.com> (http://jeditoolkit.com)
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or
- * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
- *
- * ***** END LICENSE BLOCK ***** */
-
-define('ace/settings/default-settings', ['require', 'exports', 'module' , 'pilot/types', 'pilot/types/basic'], function(require, exports, module) {
-
-var types = require('pilot/types')
-var SelectionType = require('pilot/types/basic').SelectionType
-
-var env
-
-var settingTypes = {
-    selectionStyle: new SelectionType({
-        data: [ 'line', 'text' ]
-    })
-}
-
-var settings = {
-    printMargin: {
-        description: 'Position of the print margin column.',
-        type: 'number',
-        defaultValue: 80,
-        onChange: function onChange(event) {
-            if (env.editor) env.editor.setPrintMarginColumn(event.value)
-        }
-    },
-    showIvisibles: {
-        description: 'Whether or not to show invisible characters.',
-        type: 'bool',
-        defaultValue: false,
-        onChange: function onChange(event) {
-            if (env.editor) env.editor.setShowInvisibles(event.value)
-        }
-    },
-    highlightActiveLine: {
-        description: 'Whether or not highlight active line.',
-        type: 'bool',
-        defaultValue: true,
-        onChange: function onChange(event) {
-            if (env.editor) env.editor.setHighlightActiveLine(event.value)
-        }
-    },
-    selectionStyle: {
-        description: 'Type of text selection.',
-        type: 'selectionStyle',
-        defaultValue: 'line',
-        onChange: function onChange(event) {
-            if (env.editor) env.editor.setSelectionStyle(event.value)
-        }
-    }
-}
-
-exports.startup = function startup(data, reason) {
-    env = data.env
-    types.registerTypes(settingTypes)
-    data.env.settings.addSettings(settings)
-}
-
-exports.shutdown = function shutdown(data, reason) {
-    data.env.settings.removeSettings(settings)
-}
-
-})
-/* ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
- *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
- *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is Mozilla Skywriter.
- *
- * The Initial Developer of the Original Code is
- * Mozilla.
- * Portions created by the Initial Developer are Copyright (C) 2009
- * the Initial Developer. All Rights Reserved.
- *
- * Contributor(s):
- *      Kevin Dangoor (kdangoor@mozilla.com)
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or
- * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
- *
- * ***** END LICENSE BLOCK ***** */
-
-define('demo/kitchen-sink/boot', ['require', 'exports', 'module' , 'pilot/fixoldbrowsers', 'pilot/plugin_manager', 'pilot/environment', 'demo/kitchen-sink/demo', 'pilot/index', 'ace/defaults'], function(require, exports, module) {
-
-require("pilot/fixoldbrowsers");
-require("pilot/plugin_manager");
-require("pilot/environment");
-require("demo/kitchen-sink/demo");
-
-require("pilot/index");
-require("ace/defaults");
-
-var plugins = [ "pilot/index"];
-var catalog = require("pilot/plugin_manager").catalog;
-catalog.registerPlugins(plugins).then(function() {
-    var env = require("pilot/environment").create();
-    catalog.startupPlugins({ env: env }).then(function() {
-        require("demo/kitchen-sink/demo").launch(env);
-    });
-});
-
-});/* ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
- *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
- *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is Skywriter.
- *
- * The Initial Developer of the Original Code is
- * Mozilla.
- * Portions created by the Initial Developer are Copyright (C) 2009
- * the Initial Developer. All Rights Reserved.
- *
- * Contributor(s):
- *   Kevin Dangoor (kdangoor@mozilla.com)
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or
- * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
- *
- * ***** END LICENSE BLOCK ***** */
-
-define('pilot/plugin_manager', ['require', 'exports', 'module' , 'pilot/promise'], function(require, exports, module) {
-
-var Promise = require("pilot/promise").Promise;
-
-exports.REASONS = {
-    APP_STARTUP: 1,
-    APP_SHUTDOWN: 2,
-    PLUGIN_ENABLE: 3,
-    PLUGIN_DISABLE: 4,
-    PLUGIN_INSTALL: 5,
-    PLUGIN_UNINSTALL: 6,
-    PLUGIN_UPGRADE: 7,
-    PLUGIN_DOWNGRADE: 8
-};
-
-exports.Plugin = function(name) {
-    this.name = name;
-    this.status = this.INSTALLED;
-};
-
-exports.Plugin.prototype = {
-    /**
-     * constants for the state
-     */
-    NEW: 0,
-    INSTALLED: 1,
-    REGISTERED: 2,
-    STARTED: 3,
-    UNREGISTERED: 4,
-    SHUTDOWN: 5,
-
-    install: function(data, reason) {
-        var pr = new Promise();
-        if (this.status > this.NEW) {
-            pr.resolve(this);
-            return pr;
-        }
-        require([this.name], function(pluginModule) {
-            if (pluginModule.install) {
-                pluginModule.install(data, reason);
-            }
-            this.status = this.INSTALLED;
-            pr.resolve(this);
-        }.bind(this));
-        return pr;
-    },
-
-    register: function(data, reason) {
-        var pr = new Promise();
-        if (this.status != this.INSTALLED) {
-            pr.resolve(this);
-            return pr;
-        }
-        require([this.name], function(pluginModule) {
-            if (pluginModule.register) {
-                pluginModule.register(data, reason);
-            }
-            this.status = this.REGISTERED;
-            pr.resolve(this);
-        }.bind(this));
-        return pr;
-    },
-
-    startup: function(data, reason) {
-        reason = reason || exports.REASONS.APP_STARTUP;
-        var pr = new Promise();
-        if (this.status < this.REGISTERED) {
-            pr.resolve(this);
-            return pr;
-        }
-        require([this.name], function(pluginModule) {
-            if (pluginModule.startup) {
-                pluginModule.startup(data, reason);
-            }
-            this.status = this.STARTED;
-            pr.resolve(this);
-        }.bind(this));
-        return pr;
-    },
-
-    shutdown: function(data, reason) {
-        if (this.status != this.STARTED) {
-            return;
-        }
-        pluginModule = require(this.name);
-        if (pluginModule.shutdown) {
-            pluginModule.shutdown(data, reason);
-        }
-    }
-};
-
-exports.PluginCatalog = function() {
-    this.plugins = {};
-};
-
-exports.PluginCatalog.prototype = {
-    registerPlugins: function(pluginList, data, reason) {
-        var registrationPromises = [];
-        pluginList.forEach(function(pluginName) {
-            var plugin = this.plugins[pluginName];
-            if (plugin === undefined) {
-                plugin = new exports.Plugin(pluginName);
-                this.plugins[pluginName] = plugin;
-                registrationPromises.push(plugin.register(data, reason));
-            }
-        }.bind(this));
-        return Promise.group(registrationPromises);
-    },
-
-    startupPlugins: function(data, reason) {
-        var startupPromises = [];
-        for (var pluginName in this.plugins) {
-            var plugin = this.plugins[pluginName];
-            startupPromises.push(plugin.startup(data, reason));
-        }
-        return Promise.group(startupPromises);
-    }
-};
-
-exports.catalog = new exports.PluginCatalog();
-
-});
-/* ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
- *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
- *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is Mozilla Skywriter.
- *
- * The Initial Developer of the Original Code is
- * Mozilla.
- * Portions created by the Initial Developer are Copyright (C) 2009
- * the Initial Developer. All Rights Reserved.
- *
- * Contributor(s):
- *   Joe Walker (jwalker@mozilla.com)
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or
- * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
- *
- * ***** END LICENSE BLOCK ***** */
-
-define('pilot/promise', ['require', 'exports', 'module' , 'pilot/console', 'pilot/stacktrace'], function(require, exports, module) {
-
-var console = require("pilot/console");
-var Trace = require('pilot/stacktrace').Trace;
-
-/**
- * A promise can be in one of 2 states.
- * The ERROR and SUCCESS states are terminal, the PENDING state is the only
- * start state.
- */
-var ERROR = -1;
-var PENDING = 0;
-var SUCCESS = 1;
-
-/**
- * We give promises and ID so we can track which are outstanding
- */
-var _nextId = 0;
-
-/**
- * Debugging help if 2 things try to complete the same promise.
- * This can be slow (especially on chrome due to the stack trace unwinding) so
- * we should leave this turned off in normal use.
- */
-var _traceCompletion = false;
-
-/**
- * Outstanding promises. Handy list for debugging only.
- */
-var _outstanding = [];
-
-/**
- * Recently resolved promises. Also for debugging only.
- */
-var _recent = [];
-
-/**
- * Create an unfulfilled promise
- */
-Promise = function () {
-    this._status = PENDING;
-    this._value = undefined;
-    this._onSuccessHandlers = [];
-    this._onErrorHandlers = [];
-
-    // Debugging help
-    this._id = _nextId++;
-    //this._createTrace = new Trace(new Error());
-    _outstanding[this._id] = this;
-};
-
-/**
- * Yeay for RTTI.
- */
-Promise.prototype.isPromise = true;
-
-/**
- * Have we either been resolve()ed or reject()ed?
- */
-Promise.prototype.isComplete = function() {
-    return this._status != PENDING;
-};
-
-/**
- * Have we resolve()ed?
- */
-Promise.prototype.isResolved = function() {
-    return this._status == SUCCESS;
-};
-
-/**
- * Have we reject()ed?
- */
-Promise.prototype.isRejected = function() {
-    return this._status == ERROR;
-};
-
-/**
- * Take the specified action of fulfillment of a promise, and (optionally)
- * a different action on promise rejection.
- */
-Promise.prototype.then = function(onSuccess, onError) {
-    if (typeof onSuccess === 'function') {
-        if (this._status === SUCCESS) {
-            onSuccess.call(null, this._value);
-        } else if (this._status === PENDING) {
-            this._onSuccessHandlers.push(onSuccess);
-        }
-    }
-
-    if (typeof onError === 'function') {
-        if (this._status === ERROR) {
-            onError.call(null, this._value);
-        } else if (this._status === PENDING) {
-            this._onErrorHandlers.push(onError);
-        }
-    }
-
-    return this;
-};
-
-/**
- * Like then() except that rather than returning <tt>this</tt> we return
- * a promise which
- */
-Promise.prototype.chainPromise = function(onSuccess) {
-    var chain = new Promise();
-    chain._chainedFrom = this;
-    this.then(function(data) {
-        try {
-            chain.resolve(onSuccess(data));
-        } catch (ex) {
-            chain.reject(ex);
-        }
-    }, function(ex) {
-        chain.reject(ex);
-    });
-    return chain;
-};
-
-/**
- * Supply the fulfillment of a promise
- */
-Promise.prototype.resolve = function(data) {
-    return this._complete(this._onSuccessHandlers, SUCCESS, data, 'resolve');
-};
-
-/**
- * Renege on a promise
- */
-Promise.prototype.reject = function(data) {
-    return this._complete(this._onErrorHandlers, ERROR, data, 'reject');
-};
-
-/**
- * Internal method to be called on resolve() or reject().
- * @private
- */
-Promise.prototype._complete = function(list, status, data, name) {
-    // Complain if we've already been completed
-    if (this._status != PENDING) {
-        console.group('Promise already closed');
-        console.error('Attempted ' + name + '() with ', data);
-        console.error('Previous status = ', this._status,
-                ', previous value = ', this._value);
-        console.trace();
-
-        if (this._completeTrace) {
-            console.error('Trace of previous completion:');
-            this._completeTrace.log(5);
-        }
-        console.groupEnd();
-        return this;
-    }
-
-    if (_traceCompletion) {
-        this._completeTrace = new Trace(new Error());
-    }
-
-    this._status = status;
-    this._value = data;
-
-    // Call all the handlers, and then delete them
-    list.forEach(function(handler) {
-        handler.call(null, this._value);
-    }, this);
-    this._onSuccessHandlers.length = 0;
-    this._onErrorHandlers.length = 0;
-
-    // Remove the given {promise} from the _outstanding list, and add it to the
-    // _recent list, pruning more than 20 recent promises from that list.
-    delete _outstanding[this._id];
-    _recent.push(this);
-    while (_recent.length > 20) {
-        _recent.shift();
-    }
-
-    return this;
-};
-
-/**
- * Takes an array of promises and returns a promise that that is fulfilled once
- * all the promises in the array are fulfilled
- * @param group The array of promises
- * @return the promise that is fulfilled when all the array is fulfilled
- */
-Promise.group = function(promiseList) {
-    if (!(promiseList instanceof Array)) {
-        promiseList = Array.prototype.slice.call(arguments);
-    }
-
-    // If the original array has nothing in it, return now to avoid waiting
-    if (promiseList.length === 0) {
-        return new Promise().resolve([]);
-    }
-
-    var groupPromise = new Promise();
-    var results = [];
-    var fulfilled = 0;
-
-    var onSuccessFactory = function(index) {
-        return function(data) {
-            results[index] = data;
-            fulfilled++;
-            // If the group has already failed, silently drop extra results
-            if (groupPromise._status !== ERROR) {
-                if (fulfilled === promiseList.length) {
-                    groupPromise.resolve(results);
-                }
-            }
-        };
-    };
-
-    promiseList.forEach(function(promise, index) {
-        var onSuccess = onSuccessFactory(index);
-        var onError = groupPromise.reject.bind(groupPromise);
-        promise.then(onSuccess, onError);
-    });
-
-    return groupPromise;
-};
-
-exports.Promise = Promise;
-exports._outstanding = _outstanding;
-exports._recent = _recent;
-
-});
-/* ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
- *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
- *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is DomTemplate.
- *
- * The Initial Developer of the Original Code is Mozilla.
- * Portions created by the Initial Developer are Copyright (C) 2009
- * the Initial Developer. All Rights Reserved.
- *
- * Contributor(s):
- *   Joe Walker (jwalker@mozilla.com) (original author)
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or
- * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
- *
- * ***** END LICENSE BLOCK ***** */
-
-define('pilot/environment', ['require', 'exports', 'module' , 'pilot/settings'], function(require, exports, module) {
-
-
-var settings = require("pilot/settings").settings;
-
-/**
- * Create an environment object
- */
-function create() {
-    return {
-        settings: settings
-    };
-};
-
-exports.create = create;
-
-
-});
-/* ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
- *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
- *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is Mozilla Skywriter.
- *
- * The Initial Developer of the Original Code is
- * Mozilla.
- * Portions created by the Initial Developer are Copyright (C) 2009
- * the Initial Developer. All Rights Reserved.
- *
- * Contributor(s):
- *      Fabian Jakobs <fabian AT ajax DOT org>
- *      Kevin Dangoor (kdangoor@mozilla.com)
- *      Julian Viereck <julian DOT viereck AT gmail DOT com>
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or
- * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
- *
- * ***** END LICENSE BLOCK ***** */
-
-
-define('demo/kitchen-sink/demo', ['require', 'exports', 'module' , 'ace/lib/net', 'pilot/canon', 'pilot/event', 'ace/range', 'ace/editor', 'ace/virtual_renderer', 'ace/theme/textmate', 'ace/edit_session', 'ace/undomanager', 'ace/keyboard/keybinding/vim', 'ace/keyboard/keybinding/emacs', 'ace/keyboard/hash_handler', 'ace/mode/c_cpp', 'ace/mode/clojure', 'ace/mode/coffee', 'ace/mode/coldfusion', 'ace/mode/csharp', 'ace/mode/css', 'ace/mode/groovy', 'ace/mode/html', 'ace/mode/java', 'ace/mode/javascript', 'ace/mode/json', 'ace/mode/latex', 'ace/mode/lua', 'ace/mode/markdown', 'ace/mode/ocaml', 'ace/mode/perl', 'ace/mode/php', 'ace/mode/powershell', 'ace/mode/python', 'ace/mode/scala', 'ace/mode/scss', 'ace/mode/ruby', 'ace/mode/sql', 'ace/mode/SVG', 'ace/mode/text', 'ace/mode/textile', 'ace/mode/xml', 'text!demo/kitchen-sink/docs/plaintext.txt', 'text!demo/kitchen-sink/docs/javascript.js', 'text!demo/kitchen-sink/docs/coffeescript.coffee', 'text!demo/kitchen-sink/docs/json.json', 'text!demo/kitchen-sink/docs/css.css', 'text!demo/kitchen-sink/docs/scss.scss', 'text!demo/kitchen-sink/docs/html.html', 'text!demo/kitchen-sink/docs/xml.xml', 'text!demo/kitchen-sink/docs/svg.svg', 'text!demo/kitchen-sink/docs/php.php', 'text!demo/kitchen-sink/docs/coldfusion.cfm', 'text!demo/kitchen-sink/docs/python.py', 'text!demo/kitchen-sink/docs/ruby.rb', 'text!demo/kitchen-sink/docs/perl.pl', 'text!demo/kitchen-sink/docs/ocaml.ml', 'text!demo/kitchen-sink/docs/lua.lua', 'text!demo/kitchen-sink/docs/java.java', 'text!demo/kitchen-sink/docs/clojure.clj', 'text!demo/kitchen-sink/docs/groovy.groovy', 'text!demo/kitchen-sink/docs/scala.scala', 'text!demo/kitchen-sink/docs/csharp.cs', 'text!demo/kitchen-sink/docs/powershell.ps1', 'text!demo/kitchen-sink/docs/cpp.cpp', 'text!demo/kitchen-sink/docs/markdown.md', 'text!demo/kitchen-sink/docs/textile.textile', 'text!demo/kitchen-sink/docs/latex.tex', 'ace/split'], function(require, exports, module) {
-
-var net = require("ace/lib/net");
-var canon = require("pilot/canon");
-var event = require("pilot/event");
-var Range = require("ace/range").Range;
-var Editor = require("ace/editor").Editor;
-var Renderer = require("ace/virtual_renderer").VirtualRenderer;
-var theme = require("ace/theme/textmate");
-var EditSession = require("ace/edit_session").EditSession;
-var UndoManager = require("ace/undomanager").UndoManager;
-
-var vim = require("ace/keyboard/keybinding/vim").Vim;
-var emacs = require("ace/keyboard/keybinding/emacs").Emacs;
-var HashHandler = require("ace/keyboard/hash_handler").HashHandler;
-
-
-var modesByName;
-
-var Doc = function(name, desc, file) {
-    this.name = name;
-    this.desc = desc;
-    this.doc = new EditSession(file);
-    this.doc.setMode(modesByName[name].mode);
-    this.doc.setUndoManager(new UndoManager());
-};
-
-var WrappedDoc = function(name, desc, file) {
-    Doc.apply(this, arguments);
-    
-    this.doc.setUseWrapMode(true);
-    this.doc.setWrapLimitRange(80, 80);
-};
-
-var Mode = function(name, desc, clazz, extensions) {
-    this.name = name;
-    this.desc = desc;
-    this.clazz = clazz;
-    this.mode = new clazz();
-    this.mode.name = name;
-    
-    this.extRe = new RegExp("^.*\\.(" + extensions.join("|") + ")$", "g");
-};
-
-Mode.prototype.supportsFile = function(filename) {
-    return filename.match(this.extRe);
-};
-
-
-
-exports.launch = function(env) {
-    
-    var modes = [
-        new Mode("c_cpp", "C/C++", require("ace/mode/c_cpp").Mode, ["c", "cpp", "cxx", "h", "hpp"]),
-        new Mode("clojure", "Clojure", require("ace/mode/clojure").Mode, ["clj"]),
-        new Mode("coffee", "CoffeeScript", require("ace/mode/coffee").Mode, ["coffee"]),
-        new Mode("coldfusion", "ColdFusion", require("ace/mode/coldfusion").Mode, ["cfm"]),
-        new Mode("csharp", "C#", require("ace/mode/csharp").Mode, ["cs"]),
-        new Mode("css", "CSS", require("ace/mode/css").Mode, ["css"]),
-        new Mode("groovy", "Groovy", require("ace/mode/groovy").Mode, ["groovy"]),
-        new Mode("html", "HTML", require("ace/mode/html").Mode, ["html", "htm"]),
-        new Mode("java", "Java", require("ace/mode/java").Mode, ["java"]),
-        new Mode("javascript", "JavaScript", require("ace/mode/javascript").Mode, ["js"]),
-        new Mode("json", "JSON", require("ace/mode/json").Mode, ["json"]),
-        new Mode("latex", "LaTeX", require("ace/mode/latex").Mode, ["tex"]),
-        new Mode("lua", "Lua", require("ace/mode/lua").Mode, ["lua"]),
-        new Mode("markdown", "MarkDown", require("ace/mode/markdown").Mode, ["md", "markdown"]),
-        new Mode("ocaml", "OCaml", require("ace/mode/ocaml").Mode, ["ml", "mli"]),
-        new Mode("perl", "Perl", require("ace/mode/perl").Mode, ["pl", "pm"]),
-        new Mode("php", "PHP",require("ace/mode/php").Mode, ["php"]),
-        new Mode("powershell", "Powershell", require("ace/mode/powershell").Mode, ["ps1"]),
-        new Mode("python", "Python", require("ace/mode/python").Mode, ["py"]),
-        new Mode("scala", "Scala", require("ace/mode/scala").Mode, ["scala"]),
-        new Mode("scss", "SCSS", require("ace/mode/scss").Mode, ["scss"]),
-        new Mode("ruby", "Ruby", require("ace/mode/ruby").Mode, ["rb"]),
-        new Mode("sql", "SQL", require("ace/mode/sql").Mode, ["sql"]),
-        new Mode("svg", "SVG", require("ace/mode/SVG").Mode, ["svg"]),
-        new Mode("text", "Text", require("ace/mode/text").Mode, ["txt"]),
-        new Mode("textile", "Textile", require("ace/mode/textile").Mode, ["textile"]),
-        new Mode("xml", "XML", require("ace/mode/xml").Mode, ["xml"])
-    ];
-    
-    modesByName = {};
-    modes.forEach(function(m) {
-        modesByName[m.name] = m;
-    });
-    
-    var loreIpsum = require("text!demo/kitchen-sink/docs/plaintext.txt");
-    for (var i = 0; i < 5; i++) {
-        loreIpsum += loreIpsum;
-    }
-    
-    var docs = [
-        new Doc(
-            "javascript", "JavaScript",
-            require("text!demo/kitchen-sink/docs/javascript.js")
-        ),
-        new WrappedDoc("text", "Plain Text", loreIpsum),
-        new Doc(
-            "coffee", "Coffeescript",
-            require("text!demo/kitchen-sink/docs/coffeescript.coffee")
-        ),
-        new Doc(
-            "json", "JSON",
-            require("text!demo/kitchen-sink/docs/json.json")
-        ),
-        new Doc(
-            "css", "CSS",
-            require("text!demo/kitchen-sink/docs/css.css")
-        ),
-        new Doc(
-            "scss", "SCSS",
-            require("text!demo/kitchen-sink/docs/scss.scss")
-        ),
-        new Doc(
-            "html", "HTML",
-            require("text!demo/kitchen-sink/docs/html.html")
-        ),
-        new Doc(
-            "xml", "XML",
-            require("text!demo/kitchen-sink/docs/xml.xml")
-        ),
-        new Doc(
-            "svg", "SVG",
-            require("text!demo/kitchen-sink/docs/svg.svg")
-        ),
-        new Doc(
-            "php", "PHP",
-            require("text!demo/kitchen-sink/docs/php.php")
-        ),
-        new Doc(
-            "coldfusion", "ColdFusion",
-            require("text!demo/kitchen-sink/docs/coldfusion.cfm")
-        ),
-        new Doc(
-            "python", "Python",
-            require("text!demo/kitchen-sink/docs/python.py")
-        ),
-        new Doc(
-            "ruby", "Ruby",
-            require("text!demo/kitchen-sink/docs/ruby.rb")
-        ),
-        new Doc(
-            "perl", "Perl",
-            require("text!demo/kitchen-sink/docs/perl.pl")
-        ),
-        new Doc(
-            "ocaml", "OCaml",
-            require("text!demo/kitchen-sink/docs/ocaml.ml")
-        ),
-        new Doc(
-            "lua", "Lua",
-            require("text!demo/kitchen-sink/docs/lua.lua")
-        ),
-        new Doc(
-            "java", "Java",
-            require("text!demo/kitchen-sink/docs/java.java")
-        ),
-        new Doc(
-            "clojure", "Clojure",
-            require("text!demo/kitchen-sink/docs/clojure.clj")
-        ),
-        new Doc(
-            "groovy", "Groovy",
-            require("text!demo/kitchen-sink/docs/groovy.groovy")
-        ),
-        new Doc(
-            "scala", "Scala",
-            require("text!demo/kitchen-sink/docs/scala.scala")
-        ),
-        new Doc(
-            "csharp", "C#",
-            require("text!demo/kitchen-sink/docs/csharp.cs")
-        ),
-        new Doc(
-            "powershell", "Powershell",
-            require("text!demo/kitchen-sink/docs/powershell.ps1")
-        ),
-        new Doc(
-            "c_cpp", "C/C++",
-            require("text!demo/kitchen-sink/docs/cpp.cpp")
-        ),
-        new Doc(
-            "markdown", "Markdown",
-            require("text!demo/kitchen-sink/docs/markdown.md")
-        ),
-        new WrappedDoc(
-            "markdown", "Markdown",
-            require("text!demo/kitchen-sink/docs/markdown.md")
-        ),
-        new WrappedDoc(
-            "textile", "Textile",
-            require("text!demo/kitchen-sink/docs/textile.textile")
-        ),
-        new WrappedDoc(
-            "latex", "LaTeX",
-            require("text!demo/kitchen-sink/docs/latex.tex")
-        )
-    ];
-    
-    var docsByName = {};
-    docs.forEach(function(d) {
-        docsByName[d.name] = d;
-    });
-    
-    var keybindings = {
-        // Null = use "default" keymapping
-        ace: null,
-        vim: vim,
-        emacs: emacs,
-        // This is a way to define simple keyboard remappings
-        custom: new HashHandler({
-            "gotoright":      "Tab",
-            "indent":         "]",
-            "outdent":        "[",
-            "gotolinestart":  "^",
-            "gotolineend":    "$"
-         })
-    };
-
-    var container = document.getElementById("editor");
-    var cockpitInput = document.getElementById("cockpitInput");
-
-    // Splitting.
-    var Split = require("ace/split").Split;
-    var split = new Split(container, theme, 1);
-    env.editor = split.getEditor(0);
-    split.on("focus", function(editor) {
-        env.editor = editor;
-        updateUIEditorOptions();
-    });
-    env.split = split;
-    window.env = env;
-    window.ace = env.editor;
-
-    var docEl = document.getElementById("doc");
-    var modeEl = document.getElementById("mode");
-    var wrapModeEl = document.getElementById("soft_wrap");
-    var themeEl = document.getElementById("theme");
-    var selectStyleEl = document.getElementById("select_style");
-    var highlightActiveEl = document.getElementById("highlight_active");
-    var showHiddenEl = document.getElementById("show_hidden");
-    var showGutterEl = document.getElementById("show_gutter");
-    var showPrintMarginEl = document.getElementById("show_print_margin");
-    var highlightSelectedWordE = document.getElementById("highlight_selected_word");
-    var showHScrollEl = document.getElementById("show_hscroll");
-    var softTabEl = document.getElementById("soft_tab");
-    var behavioursEl = document.getElementById("enable_behaviours");
-
-    docs.forEach(function(doc) {
-        var option = document.createElement("option");
-        option.setAttribute("value", doc.name);
-        option.innerHTML = doc.desc;
-        docEl.appendChild(option);
-    });
-    
-    modes.forEach(function(mode) {
-        var option = document.createElement("option");
-        option.setAttribute("value", mode.name);
-        option.innerHTML = mode.desc;
-        modeEl.appendChild(option);
-    });
-    
-    bindDropdown("doc", function(value) {
-        var doc = docsByName[value].doc;
-        var session = env.split.setSession(doc);
-        session.name = doc.name;
-
-        updateUIEditorOptions();
-
-        env.editor.focus();
-    });
-
-    function updateUIEditorOptions() {
-        var editor = env.editor;
-        var session = editor.session;
-
-        docEl.value = session.name;
-        modeEl.value = session.getMode().name || "text";
-
-        if (!session.getUseWrapMode()) {
-            wrapModeEl.value = "off";
-        } else {
-            wrapModeEl.value = session.getWrapLimitRange().min || "free";
-        }
-
-        selectStyleEl.checked = editor.getSelectionStyle() == "line";
-        themeEl.value = editor.getTheme();
-        highlightActiveEl.checked = editor.getHighlightActiveLine();
-        showHiddenEl.checked = editor.getShowInvisibles();
-        showGutterEl.checked = editor.renderer.getShowGutter();
-        showPrintMarginEl.checked = editor.renderer.getShowPrintMargin();
-        highlightSelectedWordE.checked = editor.getHighlightSelectedWord();
-        showHScrollEl.checked = editor.renderer.getHScrollBarAlwaysVisible();
-        softTabEl.checked = session.getUseSoftTabs();
-        behavioursEl.checked = editor.getBehavioursEnabled();
-    }
-
-    bindDropdown("mode", function(value) {
-        env.editor.getSession().setMode(modesByName[value].mode || modesByName.text.mode);
-    });
-
-    bindDropdown("theme", function(value) {
-        if (require.packaged) {
-            loadTheme(value, function() {
-                env.editor.setTheme(value);
-            });
-        }
-        else {
-            env.editor.setTheme(value);
-        }
-    });
-
-    bindDropdown("keybinding", function(value) {
-        env.editor.setKeyboardHandler(keybindings[value]);
-    });
-
-    bindDropdown("fontsize", function(value) {
-        env.split.setFontSize(value);
-    });
-
-    bindDropdown("soft_wrap", function(value) {
-        var session = env.editor.getSession();
-        var renderer = env.editor.renderer;
-        switch (value) {
-            case "off":
-                session.setUseWrapMode(false);
-                renderer.setPrintMarginColumn(80);
-                break;
-            case "40":
-                session.setUseWrapMode(true);
-                session.setWrapLimitRange(40, 40);
-                renderer.setPrintMarginColumn(40);
-                break;
-            case "80":
-                session.setUseWrapMode(true);
-                session.setWrapLimitRange(80, 80);
-                renderer.setPrintMarginColumn(80);
-                break;
-            case "free":
-                session.setUseWrapMode(true);
-                session.setWrapLimitRange(null, null);
-                renderer.setPrintMarginColumn(80);
-                break;
-        }
-    });
-
-    bindCheckbox("select_style", function(checked) {
-        env.editor.setSelectionStyle(checked ? "line" : "text");
-    });
-
-    bindCheckbox("highlight_active", function(checked) {
-        env.editor.setHighlightActiveLine(checked);
-    });
-
-    bindCheckbox("show_hidden", function(checked) {
-        env.editor.setShowInvisibles(checked);
-    });
-
-    bindCheckbox("show_gutter", function(checked) {
-        env.editor.renderer.setShowGutter(checked);
-    });
-
-    bindCheckbox("show_print_margin", function(checked) {
-        env.editor.renderer.setShowPrintMargin(checked);
-    });
-
-    bindCheckbox("highlight_selected_word", function(checked) {
-        env.editor.setHighlightSelectedWord(checked);
-    });
-
-    bindCheckbox("show_hscroll", function(checked) {
-        env.editor.renderer.setHScrollBarAlwaysVisible(checked);
-    });
-
-    bindCheckbox("soft_tab", function(checked) {
-        env.editor.getSession().setUseSoftTabs(checked);
-    });
-
-    bindCheckbox("enable_behaviours", function(checked) {
-        env.editor.setBehavioursEnabled(checked);
-    });
-
-    var secondSession = null;
-    bindDropdown("split", function(value) {
-        var sp = env.split;
-        if (value == "none") {
-            if (sp.getSplits() == 2) {
-                secondSession = sp.getEditor(1).session;
-            }
-            sp.setSplits(1);
-        } else {
-            var newEditor = (sp.getSplits() == 1);
-            if (value == "below") {
-                sp.setOriantation(sp.BELOW);
-            } else {
-                sp.setOriantation(sp.BESIDE);
-            }
-            sp.setSplits(2);
-
-            if (newEditor) {
-                var session = secondSession || sp.getEditor(0).session;
-                var newSession = sp.setSession(session, 1);
-                newSession.name = session.name;
-            }
-        }
-    });
-
-    function bindCheckbox(id, callback) {
-        var el = document.getElementById(id);
-        var onCheck = function() {
-            callback(!!el.checked);
-        };
-        el.onclick = onCheck;
-        onCheck();
-    }
-
-    function bindDropdown(id, callback) {
-        var el = document.getElementById(id);
-        var onChange = function() {
-            callback(el.value);
-        };
-        el.onchange = onChange;
-        onChange();
-    }
-
-    function onResize() {
-        var left = env.split.$container.offsetLeft;
-        var width = document.documentElement.clientWidth - left;
-        container.style.width = width + "px";
-        container.style.height = document.documentElement.clientHeight + "px";
-        env.split.resize();
-//        env.editor.resize();
-    }
-
-    window.onresize = onResize;
-    env.editor.renderer.onResize(true);
-
-    event.addListener(container, "dragover", function(e) {
-        return event.preventDefault(e);
-    });
-
-    event.addListener(container, "drop", function(e) {
-        var file;
-        try {
-            file = e.dataTransfer.files[0];
-        } catch(err) {
-            return event.stopEvent();
-        }
-
-        if (window.FileReader) {
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                env.editor.getSelection().selectAll();
-
-                var mode = modesByName.text;
-                for (var i = 0; i < modes.length; i++) {
-                    if (modes[i].supportsFile(file.name)) {
-                        mode = modes[i];
-                        break;
-                    }
-                }
-
-                env.editor.onTextInput(reader.result);
-
-                modeEl.value = mode.name;
-                env.editor.getSession().setMode(mode.mode);
-            };
-            reader.readAsText(file);
-        }
-
-        return event.preventDefault(e);
-    });
-
-    /**
-     * This demonstrates how you can define commands and bind shortcuts to them.
-     */
-
-    // Fake-Save, works from the editor and the command line.
-    canon.addCommand({
-        name: "save",
-        bindKey: {
-            win: "Ctrl-S",
-            mac: "Command-S",
-            sender: "editor"
-        },
-        exec: function() {
-            alert("Fake Save File");
-        }
-    });
-
-    // Fake-Print with custom lookup-sender-match function.
-    canon.addCommand({
-        name: "print",
-        bindKey: {
-            win: "Ctrl-P",
-            mac: "Command-P",
-            sender: function(env, sender, hashId, keyString) {
-                if (sender == "editor") {
-                    return true;
-                } else {
-                    alert("Sorry, can only print from the editor");
-                }
-            }
-        },
-        exec: function() {
-            alert("Fake Print File");
-        }
-    });
-
-};
-
-var themes = {};
-function loadTheme(name, callback) {
-    if (themes[name])
-        return callback();
-        
-    themes[name] = 1;
-    var base = name.split("/").pop();
-    var fileName = "src/theme-" + base + ".js";
-    net.loadScript(fileName, callback);
-}
-
-});
-
 /**
  * based on code from:
  * 
@@ -6053,11 +2015,11 @@ exports.loadScript = function(path, callback) {
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('pilot/event', ['require', 'exports', 'module' , 'pilot/keys', 'pilot/useragent', 'pilot/dom'], function(require, exports, module) {
+define('ace/lib/event', ['require', 'exports', 'module' , 'ace/lib/keys', 'ace/lib/useragent', 'ace/lib/dom'], function(require, exports, module) {
 
-var keys = require("pilot/keys");
-var useragent = require("pilot/useragent");
-var dom = require("pilot/dom");
+var keys = require("./keys");
+var useragent = require("./useragent");
+var dom = require("./dom");
 
 exports.addListener = function(elem, type, callback) {
     if (elem.addEventListener) {
@@ -6152,7 +2114,7 @@ if (document.documentElement.setCapture) {
 
             if (!called) {
                 called = true;
-                releaseCaptureHandler();
+                releaseCaptureHandler(e);
             }
 
             exports.removeListener(el, "mousemove", eventHandler);
@@ -6177,7 +2139,7 @@ else {
 
         function onMouseUp(e) {
             eventHandler && eventHandler(e);
-            releaseCaptureHandler && releaseCaptureHandler();
+            releaseCaptureHandler && releaseCaptureHandler(e);
 
             document.removeEventListener("mousemove", onMouseMove, true);
             document.removeEventListener("mouseup", onMouseUp, true);
@@ -6340,6 +2302,288 @@ exports.addCommandKeyListener = function(el, callback) {
 };
 
 });
+/*! @license
+==========================================================================
+SproutCore -- JavaScript Application Framework
+copyright 2006-2009, Sprout Systems Inc., Apple Inc. and contributors.
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the "Software"),
+to deal in the Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
+
+SproutCore and the SproutCore logo are trademarks of Sprout Systems, Inc.
+
+For more information about SproutCore, visit http://www.sproutcore.com
+
+
+==========================================================================
+@license */
+
+// Most of the following code is taken from SproutCore with a few changes.
+
+define('ace/lib/keys', ['require', 'exports', 'module' , 'ace/lib/oop'], function(require, exports, module) {
+
+var oop = require("./oop");
+
+/**
+ * Helper functions and hashes for key handling.
+ */
+var Keys = (function() {
+    var ret = {
+        MODIFIER_KEYS: {
+            16: 'Shift', 17: 'Ctrl', 18: 'Alt', 224: 'Meta'
+        },
+
+        KEY_MODS: {
+            "ctrl": 1, "alt": 2, "option" : 2,
+            "shift": 4, "meta": 8, "command": 8
+        },
+
+        FUNCTION_KEYS : {
+            8  : "Backspace",
+            9  : "Tab",
+            13 : "Return",
+            19 : "Pause",
+            27 : "Esc",
+            32 : "Space",
+            33 : "PageUp",
+            34 : "PageDown",
+            35 : "End",
+            36 : "Home",
+            37 : "Left",
+            38 : "Up",
+            39 : "Right",
+            40 : "Down",
+            44 : "Print",
+            45 : "Insert",
+            46 : "Delete",
+            112: "F1",
+            113: "F2",
+            114: "F3",
+            115: "F4",
+            116: "F5",
+            117: "F6",
+            118: "F7",
+            119: "F8",
+            120: "F9",
+            121: "F10",
+            122: "F11",
+            123: "F12",
+            144: "Numlock",
+            145: "Scrolllock"
+        },
+
+        PRINTABLE_KEYS: {
+           32: ' ',  48: '0',  49: '1',  50: '2',  51: '3',  52: '4', 53:  '5',
+           54: '6',  55: '7',  56: '8',  57: '9',  59: ';',  61: '=', 65:  'a',
+           66: 'b',  67: 'c',  68: 'd',  69: 'e',  70: 'f',  71: 'g', 72:  'h',
+           73: 'i',  74: 'j',  75: 'k',  76: 'l',  77: 'm',  78: 'n', 79:  'o',
+           80: 'p',  81: 'q',  82: 'r',  83: 's',  84: 't',  85: 'u', 86:  'v',
+           87: 'w',  88: 'x',  89: 'y',  90: 'z', 107: '+', 109: '-', 110: '.',
+          188: ',', 190: '.', 191: '/', 192: '`', 219: '[', 220: '\\',
+          221: ']', 222: '\"'
+        }
+    };
+
+    // A reverse map of FUNCTION_KEYS
+    for (var i in ret.FUNCTION_KEYS) {
+        var name = ret.FUNCTION_KEYS[i].toUpperCase();
+        ret[name] = parseInt(i, 10);
+    }
+
+    // Add the MODIFIER_KEYS, FUNCTION_KEYS and PRINTABLE_KEYS to the KEY
+    // variables as well.
+    oop.mixin(ret, ret.MODIFIER_KEYS);
+    oop.mixin(ret, ret.PRINTABLE_KEYS);
+    oop.mixin(ret, ret.FUNCTION_KEYS);
+
+    return ret;
+})();
+oop.mixin(exports, Keys);
+
+exports.keyCodeToString = function(keyCode) {
+    return (Keys[keyCode] || String.fromCharCode(keyCode)).toLowerCase();
+}
+
+});/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Ajax.org Code Editor (ACE).
+ *
+ * The Initial Developer of the Original Code is
+ * Ajax.org B.V.
+ * Portions created by the Initial Developer are Copyright (C) 2010
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *      Fabian Jakobs <fabian AT ajax DOT org>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+define('ace/lib/oop', ['require', 'exports', 'module' ], function(require, exports, module) {
+
+exports.inherits = (function() {
+    var tempCtor = function() {};
+    return function(ctor, superCtor) {
+        tempCtor.prototype = superCtor.prototype;
+        ctor.super_ = superCtor.prototype;
+        ctor.prototype = new tempCtor();
+        ctor.prototype.constructor = ctor;
+    }
+}());
+
+exports.mixin = function(obj, mixin) {
+    for (var key in mixin) {
+        obj[key] = mixin[key];
+    }
+};
+
+exports.implement = function(proto, mixin) {
+    exports.mixin(proto, mixin);
+};
+
+});
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Ajax.org Code Editor (ACE).
+ *
+ * The Initial Developer of the Original Code is
+ * Ajax.org B.V.
+ * Portions created by the Initial Developer are Copyright (C) 2010
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *      Fabian Jakobs <fabian AT ajax DOT org>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+define('ace/lib/useragent', ['require', 'exports', 'module' ], function(require, exports, module) {
+
+var os = (navigator.platform.match(/mac|win|linux/i) || ["other"])[0].toLowerCase();
+var ua = navigator.userAgent;
+var av = navigator.appVersion;
+
+/** Is the user using a browser that identifies itself as Windows */
+exports.isWin = (os == "win");
+
+/** Is the user using a browser that identifies itself as Mac OS */
+exports.isMac = (os == "mac");
+
+/** Is the user using a browser that identifies itself as Linux */
+exports.isLinux = (os == "linux");
+
+exports.isIE = 
+    navigator.appName == "Microsoft Internet Explorer"
+    && parseFloat(navigator.userAgent.match(/MSIE ([0-9]+[\.0-9]+)/)[1]);
+    
+exports.isOldIE = exports.isIE && exports.isIE < 9;
+
+/** Is this Firefox or related? */
+exports.isGecko = exports.isMozilla = window.controllers && window.navigator.product === "Gecko";
+
+/** oldGecko == rev < 2.0 **/
+exports.isOldGecko = exports.isGecko && /rv\:1/.test(navigator.userAgent);
+
+/** Is this Opera */
+exports.isOpera = window.opera && Object.prototype.toString.call(window.opera) == "[object Opera]";
+
+/** Is the user using a browser that identifies itself as WebKit */
+exports.isWebKit = parseFloat(ua.split("WebKit/")[1]) || undefined;
+
+exports.isChrome = parseFloat(ua.split(" Chrome/")[1]) || undefined;
+
+exports.isAIR = ua.indexOf("AdobeAIR") >= 0;
+
+exports.isIPad = ua.indexOf("iPad") >= 0;
+
+exports.isTouchPad = ua.indexOf("TouchPad") >= 0;
+
+/**
+ * I hate doing this, but we need some way to determine if the user is on a Mac
+ * The reason is that users have different expectations of their key combinations.
+ *
+ * Take copy as an example, Mac people expect to use CMD or APPLE + C
+ * Windows folks expect to use CTRL + C
+ */
+exports.OS = {
+    LINUX: 'LINUX',
+    MAC: 'MAC',
+    WINDOWS: 'WINDOWS'
+};
+
+/**
+ * Return an exports.OS constant
+ */
+exports.getOS = function() {
+    if (exports.isMac) {
+        return exports.OS['MAC'];
+    } else if (exports.isLinux) {
+        return exports.OS['LINUX'];
+    } else {
+        return exports.OS['WINDOWS'];
+    }
+};
+
+});
 /* vim:ts=4:sts=4:sw=4:
  * ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
@@ -6380,7 +2624,7 @@ exports.addCommandKeyListener = function(el, callback) {
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('pilot/dom', ['require', 'exports', 'module' ], function(require, exports, module) {
+define('ace/lib/dom', ['require', 'exports', 'module' ], function(require, exports, module) {
 
 var XHTML_NS = "http://www.w3.org/1999/xhtml";
 
@@ -6477,7 +2721,7 @@ exports.setCssClass = function(node, className, include) {
 
 exports.hasCssString = function(id, doc) {
     var index = 0, sheets;
-    doc = doc || document
+    doc = doc || document;
 
     if (doc.createStyleSheet && (sheets = doc.styleSheets)) {
         while (index < sheets.length)
@@ -6488,7 +2732,7 @@ exports.hasCssString = function(id, doc) {
     }
 
     return false;
-}
+};
 
 exports.importCssString = function importCssString(cssText, id, doc) {
     doc = doc || document;
@@ -7026,24 +3270,26 @@ exports.Range = Range;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/editor', ['require', 'exports', 'module' , 'pilot/fixoldbrowsers', 'pilot/oop', 'pilot/event', 'pilot/lang', 'pilot/useragent', 'ace/keyboard/textinput', 'ace/mouse/mouse_handler', 'ace/keyboard/keybinding', 'ace/edit_session', 'ace/search', 'ace/range', 'pilot/event_emitter'], function(require, exports, module) {
+define('ace/editor', ['require', 'exports', 'module' , 'ace/lib/fixoldbrowsers', 'ace/lib/oop', 'ace/lib/event', 'ace/lib/lang', 'ace/lib/useragent', 'ace/keyboard/textinput', 'ace/mouse/mouse_handler', 'ace/keyboard/keybinding', 'ace/edit_session', 'ace/search', 'ace/range', 'ace/lib/event_emitter', 'ace/commands/command_manager', 'ace/commands/default_commands'], function(require, exports, module) {
 
-require("pilot/fixoldbrowsers");
+require("./lib/fixoldbrowsers");
 
-var oop = require("pilot/oop");
-var event = require("pilot/event");
-var lang = require("pilot/lang");
-var useragent = require("pilot/useragent");
-var TextInput = require("ace/keyboard/textinput").TextInput;
-var MouseHandler = require("ace/mouse/mouse_handler").MouseHandler;
-//var TouchHandler = require("ace/touch_handler").TouchHandler;
-var KeyBinding = require("ace/keyboard/keybinding").KeyBinding;
-var EditSession = require("ace/edit_session").EditSession;
-var Search = require("ace/search").Search;
-var Range = require("ace/range").Range;
-var EventEmitter = require("pilot/event_emitter").EventEmitter;
+var oop = require("./lib/oop");
+var event = require("./lib/event");
+var lang = require("./lib/lang");
+var useragent = require("./lib/useragent");
+var TextInput = require("./keyboard/textinput").TextInput;
+var MouseHandler = require("./mouse/mouse_handler").MouseHandler;
+//var TouchHandler = require("./touch_handler").TouchHandler;
+var KeyBinding = require("./keyboard/keybinding").KeyBinding;
+var EditSession = require("./edit_session").EditSession;
+var Search = require("./search").Search;
+var Range = require("./range").Range;
+var EventEmitter = require("./lib/event_emitter").EventEmitter;
+var CommandManager = require("./commands/command_manager").CommandManager;
+var defaultCommands = require("./commands/default_commands").commands;
 
-var Editor =function(renderer, session) {
+var Editor = function(renderer, session) {
     var container = renderer.getContainerElement();
     this.container = container;
     this.renderer = renderer;
@@ -7063,6 +3309,7 @@ var Editor =function(renderer, session) {
         wrap: true
     });
 
+    this.commands = new CommandManager(useragent.isMac ? "mac" : "win", defaultCommands);
     this.setSession(session || new EditSession(""));
 };
 
@@ -7291,7 +3538,7 @@ var Editor =function(renderer, session) {
         this._dispatchEvent("change", e);
 
         // update cursor because tab characters can influence the cursor position
-        this.renderer.updateCursor();
+        this.onCursorChange();
     };
 
     this.onTokenizerUpdate = function(e) {
@@ -7908,6 +4155,10 @@ var Editor =function(renderer, session) {
         return (row >= this.getFirstVisibleRow() && row <= this.getLastVisibleRow());
     };
 
+    this.isRowFullyVisible = function(row) {
+        return (row >= this.renderer.getFirstFullyVisibleRow() && row <= this.renderer.getLastFullyVisibleRow());
+    };
+
     this.$getVisibleRowCount = function() {
         return this.renderer.getScrollBottomRow() - this.renderer.getScrollTopRow() + 1;
     };
@@ -8022,10 +4273,8 @@ var Editor =function(renderer, session) {
         this.$blockScrolling += 1;
         this.moveCursorTo(lineNumber-1, column || 0);
         this.$blockScrolling -= 1;
-
-        if (!this.isRowVisible(this.getCursorPosition().row)) {
+        if (!this.isRowFullyVisible(this.getCursorPosition().row))
             this.scrollToLine(lineNumber, true);
-        }
     };
 
     this.navigateTo = function(row, column) {
@@ -8177,9 +4426,8 @@ var Editor =function(renderer, session) {
     };
 
     this.$find = function(backwards) {
-        if (!this.selection.isEmpty()) {
+        if (!this.selection.isEmpty())
             this.$search.set({needle: this.session.getTextRange(this.getSelectionRange())});
-        }
 
         if (typeof backwards != "undefined")
             this.$search.set({backwards: backwards});
@@ -8207,6 +4455,155 @@ var Editor =function(renderer, session) {
 
 
 exports.Editor = Editor;
+});
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Ajax.org Code Editor (ACE).
+ *
+ * The Initial Developer of the Original Code is
+ * Ajax.org B.V.
+ * Portions created by the Initial Developer are Copyright (C) 2010
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *      Fabian Jakobs <fabian AT ajax DOT org>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+define('ace/lib/lang', ['require', 'exports', 'module' ], function(require, exports, module) {
+
+exports.stringReverse = function(string) {
+    return string.split("").reverse().join("");
+};
+
+exports.stringRepeat = function (string, count) {
+     return new Array(count + 1).join(string);
+};
+
+var trimBeginRegexp = /^\s\s*/;
+var trimEndRegexp = /\s\s*$/;
+
+exports.stringTrimLeft = function (string) {
+    return string.replace(trimBeginRegexp, '')
+};
+
+exports.stringTrimRight = function (string) {
+    return string.replace(trimEndRegexp, '');
+};
+
+exports.copyObject = function(obj) {
+    var copy = {};
+    for (var key in obj) {
+        copy[key] = obj[key];
+    }
+    return copy;
+};
+
+exports.copyArray = function(array){
+    var copy = [];
+    for (i=0, l=array.length; i<l; i++) {
+        if (array[i] && typeof array[i] == "object")
+            copy[i] = this.copyObject( array[i] );
+        else 
+            copy[i] = array[i]
+    }
+    return copy;
+};
+
+exports.deepCopy = function (obj) {
+    if (typeof obj != "object") {
+        return obj;
+    }
+    
+    var copy = obj.constructor();
+    for (var key in obj) {
+        if (typeof obj[key] == "object") {
+            copy[key] = this.deepCopy(obj[key]);
+        } else {
+            copy[key] = obj[key];
+        }
+    }
+    return copy;
+}
+
+exports.arrayToMap = function(arr) {
+    var map = {};
+    for (var i=0; i<arr.length; i++) {
+        map[arr[i]] = 1;
+    }
+    return map;
+
+};
+
+/**
+ * splice out of 'array' anything that === 'value'
+ */
+exports.arrayRemove = function(array, value) {
+  for (var i = 0; i <= array.length; i++) {
+    if (value === array[i]) {
+      array.splice(i, 1);
+    }
+  }
+};
+
+exports.escapeRegExp = function(str) {
+    return str.replace(/([.*+?^${}()|[\]\/\\])/g, '\\$1');
+};
+
+exports.deferredCall = function(fcn) {
+
+    var timer = null;
+    var callback = function() {
+        timer = null;
+        fcn();
+    };
+
+    var deferred = function(timeout) {
+        deferred.cancel();
+        timer = setTimeout(callback, timeout || 0);
+        return deferred;
+    }
+
+    deferred.schedule = deferred;
+
+    deferred.call = function() {
+        this.cancel();
+        fcn();
+        return deferred;
+    };
+
+    deferred.cancel = function() {
+        clearTimeout(timer);
+        timer = null;
+        return deferred;
+    };
+
+    return deferred;
+};
+
 });
 /* vim:ts=4:sts=4:sw=4:
  * ***** BEGIN LICENSE BLOCK *****
@@ -8247,11 +4644,11 @@ exports.Editor = Editor;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/keyboard/textinput', ['require', 'exports', 'module' , 'pilot/event', 'pilot/useragent', 'pilot/dom'], function(require, exports, module) {
+define('ace/keyboard/textinput', ['require', 'exports', 'module' , 'ace/lib/event', 'ace/lib/useragent', 'ace/lib/dom'], function(require, exports, module) {
 
-var event = require("pilot/event");
-var useragent = require("pilot/useragent");
-var dom = require("pilot/dom");
+var event = require("../lib/event");
+var useragent = require("../lib/useragent");
+var dom = require("../lib/dom");
 
 var TextInput = function(parentNode, host) {
 
@@ -8459,10 +4856,12 @@ var TextInput = function(parentNode, host) {
 
     this.onContextMenu = function(mousePos, isEmpty){
         if (mousePos) {
-            if(!tempStyle)
+            if (!tempStyle)
                 tempStyle = text.style.cssText;
-            text.style.cssText = 'position:fixed; z-index:1000;' +
-                    'left:' + (mousePos.x - 2) + 'px; top:' + (mousePos.y - 2) + 'px;'
+                
+            text.style.cssText = 
+                'position:fixed; z-index:1000;' +
+                'left:' + (mousePos.x - 2) + 'px; top:' + (mousePos.y - 2) + 'px;'
 
         }
         if (isEmpty)
@@ -8521,11 +4920,11 @@ exports.TextInput = TextInput;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/mouse/mouse_handler', ['require', 'exports', 'module' , 'pilot/event', 'ace/mouse/default_handlers', 'ace/mouse/mouse_event'], function(require, exports, module) {
+define('ace/mouse/mouse_handler', ['require', 'exports', 'module' , 'ace/lib/event', 'ace/mouse/default_handlers', 'ace/mouse/mouse_event'], function(require, exports, module) {
 
-var event = require("pilot/event");
-var DefaultHandlers = require("ace/mouse/default_handlers").DefaultHandlers;
-var MouseEvent = require("ace/mouse/mouse_event").MouseEvent;
+var event = require("../lib/event");
+var DefaultHandlers = require("./default_handlers").DefaultHandlers;
+var MouseEvent = require("./mouse_event").MouseEvent;
 
 var MouseHandler = function(editor) {
     this.editor = editor;
@@ -8541,6 +4940,7 @@ var MouseHandler = function(editor) {
 
     var mouseTarget = editor.renderer.getMouseEventTarget();
     event.addListener(mouseTarget, "mousedown", this.onMouseDown.bind(this));
+    event.addListener(mouseTarget, "click", this.onMouseClick.bind(this));
     event.addListener(mouseTarget, "mousemove", this.onMouseMove.bind(this));
     event.addMultiMouseDownListener(mouseTarget, 0, 2, 500, this.onMouseDoubleClick.bind(this));
     event.addMultiMouseDownListener(mouseTarget, 0, 3, 600, this.onMouseTripleClick.bind(this));
@@ -8561,6 +4961,10 @@ var MouseHandler = function(editor) {
 
     this.onMouseDown = function(e) {
         this.editor._dispatchEvent("mousedown", new MouseEvent(e, this.editor));
+    };
+
+    this.onMouseClick = function(e) {
+        this.editor._dispatchEvent("click", new MouseEvent(e, this.editor));
     };
     
     this.onMouseMove = function(e) {
@@ -8636,12 +5040,12 @@ exports.MouseHandler = MouseHandler;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/mouse/default_handlers', ['require', 'exports', 'module' , 'pilot/event', 'pilot/dom', 'pilot/event_emitter', 'pilot/browser_focus'], function(require, exports, module) {
+define('ace/mouse/default_handlers', ['require', 'exports', 'module' , 'ace/lib/event', 'ace/lib/dom', 'ace/lib/event_emitter', 'ace/lib/browser_focus'], function(require, exports, module) {
 
-var event = require("pilot/event");
-var dom = require("pilot/dom");
-var EventEmitter = require("pilot/event_emitter").EventEmitter;
-var BrowserFocus = require("pilot/browser_focus").BrowserFocus;
+var event = require("../lib/event");
+var dom = require("../lib/dom");
+var EventEmitter = require("../lib/event_emitter").EventEmitter;
+var BrowserFocus = require("../lib/browser_focus").BrowserFocus;
 
 var STATE_UNKNOWN = 0;
 var STATE_SELECT = 1;
@@ -8924,6 +5328,125 @@ function calcDistance(ax, ay, bx, by) {
  * Contributor(s):
  *      Fabian Jakobs <fabian AT ajax DOT org>
  *      Irakli Gozalishvili <rfobic@gmail.com> (http://jeditoolkit.com)
+ *      Mike de Boer <mike AT ajax DOT org>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+define('ace/lib/event_emitter', ['require', 'exports', 'module' ], function(require, exports, module) {
+
+var EventEmitter = {};
+
+EventEmitter._emit =
+EventEmitter._dispatchEvent = function(eventName, e) {
+    this._eventRegistry = this._eventRegistry || {};
+    this._defaultHandlers = this._defaultHandlers || {};
+
+    var listeners = this._eventRegistry[eventName] || [];
+    var defaultHandler = this._defaultHandlers[eventName];
+    if (!listeners.length && !defaultHandler)
+        return;
+
+    e = e || {};
+    e.type = eventName;
+    
+    if (!e.stopPropagation) {
+        e.stopPropagation = function() {
+            this.propagationStopped = true;
+        };
+    }
+    
+    if (!e.preventDefault) {
+        e.preventDefault = function() {
+            this.defaultPrevented = true;
+        };
+    }
+
+    for (var i=0; i<listeners.length; i++) {
+        listeners[i](e);
+        if (e.propagationStopped)
+            break;
+    }
+    
+    if (defaultHandler && !e.defaultPrevented)
+        defaultHandler(e);
+};
+
+EventEmitter.setDefaultHandler = function(eventName, callback) {
+    this._defaultHandlers = this._defaultHandlers || {};
+    
+    if (this._defaultHandlers[eventName])
+        throw new Error("The default handler for '" + eventName + "' is already set");
+        
+    this._defaultHandlers[eventName] = callback;
+};
+
+EventEmitter.on =
+EventEmitter.addEventListener = function(eventName, callback) {
+    this._eventRegistry = this._eventRegistry || {};
+
+    var listeners = this._eventRegistry[eventName];
+    if (!listeners)
+        var listeners = this._eventRegistry[eventName] = [];
+
+    if (listeners.indexOf(callback) == -1)
+        listeners.push(callback);
+};
+
+EventEmitter.removeListener =
+EventEmitter.removeEventListener = function(eventName, callback) {
+    this._eventRegistry = this._eventRegistry || {};
+
+    var listeners = this._eventRegistry[eventName];
+    if (!listeners)
+        return;
+
+    var index = listeners.indexOf(callback);
+    if (index !== -1)
+        listeners.splice(index, 1);
+};
+
+EventEmitter.removeAllListeners = function(eventName) {
+    if (this._eventRegistry) this._eventRegistry[eventName] = [];
+};
+
+exports.EventEmitter = EventEmitter;
+
+});/* vim:ts=4:sts=4:sw=4:
+ * ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Ajax.org Code Editor (ACE).
+ *
+ * The Initial Developer of the Original Code is
+ * Ajax.org B.V.
+ * Portions created by the Initial Developer are Copyright (C) 2010
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *      Fabian Jakobs <fabian AT ajax DOT org>
+ *      Irakli Gozalishvili <rfobic@gmail.com> (http://jeditoolkit.com)
  *      Julian Viereck <julian.viereck@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
@@ -8940,11 +5463,11 @@ function calcDistance(ax, ay, bx, by) {
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('pilot/browser_focus', ['require', 'exports', 'module' , 'pilot/oop', 'pilot/event', 'pilot/event_emitter'], function(require, exports, module) {
+define('ace/lib/browser_focus', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/lib/event', 'ace/lib/event_emitter'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var event = require("pilot/event");
-var EventEmitter = require("pilot/event_emitter").EventEmitter;
+var oop = require("./oop");
+var event = require("./event");
+var EventEmitter = require("./event_emitter").EventEmitter;
 
 /**
  * This class keeps track of the focus state of the given window.
@@ -9042,10 +5565,10 @@ exports.BrowserFocus = BrowserFocus;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/mouse/mouse_event', ['require', 'exports', 'module' , 'pilot/event', 'pilot/dom'], function(require, exports, module) {
+define('ace/mouse/mouse_event', ['require', 'exports', 'module' , 'ace/lib/event', 'ace/lib/dom'], function(require, exports, module) {
 
-var event = require("pilot/event");
-var dom = require("pilot/dom");
+var event = require("../lib/event");
+var dom = require("../lib/dom");
 
 /**
  * Custom Ace mouse event
@@ -9174,14 +5697,12 @@ var MouseEvent = exports.MouseEvent = function(domEvent, editor) {
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/keyboard/keybinding', ['require', 'exports', 'module' , 'pilot/useragent', 'pilot/keys', 'pilot/event', 'pilot/settings', 'pilot/canon', 'ace/commands/default_commands'], function(require, exports, module) {
+define('ace/keyboard/keybinding', ['require', 'exports', 'module' , 'ace/lib/useragent', 'ace/lib/keys', 'ace/lib/event', 'ace/commands/default_commands'], function(require, exports, module) {
 
-var useragent = require("pilot/useragent");
-var keyUtil  = require("pilot/keys");
-var event = require("pilot/event");
-var settings  = require("pilot/settings").settings;
-var canon = require("pilot/canon");
-require("ace/commands/default_commands");
+var useragent = require("../lib/useragent");
+var keyUtil  = require("../lib/keys");
+var event = require("../lib/event");
+require("../commands/default_commands");
 
 var KeyBinding = function(editor) {
     this.$editor = editor;
@@ -9202,19 +5723,20 @@ var KeyBinding = function(editor) {
     };
 
     this.$callKeyboardHandler = function (e, hashId, keyOrText, keyCode) {
-        var env = {editor: this.$editor},
-            toExecute;
+        var toExecute;
+        var commands = this.$editor.commands;
 
         if (this.$keyboardHandler) {
             toExecute =
                 this.$keyboardHandler.handleKeyboard(this.$data, hashId, keyOrText, keyCode, e);
         }
 
+        
         // If there is nothing to execute yet, then use the default keymapping.
         if (!toExecute || !toExecute.command) {
             if (hashId != 0 || keyCode != 0) {
                 toExecute = {
-                    command: canon.findKeyCommand(env, "editor", hashId, keyOrText)
+                    command: commands.findKeyCommand(hashId, keyOrText)
                 }
             } else {
                 toExecute = {
@@ -9227,9 +5749,11 @@ var KeyBinding = function(editor) {
         }
 
         var success = false;
-        if (toExecute) {
-            success = canon.exec(toExecute.command,
-                                        env, "editor", toExecute.args);
+        if (toExecute && toExecute.command) {
+            success = commands.exec(
+                toExecute.command,
+                this.$editor, toExecute.args
+            );
             if (success) {
                 event.stopEvent(e);
             }
@@ -9293,361 +5817,294 @@ exports.KeyBinding = KeyBinding;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/commands/default_commands', ['require', 'exports', 'module' , 'pilot/lang', 'pilot/canon'], function(require, exports, module) {
+define('ace/commands/default_commands', ['require', 'exports', 'module' , 'ace/lib/lang'], function(require, exports, module) {
 
-var lang = require("pilot/lang");
-var canon = require("pilot/canon");
+var lang = require("../lib/lang");
 
 function bindKey(win, mac) {
     return {
         win: win,
-        mac: mac,
-        sender: "editor"
+        mac: mac
     };
 }
 
-canon.addCommand({
-    name: "null",
-    exec: function(env, args, request) {  }
-});
-
-canon.addCommand({
+exports.commands = [{
     name: "selectall",
     bindKey: bindKey("Ctrl-A", "Command-A"),
-    exec: function(env, args, request) { env.editor.selectAll(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.selectAll(); }
+}, {
     name: "removeline",
     bindKey: bindKey("Ctrl-D", "Command-D"),
-    exec: function(env, args, request) { env.editor.removeLines(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.removeLines(); }
+}, {
     name: "gotoline",
     bindKey: bindKey("Ctrl-L", "Command-L"),
-    exec: function(env, args, request) {
+    exec: function(editor) {
         var line = parseInt(prompt("Enter line number:"));
         if (!isNaN(line)) {
-            env.editor.gotoLine(line);
+            editor.gotoLine(line);
         }
     }
-});
-canon.addCommand({
+}, {
     name: "togglecomment",
     bindKey: bindKey("Ctrl-7", "Command-7"),
-    exec: function(env, args, request) { env.editor.toggleCommentLines(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.toggleCommentLines(); }
+}, {
     name: "findnext",
     bindKey: bindKey("Ctrl-K", "Command-G"),
-    exec: function(env, args, request) { env.editor.findNext(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.findNext(); }
+}, {
     name: "findprevious",
     bindKey: bindKey("Ctrl-Shift-K", "Command-Shift-G"),
-    exec: function(env, args, request) { env.editor.findPrevious(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.findPrevious(); }
+}, {
     name: "find",
     bindKey: bindKey("Ctrl-F", "Command-F"),
-    exec: function(env, args, request) {
-        var needle = prompt("Find:", env.editor.getCopyText());
-        env.editor.find(needle);
+    exec: function(editor) {
+        var needle = prompt("Find:", editor.getCopyText());
+        editor.find(needle);
     }
-});
-canon.addCommand({
+}, {
     name: "replace",
     bindKey: bindKey("Ctrl-R", "Command-Option-F"),
-    exec: function(env, args, request) {
-        var needle = prompt("Find:", env.editor.getCopyText());
+    exec: function(editor) {
+        var needle = prompt("Find:", editor.getCopyText());
         if (!needle)
             return;
         var replacement = prompt("Replacement:");
         if (!replacement)
             return;
-        env.editor.replace(replacement, {needle: needle});
+        editor.replace(replacement, {needle: needle});
     }
-});
-canon.addCommand({
+}, {
     name: "replaceall",
     bindKey: bindKey("Ctrl-Shift-R", "Command-Shift-Option-F"),
-    exec: function(env, args, request) {
+    exec: function(editor) {
         var needle = prompt("Find:");
         if (!needle)
             return;
         var replacement = prompt("Replacement:");
         if (!replacement)
             return;
-        env.editor.replaceAll(replacement, {needle: needle});
+        editor.replaceAll(replacement, {needle: needle});
     }
-});
-canon.addCommand({
+}, {
     name: "undo",
     bindKey: bindKey("Ctrl-Z", "Command-Z"),
-    exec: function(env, args, request) { env.editor.undo(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.undo(); }
+}, {
     name: "redo",
     bindKey: bindKey("Ctrl-Shift-Z|Ctrl-Y", "Command-Shift-Z|Command-Y"),
-    exec: function(env, args, request) { env.editor.redo(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.redo(); }
+}, {
     name: "overwrite",
     bindKey: bindKey("Insert", "Insert"),
-    exec: function(env, args, request) { env.editor.toggleOverwrite(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.toggleOverwrite(); }
+}, {
     name: "copylinesup",
     bindKey: bindKey("Ctrl-Alt-Up", "Command-Option-Up"),
-    exec: function(env, args, request) { env.editor.copyLinesUp(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.copyLinesUp(); }
+}, {
     name: "movelinesup",
     bindKey: bindKey("Alt-Up", "Option-Up"),
-    exec: function(env, args, request) { env.editor.moveLinesUp(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.moveLinesUp(); }
+}, {
     name: "selecttostart",
     bindKey: bindKey("Ctrl-Shift-Home|Alt-Shift-Up", "Command-Shift-Up"),
-    exec: function(env, args, request) { env.editor.getSelection().selectFileStart(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.getSelection().selectFileStart(); }
+}, {
     name: "gotostart",
     bindKey: bindKey("Ctrl-Home|Ctrl-Up", "Command-Home|Command-Up"),
-    exec: function(env, args, request) { env.editor.navigateFileStart(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.navigateFileStart(); }
+}, {
     name: "selectup",
     bindKey: bindKey("Shift-Up", "Shift-Up"),
-    exec: function(env, args, request) { env.editor.getSelection().selectUp(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.getSelection().selectUp(); }
+}, {
     name: "golineup",
     bindKey: bindKey("Up", "Up|Ctrl-P"),
-    exec: function(env, args, request) { env.editor.navigateUp(args.times); }
-});
-canon.addCommand({
+    exec: function(editor, args) { editor.navigateUp(args.times); }
+}, {
     name: "copylinesdown",
     bindKey: bindKey("Ctrl-Alt-Down", "Command-Option-Down"),
-    exec: function(env, args, request) { env.editor.copyLinesDown(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.copyLinesDown(); }
+}, {
     name: "movelinesdown",
     bindKey: bindKey("Alt-Down", "Option-Down"),
-    exec: function(env, args, request) { env.editor.moveLinesDown(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.moveLinesDown(); }
+}, {
     name: "selecttoend",
     bindKey: bindKey("Ctrl-Shift-End|Alt-Shift-Down", "Command-Shift-Down"),
-    exec: function(env, args, request) { env.editor.getSelection().selectFileEnd(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.getSelection().selectFileEnd(); }
+}, {
     name: "gotoend",
     bindKey: bindKey("Ctrl-End|Ctrl-Down", "Command-End|Command-Down"),
-    exec: function(env, args, request) { env.editor.navigateFileEnd(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.navigateFileEnd(); }
+}, {
     name: "selectdown",
     bindKey: bindKey("Shift-Down", "Shift-Down"),
-    exec: function(env, args, request) { env.editor.getSelection().selectDown(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.getSelection().selectDown(); }
+}, {
     name: "golinedown",
     bindKey: bindKey("Down", "Down|Ctrl-N"),
-    exec: function(env, args, request) { env.editor.navigateDown(args.times); }
-});
-canon.addCommand({
+    exec: function(editor, args) { editor.navigateDown(args.times); }
+}, {
     name: "selectwordleft",
     bindKey: bindKey("Ctrl-Shift-Left", "Option-Shift-Left"),
-    exec: function(env, args, request) { env.editor.getSelection().selectWordLeft(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.getSelection().selectWordLeft(); }
+}, {
     name: "gotowordleft",
     bindKey: bindKey("Ctrl-Left", "Option-Left"),
-    exec: function(env, args, request) { env.editor.navigateWordLeft(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.navigateWordLeft(); }
+}, {
     name: "selecttolinestart",
     bindKey: bindKey("Alt-Shift-Left", "Command-Shift-Left"),
-    exec: function(env, args, request) { env.editor.getSelection().selectLineStart(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.getSelection().selectLineStart(); }
+}, {
     name: "gotolinestart",
     bindKey: bindKey("Alt-Left|Home", "Command-Left|Home|Ctrl-A"),
-    exec: function(env, args, request) { env.editor.navigateLineStart(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.navigateLineStart(); }
+}, {
     name: "selectleft",
     bindKey: bindKey("Shift-Left", "Shift-Left"),
-    exec: function(env, args, request) { env.editor.getSelection().selectLeft(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.getSelection().selectLeft(); }
+}, {
     name: "gotoleft",
     bindKey: bindKey("Left", "Left|Ctrl-B"),
-    exec: function(env, args, request) { env.editor.navigateLeft(args.times); }
-});
-canon.addCommand({
+    exec: function(editor, args) { editor.navigateLeft(args.times); }
+}, {
     name: "selectwordright",
     bindKey: bindKey("Ctrl-Shift-Right", "Option-Shift-Right"),
-    exec: function(env, args, request) { env.editor.getSelection().selectWordRight(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.getSelection().selectWordRight(); }
+}, {
     name: "gotowordright",
     bindKey: bindKey("Ctrl-Right", "Option-Right"),
-    exec: function(env, args, request) { env.editor.navigateWordRight(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.navigateWordRight(); }
+}, {
     name: "selecttolineend",
     bindKey: bindKey("Alt-Shift-Right", "Command-Shift-Right"),
-    exec: function(env, args, request) { env.editor.getSelection().selectLineEnd(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.getSelection().selectLineEnd(); }
+}, {
     name: "gotolineend",
     bindKey: bindKey("Alt-Right|End", "Command-Right|End|Ctrl-E"),
-    exec: function(env, args, request) { env.editor.navigateLineEnd(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.navigateLineEnd(); }
+}, {
     name: "selectright",
     bindKey: bindKey("Shift-Right", "Shift-Right"),
-    exec: function(env, args, request) { env.editor.getSelection().selectRight(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.getSelection().selectRight(); }
+}, {
     name: "gotoright",
     bindKey: bindKey("Right", "Right|Ctrl-F"),
-    exec: function(env, args, request) { env.editor.navigateRight(args.times); }
-});
-canon.addCommand({
+    exec: function(editor, args) { editor.navigateRight(args.times); }
+}, {
     name: "selectpagedown",
     bindKey: bindKey("Shift-PageDown", "Shift-PageDown"),
-    exec: function(env, args, request) { env.editor.selectPageDown(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.selectPageDown(); }
+}, {
     name: "pagedown",
     bindKey: bindKey(null, "PageDown"),
-    exec: function(env, args, request) { env.editor.scrollPageDown(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.scrollPageDown(); }
+}, {
     name: "gotopagedown",
     bindKey: bindKey("PageDown", "Option-PageDown|Ctrl-V"),
-    exec: function(env, args, request) { env.editor.gotoPageDown(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.gotoPageDown(); }
+}, {
     name: "selectpageup",
     bindKey: bindKey("Shift-PageUp", "Shift-PageUp"),
-    exec: function(env, args, request) { env.editor.selectPageUp(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.selectPageUp(); }
+}, {
     name: "pageup",
     bindKey: bindKey(null, "PageUp"),
-    exec: function(env, args, request) { env.editor.scrollPageUp(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.scrollPageUp(); }
+}, {
     name: "gotopageup",
     bindKey: bindKey("PageUp", "Option-PageUp"),
-    exec: function(env, args, request) { env.editor.gotoPageUp(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.gotoPageUp(); }
+}, {
     name: "selectlinestart",
     bindKey: bindKey("Shift-Home", "Shift-Home"),
-    exec: function(env, args, request) { env.editor.getSelection().selectLineStart(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.getSelection().selectLineStart(); }
+}, {
     name: "selectlineend",
     bindKey: bindKey("Shift-End", "Shift-End"),
-    exec: function(env, args, request) { env.editor.getSelection().selectLineEnd(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.getSelection().selectLineEnd(); }
+}, {
     name: "del",
     bindKey: bindKey("Delete", "Delete|Ctrl-D"),
-    exec: function(env, args, request) { env.editor.remove("right"); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.remove("right"); }
+}, {
     name: "backspace",
     bindKey: bindKey(
         "Ctrl-Backspace|Command-Backspace|Option-Backspace|Shift-Backspace|Backspace",
         "Ctrl-Backspace|Command-Backspace|Shift-Backspace|Backspace|Ctrl-H"
     ),
-    exec: function(env, args, request) { env.editor.remove("left"); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.remove("left"); }
+}, {
     name: "removetolinestart",
     bindKey: bindKey("Alt-Backspace", "Option-Backspace"),
-    exec: function(env, args, request) { env.editor.removeToLineStart(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.removeToLineStart(); }
+}, {
     name: "removetolineend",
     bindKey: bindKey("Alt-Delete", "Ctrl-K"),
-    exec: function(env, args, request) { env.editor.removeToLineEnd(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.removeToLineEnd(); }
+}, {
     name: "removewordleft",
     bindKey: bindKey("Ctrl-Backspace", "Alt-Backspace|Ctrl-Alt-Backspace"),
-    exec: function(env, args, request) { env.editor.removeWordLeft(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.removeWordLeft(); }
+}, {
     name: "removewordright",
     bindKey: bindKey("Ctrl-Delete", "Alt-Delete"),
-    exec: function(env, args, request) { env.editor.removeWordRight(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.removeWordRight(); }
+}, {
     name: "outdent",
     bindKey: bindKey("Shift-Tab", "Shift-Tab"),
-    exec: function(env, args, request) { env.editor.blockOutdent(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.blockOutdent(); }
+}, {
     name: "indent",
     bindKey: bindKey("Tab", "Tab"),
-    exec: function(env, args, request) { env.editor.indent(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.indent(); }
+}, {
     name: "inserttext",
-    exec: function(env, args, request) {
-        env.editor.insert(lang.stringRepeat(args.text  || "", args.times || 1));
+    exec: function(editor, args) {
+        editor.insert(lang.stringRepeat(args.text  || "", args.times || 1));
     }
-});
-canon.addCommand({
+}, {
     name: "centerselection",
     bindKey: bindKey(null, "Ctrl-L"),
-    exec: function(env, args, request) { env.editor.centerSelection(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.centerSelection(); }
+}, {
     name: "splitline",
     bindKey: bindKey(null, "Ctrl-O"),
-    exec: function(env, args, request) { env.editor.splitLine(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.splitLine(); }
+}, {
     name: "transposeletters",
     bindKey: bindKey("Ctrl-T", "Ctrl-T"),
-    exec: function(env, args, request) { env.editor.transposeLetters(); }
-});
-
-canon.addCommand({
+    exec: function(editor) { editor.transposeLetters(); }
+}, {
     name: "fold",
     bindKey: bindKey("Alt-L", "Alt-L"),
-    exec: function(env) {
-        env.editor.session.toggleFold(false);
+    exec: function(editor) {
+        editor.session.toggleFold(false);
     }
-});
-canon.addCommand({
+}, {
     name: "unfold",
     bindKey: bindKey("Alt-Shift-L", "Alt-Shift-L"),
-    exec: function(env) {
-        env.editor.session.toggleFold(true);
+    exec: function(editor) {
+        editor.session.toggleFold(true);
     }
-});
-canon.addCommand({
+}, {
     name: "foldall",
     bindKey: bindKey("Alt-Shift-0", "Alt-Shift-0"),
-    exec: function(env) {
-        env.editor.session.foldAll();
+    exec: function(editor) {
+        editor.session.foldAll();
     }
-});
-canon.addCommand({
+}, {
     name: "unfoldall",
     bindKey: bindKey("Alt-Shift-0", "Alt-Shift-0"),
-    exec: function(env) {
-        env.editor.session.unFoldAll();
+    exec: function(editor) {
+        editor.session.unFoldAll();
     }
-});
+}];
 
 });
 /* vim:ts=4:sts=4:sw=4:
@@ -9690,16 +6147,16 @@ canon.addCommand({
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/edit_session', ['require', 'exports', 'module' , 'pilot/oop', 'pilot/lang', 'pilot/event_emitter', 'ace/selection', 'ace/mode/text', 'ace/range', 'ace/document', 'ace/background_tokenizer', 'ace/edit_session/folding'], function(require, exports, module) {
+define('ace/edit_session', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/lib/lang', 'ace/lib/event_emitter', 'ace/selection', 'ace/mode/text', 'ace/range', 'ace/document', 'ace/background_tokenizer', 'ace/edit_session/folding', 'ace/edit_session/bracket_match'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var lang = require("pilot/lang");
-var EventEmitter = require("pilot/event_emitter").EventEmitter;
-var Selection = require("ace/selection").Selection;
-var TextMode = require("ace/mode/text").Mode;
-var Range = require("ace/range").Range;
-var Document = require("ace/document").Document;
-var BackgroundTokenizer = require("ace/background_tokenizer").BackgroundTokenizer;
+var oop = require("./lib/oop");
+var lang = require("./lib/lang");
+var EventEmitter = require("./lib/event_emitter").EventEmitter;
+var Selection = require("./selection").Selection;
+var TextMode = require("./mode/text").Mode;
+var Range = require("./range").Range;
+var Document = require("./document").Document;
+var BackgroundTokenizer = require("./background_tokenizer").BackgroundTokenizer;
 
 var EditSession = function(text, mode) {
     this.$modified = true;
@@ -10262,98 +6719,6 @@ var EditSession = function(text, mode) {
 
     this.getTextRange = function(range) {
         return this.doc.getTextRange(range);
-    };
-
-    this.findMatchingBracket = function(position) {
-        if (position.column == 0) return null;
-
-        var charBeforeCursor = this.getLine(position.row).charAt(position.column-1);
-        if (charBeforeCursor == "") return null;
-
-        var match = charBeforeCursor.match(/([\(\[\{])|([\)\]\}])/);
-        if (!match) {
-            return null;
-        }
-
-        if (match[1]) {
-            return this.$findClosingBracket(match[1], position);
-        } else {
-            return this.$findOpeningBracket(match[2], position);
-        }
-    };
-
-    this.$brackets = {
-        ")": "(",
-        "(": ")",
-        "]": "[",
-        "[": "]",
-        "{": "}",
-        "}": "{"
-    };
-
-    this.$findOpeningBracket = function(bracket, position) {
-        var openBracket = this.$brackets[bracket];
-
-        var column = position.column - 2;
-        var row = position.row;
-        var depth = 1;
-
-        var line = this.getLine(row);
-
-        while (true) {
-            while(column >= 0) {
-                var ch = line.charAt(column);
-                if (ch == openBracket) {
-                    depth -= 1;
-                    if (depth == 0) {
-                        return {row: row, column: column};
-                    }
-                }
-                else if (ch == bracket) {
-                    depth +=1;
-                }
-                column -= 1;
-            }
-            row -=1;
-            if (row < 0) break;
-
-            var line = this.getLine(row);
-            var column = line.length-1;
-        }
-        return null;
-    };
-
-    this.$findClosingBracket = function(bracket, position) {
-        var closingBracket = this.$brackets[bracket];
-
-        var column = position.column;
-        var row = position.row;
-        var depth = 1;
-
-        var line = this.getLine(row);
-        var lineCount = this.getLength();
-
-        while (true) {
-            while(column < line.length) {
-                var ch = line.charAt(column);
-                if (ch == closingBracket) {
-                    depth -= 1;
-                    if (depth == 0) {
-                        return {row: row, column: column};
-                    }
-                }
-                else if (ch == bracket) {
-                    depth +=1;
-                }
-                column += 1;
-            }
-            row +=1;
-            if (row >= lineCount) break;
-
-            var line = this.getLine(row);
-            var column = 0;
-        }
-        return null;
     };
 
     this.insert = function(position, text) {
@@ -10953,10 +7318,11 @@ var EditSession = function(text, mode) {
             while (split > minSplit && tokens[split] < PLACEHOLDER_START) {
                 split --;
             }
+            while (split > minSplit && tokens[split] == PUNCTUATION) {
+                split --;
+            }
             // If we found one, then add the split.
             if (split > minSplit) {
-                while(split > minSplit && tokens[split] == PUNCTUATION)
-                    split --;
                 addSplit(++split);
                 continue;
             }
@@ -11386,10 +7752,12 @@ var EditSession = function(text, mode) {
 
 }).call(EditSession.prototype);
 
-require("ace/edit_session/folding").Folding.call(EditSession.prototype);
+require("./edit_session/folding").Folding.call(EditSession.prototype);
+require("./edit_session/bracket_match").BracketMatch.call(EditSession.prototype);
 
 exports.EditSession = EditSession;
-});/* ***** BEGIN LICENSE BLOCK *****
+});
+/* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
  * The contents of this file are subject to the Mozilla Public License Version
@@ -11427,12 +7795,12 @@ exports.EditSession = EditSession;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/selection', ['require', 'exports', 'module' , 'pilot/oop', 'pilot/lang', 'pilot/event_emitter', 'ace/range'], function(require, exports, module) {
+define('ace/selection', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/lib/lang', 'ace/lib/event_emitter', 'ace/range'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var lang = require("pilot/lang");
-var EventEmitter = require("pilot/event_emitter").EventEmitter;
-var Range = require("ace/range").Range;
+var oop = require("./lib/oop");
+var lang = require("./lib/lang");
+var EventEmitter = require("./lib/event_emitter").EventEmitter;
+var Range = require("./range").Range;
 
 /**
  * Keeps cursor position and the text selection of an edit session.
@@ -11514,7 +7882,7 @@ var Selection = function(session) {
         };
 
         var anchor = this.getSelectionAnchor();
-        var lead = this.getSelectionLead();
+        var lead = this.getSelectionLead(); 
 
         var isBackwards = this.isBackwards();
 
@@ -11831,9 +8199,12 @@ var Selection = function(session) {
             this.selectionLead.row,
             this.selectionLead.column
         );
-        var screenCol = (chars == 0 && this.$desiredColumn) || screenPos.column;
+        
+        var screenCol = (chars === 0 && this.$desiredColumn) || screenPos.column;
         var docPos = this.session.screenToDocumentPosition(screenPos.row + rows, screenCol);
-        this.moveCursorTo(docPos.row, docPos.column + chars, chars == 0);
+        
+        // move the cursor and update the desired column
+        this.moveCursorTo(docPos.row, docPos.column + chars, chars === 0);
     };
 
     this.moveCursorToPosition = function(position) {
@@ -11909,10 +8280,10 @@ exports.Selection = Selection;
 
 define('ace/mode/text', ['require', 'exports', 'module' , 'ace/tokenizer', 'ace/mode/text_highlight_rules', 'ace/mode/behaviour', 'ace/unicode'], function(require, exports, module) {
 
-var Tokenizer = require("ace/tokenizer").Tokenizer;
-var TextHighlightRules = require("ace/mode/text_highlight_rules").TextHighlightRules;
-var Behaviour = require("ace/mode/behaviour").Behaviour;
-var unicode = require("ace/unicode");
+var Tokenizer = require("../tokenizer").Tokenizer;
+var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
+var Behaviour = require("./behaviour").Behaviour;
+var unicode = require("../unicode");
 
 var Mode = function() {
     this.$tokenizer = new Tokenizer(new TextHighlightRules().getRules());
@@ -12289,9 +8660,9 @@ exports.Tokenizer = Tokenizer;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/mode/text_highlight_rules', ['require', 'exports', 'module' , 'pilot/lang'], function(require, exports, module) {
+define('ace/mode/text_highlight_rules', ['require', 'exports', 'module' , 'ace/lib/lang'], function(require, exports, module) {
 
-var lang = require("pilot/lang");
+var lang = require("../lib/lang");
 
 var TextHighlightRules = function() {
 
@@ -12600,12 +8971,12 @@ function addUnicodePackage (pack) {
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/document', ['require', 'exports', 'module' , 'pilot/oop', 'pilot/event_emitter', 'ace/range', 'ace/anchor'], function(require, exports, module) {
+define('ace/document', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/lib/event_emitter', 'ace/range', 'ace/anchor'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var EventEmitter = require("pilot/event_emitter").EventEmitter;
-var Range = require("ace/range").Range;
-var Anchor = require("ace/anchor").Anchor;
+var oop = require("./lib/oop");
+var EventEmitter = require("./lib/event_emitter").EventEmitter;
+var Range = require("./range").Range;
+var Anchor = require("./anchor").Anchor;
 
 var Document = function(text) {
     this.$lines = [];
@@ -13005,10 +9376,10 @@ exports.Document = Document;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/anchor', ['require', 'exports', 'module' , 'pilot/oop', 'pilot/event_emitter'], function(require, exports, module) {
+define('ace/anchor', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/lib/event_emitter'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var EventEmitter = require("pilot/event_emitter").EventEmitter;
+var oop = require("./lib/oop");
+var EventEmitter = require("./lib/event_emitter").EventEmitter;
 
 /**
  * An Anchor is a floating pointer in the document. Whenever text is inserted or
@@ -13197,10 +9568,10 @@ var Anchor = exports.Anchor = function(doc, row, column) {
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/background_tokenizer', ['require', 'exports', 'module' , 'pilot/oop', 'pilot/event_emitter'], function(require, exports, module) {
+define('ace/background_tokenizer', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/lib/event_emitter'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var EventEmitter = require("pilot/event_emitter").EventEmitter;
+var oop = require("./lib/oop");
+var EventEmitter = require("./lib/event_emitter").EventEmitter;
 
 var BackgroundTokenizer = function(tokenizer, editor) {
     this.running = false;    
@@ -13375,9 +9746,9 @@ exports.BackgroundTokenizer = BackgroundTokenizer;
 
 define('ace/edit_session/folding', ['require', 'exports', 'module' , 'ace/range', 'ace/edit_session/fold_line', 'ace/edit_session/fold'], function(require, exports, module) {
 
-var Range = require("ace/range").Range;
-var FoldLine = require("ace/edit_session/fold_line").FoldLine;
-var Fold = require("ace/edit_session/fold").Fold;
+var Range = require("../range").Range;
+var FoldLine = require("./fold_line").FoldLine;
+var Fold = require("./fold").Fold;
 
 function Folding() {
     /**
@@ -13947,7 +10318,7 @@ exports.Folding = Folding;
 
 define('ace/edit_session/fold_line', ['require', 'exports', 'module' , 'ace/range'], function(require, exports, module) {
 
-var Range = require("ace/range").Range;
+var Range = require("../range").Range;
 
 /**
  * If the an array is passed in, the folds are expected to be sorted already.
@@ -14280,6 +10651,298 @@ var Fold = exports.Fold = function(range, placeholder) {
  *
  * Contributor(s):
  *      Fabian Jakobs <fabian AT ajax DOT org>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+define('ace/edit_session/bracket_match', ['require', 'exports', 'module' , 'ace/token_iterator'], function(require, exports, module) {
+
+var TokenIterator = require("../token_iterator").TokenIterator;
+
+function BracketMatch() {
+
+    this.findMatchingBracket = function(position) {
+        if (position.column == 0) return null;
+
+        var charBeforeCursor = this.getLine(position.row).charAt(position.column-1);
+        if (charBeforeCursor == "") return null;
+
+        var match = charBeforeCursor.match(/([\(\[\{])|([\)\]\}])/);
+        if (!match) {
+            return null;
+        }
+
+        if (match[1]) {
+            return this.$findClosingBracket(match[1], position);
+        } else {
+            return this.$findOpeningBracket(match[2], position);
+        }
+    };
+
+    this.$brackets = {
+        ")": "(",
+        "(": ")",
+        "]": "[",
+        "[": "]",
+        "{": "}",
+        "}": "{"
+    };
+
+    this.$findOpeningBracket = function(bracket, position) {
+        var openBracket = this.$brackets[bracket];
+        var depth = 1;
+
+        var iterator = new TokenIterator(this, position.row, position.column);
+        var token = iterator.getCurrentToken();
+        if (!token) return null;
+        
+        // token.type contains a period-delimited list of token identifiers
+        // (e.g.: "constant.numeric" or "paren.lparen").  Create a pattern that
+        // matches any token containing the same identifiers or a subset.  In
+        // addition, if token.type includes "rparen", then also match "lparen".
+        // So if type.token is "paren.rparen", then typeRe will match "lparen.paren".
+        var typeRe = new RegExp("(\\.?" +
+            token.type.replace(".", "|").replace("rparen", "lparen|rparen") + ")+");
+        
+        // Start searching in token, just before the character at position.column
+        var valueIndex = position.column - iterator.getCurrentTokenColumn() - 2;
+        var value = token.value;
+        
+        while (true) {
+        
+            while (valueIndex >= 0) {
+                var char = value.charAt(valueIndex);
+                if (char == openBracket) {
+                    depth -= 1;
+                    if (depth == 0) {
+                        return {row: iterator.getCurrentTokenRow(),
+                            column: valueIndex + iterator.getCurrentTokenColumn()};
+                    }
+                }
+                else if (char == bracket) {
+                    depth += 1;
+                }
+                valueIndex -= 1;
+            }
+
+            // Scan backward through the document, looking for the next token
+            // whose type matches typeRe
+            do {
+                token = iterator.stepBackward();
+            } while (token && !typeRe.test(token.type));
+
+            if (token == null)
+                break;
+                
+            value = token.value;
+            valueIndex = value.length - 1;
+        }
+        
+        return null;
+    };
+
+    this.$findClosingBracket = function(bracket, position) {
+        var closingBracket = this.$brackets[bracket];
+        var depth = 1;
+
+        var iterator = new TokenIterator(this, position.row, position.column);
+        var token = iterator.getCurrentToken();
+        if (!token) return null;
+
+        // token.type contains a period-delimited list of token identifiers
+        // (e.g.: "constant.numeric" or "paren.lparen").  Create a pattern that
+        // matches any token containing the same identifiers or a subset.  In
+        // addition, if token.type includes "lparen", then also match "rparen".
+        // So if type.token is "lparen.paren", then typeRe will match "paren.rparen".
+        var typeRe = new RegExp("(\\.?" +
+            token.type.replace(".", "|").replace("lparen", "lparen|rparen") + ")+");
+
+        // Start searching in token, after the character at position.column
+        var valueIndex = position.column - iterator.getCurrentTokenColumn();
+
+        while (true) {
+
+            var value = token.value;
+            var valueLength = value.length;
+            while (valueIndex < valueLength) {
+                var char = value.charAt(valueIndex);
+                if (char == closingBracket) {
+                    depth -= 1;
+                    if (depth == 0) {
+                        return {row: iterator.getCurrentTokenRow(),
+                            column: valueIndex + iterator.getCurrentTokenColumn()};
+                    }
+                }
+                else if (char == bracket) {
+                    depth += 1;
+                }
+                valueIndex += 1;
+            }
+
+            // Scan forward through the document, looking for the next token
+            // whose type matches typeRe
+            do {
+                token = iterator.stepForward();
+            } while (token && !typeRe.test(token.type));
+
+            if (token == null)
+                break;
+
+            valueIndex = 0;
+        }
+        
+        return null;
+    };
+}
+exports.BracketMatch = BracketMatch;
+
+});
+/* vim:ts=4:sts=4:sw=4:
+ * ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Ajax.org Code Editor (ACE).
+ *
+ * The Initial Developer of the Original Code is
+ * Ajax.org B.V.
+ * Portions created by the Initial Developer are Copyright (C) 2010
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *      Fabian Jakobs <fabian AT ajax DOT org>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+define('ace/token_iterator', ['require', 'exports', 'module' ], function(require, exports, module) {
+
+var TokenIterator = function(session, initialRow, initialColumn) {
+    this.$session = session;
+    this.$row = initialRow;
+    this.$rowTokens = session.getTokens(initialRow, initialRow)[0].tokens;
+
+    var token = session.getTokenAt(initialRow, initialColumn);
+    this.$tokenIndex = token ? token.index : -1;
+};
+
+(function() {
+    
+    this.stepBackward = function() {
+        this.$tokenIndex -= 1;
+        
+        while (this.$tokenIndex < 0) {
+            this.$row -= 1;
+            if (this.$row < 0)
+                return null;
+                
+            this.$rowTokens = this.$session.getTokens(this.$row, this.$row)[0].tokens;
+            this.$tokenIndex = this.$rowTokens.length - 1;
+        }
+            
+        return this.$rowTokens[this.$tokenIndex];
+    }
+    
+    this.stepForward = function() {
+        var rowCount = this.$session.getLength();
+        this.$tokenIndex += 1;
+        
+        while (this.$tokenIndex >= this.$rowTokens.length) {
+            this.$row += 1;
+            if (this.$row >= rowCount)
+                return null;
+
+            this.$rowTokens = this.$session.getTokens(this.$row, this.$row)[0].tokens;
+            this.$tokenIndex = 0;
+        }
+            
+        return this.$rowTokens[this.$tokenIndex];
+    }
+    
+    this.getCurrentToken = function () {
+        return this.$rowTokens[this.$tokenIndex];
+    }
+    
+    this.getCurrentTokenRow = function () {
+        return this.$row;
+    }
+    
+    this.getCurrentTokenColumn = function() {
+        var rowTokens = this.$rowTokens;
+        var tokenIndex = this.$tokenIndex;
+        
+        // If a column was cached by EditSession.getTokenAt, then use it
+        var column = rowTokens[tokenIndex].start;
+        if (column !== undefined)
+            return column;
+            
+        column = 0;
+        while (tokenIndex > 0) {
+            tokenIndex -= 1;
+            column += rowTokens[tokenIndex].value.length;
+        }
+        
+        return column;  
+    }
+            
+}).call(TokenIterator.prototype);
+
+exports.TokenIterator = TokenIterator;
+});
+/* vim:ts=4:sts=4:sw=4:
+ * ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Ajax.org Code Editor (ACE).
+ *
+ * The Initial Developer of the Original Code is
+ * Ajax.org B.V.
+ * Portions created by the Initial Developer are Copyright (C) 2010
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *      Fabian Jakobs <fabian AT ajax DOT org>
  *      Mihai Sucan <mihai DOT sucan AT gmail DOT com>
  *
  * Alternatively, the contents of this file may be used under the terms of
@@ -14296,11 +10959,11 @@ var Fold = exports.Fold = function(range, placeholder) {
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/search', ['require', 'exports', 'module' , 'pilot/lang', 'pilot/oop', 'ace/range'], function(require, exports, module) {
+define('ace/search', ['require', 'exports', 'module' , 'ace/lib/lang', 'ace/lib/oop', 'ace/range'], function(require, exports, module) {
 
-var lang = require("pilot/lang");
-var oop = require("pilot/oop");
-var Range = require("ace/range").Range;
+var lang = require("./lib/lang");
+var oop = require("./lib/oop");
+var Range = require("./range").Range;
 
 var Search = function() {
     this.$options = {
@@ -14599,6 +11262,117 @@ Search.SELECTION = 2;
 
 exports.Search = Search;
 });
+define('ace/commands/command_manager', ['require', 'exports', 'module' , 'ace/lib/keys'], function(require, exports, module) {
+
+var keyUtil = require("../lib/keys");
+
+var CommandManager = function(platform, commands) {
+    if (typeof platform !== "string")
+        throw new TypeError("'platform' argument must be either 'mac' or 'win'");
+
+    this.platform = platform;
+    this.commands = {};
+    this.commmandKeyBinding = {};
+    
+    if (commands)
+        commands.forEach(this.addCommand, this);
+};
+
+(function() {
+
+    this.addCommand = function(command) {
+        if (this.commands[command.name])
+            this.removeCommand(command);
+
+        this.commands[command.name] = command;
+
+        if (command.bindKey) {
+            this._buildKeyHash(command);   
+        }
+    };
+    
+    this.removeCommand = function(command) {
+        var name = (typeof command === 'string' ? command : command.name);
+        command = this.commands[name];
+        delete this.commands[name];
+
+        // exaustive search is brute force but since removeCommand is
+        // not a performance critical operation this should be OK
+        var ckb = this.commmandKeyBinding;
+        for (var hashId in ckb) {
+            for (var key in ckb[hashId]) {
+                if (ckb[hashId][key] == command)
+                    delete ckb[hashId][key];
+            }
+        }
+    };
+
+    this._buildKeyHash = function(command) {
+        var binding = command.bindKey;
+        var key = binding[this.platform];
+        var ckb = this.commmandKeyBinding;
+
+        if(!binding[this.platform]) {
+            return;
+        }
+    
+        key.split("|").forEach(function(keyPart) {
+            var binding = parseKeys(keyPart, command);
+            var hashId = binding.hashId;
+            (ckb[hashId] || (ckb[hashId] = {}))[binding.key] = command;
+        });
+    }
+
+    function parseKeys(keys, val, ret) {
+        var key;
+        var hashId = 0;
+        var parts = splitSafe(keys);
+
+        for (var i=0, l = parts.length; i < l; i++) {
+            if (keyUtil.KEY_MODS[parts[i]])
+                hashId = hashId | keyUtil.KEY_MODS[parts[i]];
+            else
+                key = parts[i] || "-"; //when empty, the splitSafe removed a '-'
+        }
+    
+        return {
+            key: key,
+            hashId: hashId
+        }   
+    }
+
+    function splitSafe(s, separator) {
+        return (s.toLowerCase()
+            .trim()
+            .split(new RegExp("[\\s ]*\\-[\\s ]*", "g"), 999));
+    }
+
+    this.findKeyCommand = function findKeyCommand(hashId, textOrKey) {
+        // Convert keyCode to the string representation.
+        if (typeof textOrKey == "number") {
+            textOrKey = keyUtil.keyCodeToString(textOrKey);
+        }
+
+        var ckbr = this.commmandKeyBinding;
+        return ckbr[hashId] && ckbr[hashId][textOrKey.toLowerCase()];
+    }
+
+    this.exec = function(command, editor, args) {
+        if (typeof command === 'string')
+            command = this.commands[command];
+        
+        if (!command)
+            return false;
+            
+        command.exec(editor, args || {});
+        return true;
+    };
+
+}).call(CommandManager.prototype);
+
+exports.CommandManager = CommandManager;
+
+});
 /* vim:ts=4:sts=4:sw=4:
  * ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
@@ -14639,27 +11413,31 @@ exports.Search = Search;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/virtual_renderer', ['require', 'exports', 'module' , 'pilot/oop', 'pilot/dom', 'pilot/event', 'pilot/useragent', 'ace/layer/gutter', 'ace/layer/marker', 'ace/layer/text', 'ace/layer/cursor', 'ace/scrollbar', 'ace/renderloop', 'pilot/event_emitter', 'text!ace/css/editor.css'], function(require, exports, module) {
+define('ace/virtual_renderer', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/lib/dom', 'ace/lib/event', 'ace/lib/useragent', 'ace/layer/gutter', 'ace/layer/marker', 'ace/layer/text', 'ace/layer/cursor', 'ace/scrollbar', 'ace/renderloop', 'ace/lib/event_emitter', 'text!ace/css/editor.css'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var dom = require("pilot/dom");
-var event = require("pilot/event");
-var useragent = require("pilot/useragent");
-var GutterLayer = require("ace/layer/gutter").Gutter;
-var MarkerLayer = require("ace/layer/marker").Marker;
-var TextLayer = require("ace/layer/text").Text;
-var CursorLayer = require("ace/layer/cursor").Cursor;
-var ScrollBar = require("ace/scrollbar").ScrollBar;
-var RenderLoop = require("ace/renderloop").RenderLoop;
-var EventEmitter = require("pilot/event_emitter").EventEmitter;
-var editorCss = require("text!ace/css/editor.css");
+var oop = require("./lib/oop");
+var dom = require("./lib/dom");
+var event = require("./lib/event");
+var useragent = require("./lib/useragent");
+var GutterLayer = require("./layer/gutter").Gutter;
+var MarkerLayer = require("./layer/marker").Marker;
+var TextLayer = require("./layer/text").Text;
+var CursorLayer = require("./layer/cursor").Cursor;
+var ScrollBar = require("./scrollbar").ScrollBar;
+var RenderLoop = require("./renderloop").RenderLoop;
+var EventEmitter = require("./lib/event_emitter").EventEmitter;
+var editorCss = require("text!./css/editor.css");
 
 var VirtualRenderer = function(container, theme) {
     this.container = container;
 
     // Imports CSS once per DOM document ('ace_editor' serves as an identifier).
     dom.importCssString(editorCss, "ace_editor", container.ownerDocument);
-    dom.addCssClass(this.container, "ace_editor");
+    
+    // Chrome has some strange rendering issues if this is not done async
+    setTimeout(function() {
+        dom.addCssClass(container, "ace_editor");
+    }, 0)
 
     this.setTheme(theme);
 
@@ -15490,9 +12268,9 @@ exports.VirtualRenderer = VirtualRenderer;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/layer/gutter', ['require', 'exports', 'module' , 'pilot/dom'], function(require, exports, module) {
+define('ace/layer/gutter', ['require', 'exports', 'module' , 'ace/lib/dom'], function(require, exports, module) {
 
-var dom = require("pilot/dom");
+var dom = require("../lib/dom");
 
 var Gutter = function(parentEl) {
     this.element = dom.createElement("div");
@@ -15633,10 +12411,10 @@ exports.Gutter = Gutter;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/layer/marker', ['require', 'exports', 'module' , 'ace/range', 'pilot/dom'], function(require, exports, module) {
+define('ace/layer/marker', ['require', 'exports', 'module' , 'ace/range', 'ace/lib/dom'], function(require, exports, module) {
 
-var Range = require("ace/range").Range;
-var dom = require("pilot/dom");
+var Range = require("../range").Range;
+var dom = require("../lib/dom");
 
 var Marker = function(parentEl) {
     this.element = dom.createElement("div");
@@ -15853,13 +12631,13 @@ exports.Marker = Marker;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/layer/text', ['require', 'exports', 'module' , 'pilot/oop', 'pilot/dom', 'pilot/lang', 'pilot/useragent', 'pilot/event_emitter'], function(require, exports, module) {
+define('ace/layer/text', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/lib/dom', 'ace/lib/lang', 'ace/lib/useragent', 'ace/lib/event_emitter'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var dom = require("pilot/dom");
-var lang = require("pilot/lang");
-var useragent = require("pilot/useragent");
-var EventEmitter = require("pilot/event_emitter").EventEmitter;
+var oop = require("../lib/oop");
+var dom = require("../lib/dom");
+var lang = require("../lib/lang");
+var useragent = require("../lib/useragent");
+var EventEmitter = require("../lib/event_emitter").EventEmitter;
 
 var Text = function(parentEl) {
     this.element = dom.createElement("div");
@@ -16417,9 +13195,9 @@ exports.Text = Text;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/layer/cursor', ['require', 'exports', 'module' , 'pilot/dom'], function(require, exports, module) {
+define('ace/layer/cursor', ['require', 'exports', 'module' , 'ace/lib/dom'], function(require, exports, module) {
 
-var dom = require("pilot/dom");
+var dom = require("../lib/dom");
 
 var Cursor = function(parentEl) {
     this.element = dom.createElement("div");
@@ -16562,12 +13340,12 @@ exports.Cursor = Cursor;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/scrollbar', ['require', 'exports', 'module' , 'pilot/oop', 'pilot/dom', 'pilot/event', 'pilot/event_emitter'], function(require, exports, module) {
+define('ace/scrollbar', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/lib/dom', 'ace/lib/event', 'ace/lib/event_emitter'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var dom = require("pilot/dom");
-var event = require("pilot/event");
-var EventEmitter = require("pilot/event_emitter").EventEmitter;
+var oop = require("./lib/oop");
+var dom = require("./lib/dom");
+var event = require("./lib/event");
+var EventEmitter = require("./lib/event_emitter").EventEmitter;
 
 var ScrollBar = function(parent) {
     this.element = dom.createElement("div");
@@ -16654,9 +13432,9 @@ exports.ScrollBar = ScrollBar;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/renderloop', ['require', 'exports', 'module' , 'pilot/event'], function(require, exports, module) {
+define('ace/renderloop', ['require', 'exports', 'module' , 'ace/lib/event'], function(require, exports, module) {
 
-var event = require("pilot/event");
+var event = require("./lib/event");
 
 var RenderLoop = function(onRender, window) {
     this.onRender = onRender;
@@ -16679,20 +13457,11 @@ var RenderLoop = function(onRender, window) {
                 var changes = _self.changes;
                 _self.changes = 0;
                 _self.onRender(changes);
-            })
+            });
         }
     };
 
-    this.setTimeoutZero = window.requestAnimationFrame ||
-         window.webkitRequestAnimationFrame ||
-         window.mozRequestAnimationFrame ||
-         window.oRequestAnimationFrame ||
-         window.msRequestAnimationFrame;
-
-    if (this.setTimeoutZero) {
-        this.setTimeoutZero = this.setTimeoutZero;
-    } else if (window.postMessage) {
-
+    if (window.postMessage) {
         this.setTimeoutZero = (function(messageName, attached, listener) {
             return function setTimeoutZero(callback) {
                 // Set up listener if not listening already.
@@ -16710,18 +13479,194 @@ var RenderLoop = function(onRender, window) {
                 this.postMessage(messageName, "*");
             };
         })("zero-timeout-message", false, null);
-
-    } else {
-
+    }
+    else {
         this.setTimeoutZero = function(callback) {
             this.setTimeout(callback, 0);
-        }
+        };
     }
 
 }).call(RenderLoop.prototype);
 
 exports.RenderLoop = RenderLoop;
 });
+define("text!ace/css/editor.css", [], "@import url(//fonts.googleapis.com/css?family=Droid+Sans+Mono);\n" +
+  "\n" +
+  "\n" +
+  ".ace_editor {\n" +
+  "    position: absolute;\n" +
+  "    overflow: hidden;\n" +
+  "    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Droid Sans Mono', 'Courier New', monospace;\n" +
+  "    font-size: 12px;\n" +
+  "}\n" +
+  "\n" +
+  ".ace_scroller {\n" +
+  "    position: absolute;\n" +
+  "    overflow-x: scroll;\n" +
+  "    overflow-y: hidden;\n" +
+  "}\n" +
+  "\n" +
+  ".ace_content {\n" +
+  "    position: absolute;\n" +
+  "    box-sizing: border-box;\n" +
+  "    -moz-box-sizing: border-box;\n" +
+  "    -webkit-box-sizing: border-box;\n" +
+  "    cursor: text;\n" +
+  "}\n" +
+  "\n" +
+  "/* setting pointer-events: auto; on node under the mouse, which changes during scroll,\n" +
+  "  will break mouse wheel scrolling in Safari */\n" +
+  ".ace_content * {\n" +
+  "     pointer-events: none;\n" +
+  "}\n" +
+  "\n" +
+  ".ace_composition {\n" +
+  "    position: absolute;\n" +
+  "    background: #555;\n" +
+  "    color: #DDD;\n" +
+  "    z-index: 4;\n" +
+  "}\n" +
+  "\n" +
+  ".ace_gutter {\n" +
+  "    position: absolute;\n" +
+  "    overflow-x: hidden;\n" +
+  "    overflow-y: hidden;\n" +
+  "    height: 100%;\n" +
+  "}\n" +
+  "\n" +
+  ".ace_gutter-cell.ace_error {\n" +
+  "    background-image: url(\"data:image/gif,GIF89a%10%00%10%00%D5%00%00%F5or%F5%87%88%F5nr%F4ns%EBmq%F5z%7F%DDJT%DEKS%DFOW%F1Yc%F2ah%CE(7%CE)8%D18E%DD%40M%F2KZ%EBU%60%F4%60m%DCir%C8%16(%C8%19*%CE%255%F1%3FR%F1%3FS%E6%AB%B5%CA%5DI%CEn%5E%F7%A2%9A%C9G%3E%E0a%5B%F7%89%85%F5yy%F6%82%80%ED%82%80%FF%BF%BF%E3%C4%C4%FF%FF%FF%FF%FF%FF%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00!%F9%04%01%00%00%25%00%2C%00%00%00%00%10%00%10%00%00%06p%C0%92pH%2C%1A%8F%C8%D2H%93%E1d4%23%E4%88%D3%09mB%1DN%B48%F5%90%40%60%92G%5B%94%20%3E%22%D2%87%24%FA%20%24%C5%06A%00%20%B1%07%02B%A38%89X.v%17%82%11%13q%10%0Fi%24%0F%8B%10%7BD%12%0Ei%09%92%09%0EpD%18%15%24%0A%9Ci%05%0C%18F%18%0B%07%04%01%04%06%A0H%18%12%0D%14%0D%12%A1I%B3%B4%B5IA%00%3B\");\n" +
+  "    background-repeat: no-repeat;\n" +
+  "    background-position: 4px center;\n" +
+  "}\n" +
+  "\n" +
+  ".ace_gutter-cell.ace_warning {\n" +
+  "    background-image: url(\"data:image/gif,GIF89a%10%00%10%00%D5%00%00%FF%DBr%FF%DE%81%FF%E2%8D%FF%E2%8F%FF%E4%96%FF%E3%97%FF%E5%9D%FF%E6%9E%FF%EE%C1%FF%C8Z%FF%CDk%FF%D0s%FF%D4%81%FF%D5%82%FF%D5%83%FF%DC%97%FF%DE%9D%FF%E7%B8%FF%CCl%7BQ%13%80U%15%82W%16%81U%16%89%5B%18%87%5B%18%8C%5E%1A%94d%1D%C5%83-%C9%87%2F%C6%84.%C6%85.%CD%8B2%C9%871%CB%8A3%CD%8B5%DC%98%3F%DF%9BB%E0%9CC%E1%A5U%CB%871%CF%8B5%D1%8D6%DB%97%40%DF%9AB%DD%99B%E3%B0p%E7%CC%AE%FF%FF%FF%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00!%F9%04%01%00%00%2F%00%2C%00%00%00%00%10%00%10%00%00%06a%C0%97pH%2C%1A%8FH%A1%ABTr%25%87%2B%04%82%F4%7C%B9X%91%08%CB%99%1C!%26%13%84*iJ9(%15G%CA%84%14%01%1A%97%0C%03%80%3A%9A%3E%81%84%3E%11%08%B1%8B%20%02%12%0F%18%1A%0F%0A%03'F%1C%04%0B%10%16%18%10%0B%05%1CF%1D-%06%07%9A%9A-%1EG%1B%A0%A1%A0U%A4%A5%A6BA%00%3B\");\n" +
+  "    background-repeat: no-repeat;\n" +
+  "    background-position: 4px center;\n" +
+  "}\n" +
+  "\n" +
+  ".ace_editor .ace_sb {\n" +
+  "    position: absolute;\n" +
+  "    overflow-x: hidden;\n" +
+  "    overflow-y: scroll;\n" +
+  "    right: 0;\n" +
+  "}\n" +
+  "\n" +
+  ".ace_editor .ace_sb div {\n" +
+  "    position: absolute;\n" +
+  "    width: 1px;\n" +
+  "    left: 0;\n" +
+  "}\n" +
+  "\n" +
+  ".ace_editor .ace_print_margin_layer {\n" +
+  "    z-index: 0;\n" +
+  "    position: absolute;\n" +
+  "    overflow: hidden;\n" +
+  "    margin: 0;\n" +
+  "    left: 0;\n" +
+  "    height: 100%;\n" +
+  "    width: 100%;\n" +
+  "}\n" +
+  "\n" +
+  ".ace_editor .ace_print_margin {\n" +
+  "    position: absolute;\n" +
+  "    height: 100%;\n" +
+  "}\n" +
+  "\n" +
+  ".ace_editor textarea {\n" +
+  "    position: fixed;\n" +
+  "    z-index: -1;\n" +
+  "    width: 10px;\n" +
+  "    height: 30px;\n" +
+  "    opacity: 0;\n" +
+  "    background: transparent;\n" +
+  "    appearance: none;\n" +
+  "    -moz-appearance: none;\n" +
+  "    border: none;\n" +
+  "    resize: none;\n" +
+  "    outline: none;\n" +
+  "    overflow: hidden;\n" +
+  "}\n" +
+  "\n" +
+  ".ace_layer {\n" +
+  "    z-index: 1;\n" +
+  "    position: absolute;\n" +
+  "    overflow: hidden;\n" +
+  "    white-space: nowrap;\n" +
+  "    height: 100%;\n" +
+  "    width: 100%;\n" +
+  "}\n" +
+  "\n" +
+  ".ace_text-layer {\n" +
+  "    color: black;\n" +
+  "}\n" +
+  "\n" +
+  ".ace_cjk {\n" +
+  "    display: inline-block;\n" +
+  "    text-align: center;\n" +
+  "}\n" +
+  "\n" +
+  ".ace_cursor-layer {\n" +
+  "    z-index: 4;\n" +
+  "}\n" +
+  "\n" +
+  ".ace_cursor {\n" +
+  "    z-index: 4;\n" +
+  "    position: absolute;\n" +
+  "}\n" +
+  "\n" +
+  ".ace_cursor.ace_hidden {\n" +
+  "    opacity: 0.2;\n" +
+  "}\n" +
+  "\n" +
+  ".ace_line {\n" +
+  "    white-space: nowrap;\n" +
+  "}\n" +
+  "\n" +
+  ".ace_marker-layer .ace_step {\n" +
+  "    position: absolute;\n" +
+  "    z-index: 3;\n" +
+  "}\n" +
+  "\n" +
+  ".ace_marker-layer .ace_selection {\n" +
+  "    position: absolute;\n" +
+  "    z-index: 4;\n" +
+  "}\n" +
+  "\n" +
+  ".ace_marker-layer .ace_bracket {\n" +
+  "    position: absolute;\n" +
+  "    z-index: 5;\n" +
+  "}\n" +
+  "\n" +
+  ".ace_marker-layer .ace_active_line {\n" +
+  "    position: absolute;\n" +
+  "    z-index: 2;\n" +
+  "}\n" +
+  "\n" +
+  ".ace_marker-layer .ace_selected_word {\n" +
+  "    position: absolute;\n" +
+  "    z-index: 6;\n" +
+  "    box-sizing: border-box;\n" +
+  "    -moz-box-sizing: border-box;\n" +
+  "    -webkit-box-sizing: border-box;\n" +
+  "}\n" +
+  "\n" +
+  ".ace_line .ace_fold {\n" +
+  "    cursor: pointer;\n" +
+  "     pointer-events: auto;\n" +
+  "     color: darkred;\n" +
+  "}\n" +
+  "\n" +
+  ".ace_fold:hover{\n" +
+  "    background: gold!important;\n" +
+  "}\n" +
+  "\n" +
+  ".ace_dragging .ace_content {\n" +
+  "  cursor: move;\n" +
+  "}\n" +
+  "");
+
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -17063,8 +14008,8 @@ exports.UndoManager = UndoManager;
 
 define('ace/keyboard/keybinding/vim', ['require', 'exports', 'module' , 'ace/keyboard/state_handler'], function(require, exports, module) {
 
-var StateHandler = require("ace/keyboard/state_handler").StateHandler;
-var matchCharacterOnly =  require("ace/keyboard/state_handler").matchCharacterOnly;
+var StateHandler = require("../state_handler").StateHandler;
+var matchCharacterOnly =  require("../state_handler").matchCharacterOnly;
 
 var vimcommand = function(key, exec, then) {
     return {
@@ -17215,7 +14160,7 @@ StateHandler.prototype = {
      * need to be adapted.
      */
     $buildKeymappingRegex: function(keymapping) {
-        for (state in keymapping) {
+        for (var state in keymapping) {
             this.$buildBindingsRegex(keymapping[state]);
         }
         return keymapping;
@@ -17447,8 +14392,8 @@ exports.StateHandler = StateHandler;
 
 define('ace/keyboard/keybinding/emacs', ['require', 'exports', 'module' , 'ace/keyboard/state_handler'], function(require, exports, module) {
 
-var StateHandler = require("ace/keyboard/state_handler").StateHandler;
-var matchCharacterOnly =  require("ace/keyboard/state_handler").matchCharacterOnly;
+var StateHandler = require("../state_handler").StateHandler;
+var matchCharacterOnly =  require("../state_handler").matchCharacterOnly;
 
 var emacsState = {
     start: [
@@ -17595,9 +14540,9 @@ exports.Emacs = new StateHandler(emacsState);
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/keyboard/hash_handler', ['require', 'exports', 'module' , 'pilot/keys'], function(require, exports, module) {
+define('ace/keyboard/hash_handler', ['require', 'exports', 'module' , 'ace/lib/keys'], function(require, exports, module) {
 
-var keyUtil  = require("pilot/keys");
+var keyUtil  = require("../lib/keys");
 
 function HashHandler(config) {
     this.setConfig(config);
@@ -17711,15 +14656,15 @@ exports.HashHandler = HashHandler;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/mode/c_cpp', ['require', 'exports', 'module' , 'pilot/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/c_cpp_highlight_rules', 'ace/mode/matching_brace_outdent', 'ace/range', 'ace/mode/behaviour/cstyle'], function(require, exports, module) {
+define('ace/mode/c_cpp', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/c_cpp_highlight_rules', 'ace/mode/matching_brace_outdent', 'ace/range', 'ace/mode/behaviour/cstyle'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var TextMode = require("ace/mode/text").Mode;
-var Tokenizer = require("ace/tokenizer").Tokenizer;
-var c_cppHighlightRules = require("ace/mode/c_cpp_highlight_rules").c_cppHighlightRules;
-var MatchingBraceOutdent = require("ace/mode/matching_brace_outdent").MatchingBraceOutdent;
-var Range = require("ace/range").Range;
-var CstyleBehaviour = require("ace/mode/behaviour/cstyle").CstyleBehaviour;
+var oop = require("../lib/oop");
+var TextMode = require("./text").Mode;
+var Tokenizer = require("../tokenizer").Tokenizer;
+var c_cppHighlightRules = require("./c_cpp_highlight_rules").c_cppHighlightRules;
+var MatchingBraceOutdent = require("./matching_brace_outdent").MatchingBraceOutdent;
+var Range = require("../range").Range;
+var CstyleBehaviour = require("./behaviour/cstyle").CstyleBehaviour;
 
 var Mode = function() {
     this.$tokenizer = new Tokenizer(new c_cppHighlightRules().getRules());
@@ -17843,12 +14788,12 @@ exports.Mode = Mode;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/mode/c_cpp_highlight_rules', ['require', 'exports', 'module' , 'pilot/oop', 'pilot/lang', 'ace/mode/doc_comment_highlight_rules', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
+define('ace/mode/c_cpp_highlight_rules', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/lib/lang', 'ace/mode/doc_comment_highlight_rules', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var lang = require("pilot/lang");
-var DocCommentHighlightRules = require("ace/mode/doc_comment_highlight_rules").DocCommentHighlightRules;
-var TextHighlightRules = require("ace/mode/text_highlight_rules").TextHighlightRules;
+var oop = require("../lib/oop");
+var lang = require("../lib/lang");
+var DocCommentHighlightRules = require("./doc_comment_highlight_rules").DocCommentHighlightRules;
+var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var c_cppHighlightRules = function() {
 
@@ -18019,10 +14964,10 @@ exports.c_cppHighlightRules = c_cppHighlightRules;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/mode/doc_comment_highlight_rules', ['require', 'exports', 'module' , 'pilot/oop', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
+define('ace/mode/doc_comment_highlight_rules', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var TextHighlightRules = require("ace/mode/text_highlight_rules").TextHighlightRules;
+var oop = require("../lib/oop");
+var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var DocCommentHighlightRules = function() {
 
@@ -18116,7 +15061,7 @@ exports.DocCommentHighlightRules = DocCommentHighlightRules;
 
 define('ace/mode/matching_brace_outdent', ['require', 'exports', 'module' , 'ace/range'], function(require, exports, module) {
 
-var Range = require("ace/range").Range;
+var Range = require("../range").Range;
 
 var MatchingBraceOutdent = function() {};
 
@@ -18195,10 +15140,10 @@ exports.MatchingBraceOutdent = MatchingBraceOutdent;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/mode/behaviour/cstyle', ['require', 'exports', 'module' , 'pilot/oop', 'ace/mode/behaviour'], function(require, exports, module) {
+define('ace/mode/behaviour/cstyle', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/behaviour'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var Behaviour = require('ace/mode/behaviour').Behaviour;
+var oop = require("../../lib/oop");
+var Behaviour = require('../behaviour').Behaviour;
 
 var CstyleBehaviour = function () {
 
@@ -18417,14 +15362,14 @@ exports.CstyleBehaviour = CstyleBehaviour;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/mode/clojure', ['require', 'exports', 'module' , 'pilot/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/clojure_highlight_rules', 'ace/mode/matching_parens_outdent', 'ace/range'], function(require, exports, module) {
+define('ace/mode/clojure', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/clojure_highlight_rules', 'ace/mode/matching_parens_outdent', 'ace/range'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var TextMode = require("ace/mode/text").Mode;
-var Tokenizer = require("ace/tokenizer").Tokenizer;
-var ClojureHighlightRules = require("ace/mode/clojure_highlight_rules").ClojureHighlightRules;
-var MatchingParensOutdent = require("ace/mode/matching_parens_outdent").MatchingParensOutdent;
-var Range = require("ace/range").Range;
+var oop = require("../lib/oop");
+var TextMode = require("./text").Mode;
+var Tokenizer = require("../tokenizer").Tokenizer;
+var ClojureHighlightRules = require("./clojure_highlight_rules").ClojureHighlightRules;
+var MatchingParensOutdent = require("./matching_parens_outdent").MatchingParensOutdent;
+var Range = require("../range").Range;
 
 var Mode = function() {
     this.$tokenizer = new Tokenizer(new ClojureHighlightRules().getRules());
@@ -18540,11 +15485,11 @@ exports.Mode = Mode;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/mode/clojure_highlight_rules', ['require', 'exports', 'module' , 'pilot/oop', 'pilot/lang', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
+define('ace/mode/clojure_highlight_rules', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/lib/lang', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var lang = require("pilot/lang");
-var TextHighlightRules = require("ace/mode/text_highlight_rules").TextHighlightRules;
+var oop = require("../lib/oop");
+var lang = require("../lib/lang");
+var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 
 
@@ -18759,7 +15704,7 @@ exports.ClojureHighlightRules = ClojureHighlightRules;
 
 define('ace/mode/matching_parens_outdent', ['require', 'exports', 'module' , 'ace/range'], function(require, exports, module) {
 
-var Range = require("ace/range").Range;
+var Range = require("../range").Range;
 
 var MatchingParensOutdent = function() {};
 
@@ -18837,15 +15782,15 @@ exports.MatchingParensOutdent = MatchingParensOutdent;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/mode/coffee', ['require', 'exports', 'module' , 'ace/tokenizer', 'ace/mode/coffee_highlight_rules', 'ace/mode/matching_brace_outdent', 'ace/range', 'ace/mode/text', 'ace/worker/worker_client', 'pilot/oop'], function(require, exports, module) {
+define('ace/mode/coffee', ['require', 'exports', 'module' , 'ace/tokenizer', 'ace/mode/coffee_highlight_rules', 'ace/mode/matching_brace_outdent', 'ace/range', 'ace/mode/text', 'ace/worker/worker_client', 'ace/lib/oop'], function(require, exports, module) {
 
-var Tokenizer = require("ace/tokenizer").Tokenizer;
-var Rules = require("ace/mode/coffee_highlight_rules").CoffeeHighlightRules;
-var Outdent = require("ace/mode/matching_brace_outdent").MatchingBraceOutdent;
-var Range = require("ace/range").Range;
-var TextMode = require("ace/mode/text").Mode;
-var WorkerClient = require("ace/worker/worker_client").WorkerClient;
-var oop = require("pilot/oop");
+var Tokenizer = require("../tokenizer").Tokenizer;
+var Rules = require("./coffee_highlight_rules").CoffeeHighlightRules;
+var Outdent = require("./matching_brace_outdent").MatchingBraceOutdent;
+var Range = require("../range").Range;
+var TextMode = require("./text").Mode;
+var WorkerClient = require("../worker/worker_client").WorkerClient;
+var oop = require("../lib/oop");
 
 function Mode() {
     this.$tokenizer = new Tokenizer(new Rules().getRules());
@@ -18899,7 +15844,7 @@ oop.inherits(Mode, TextMode);
     };
     
     this.createWorker = function(session) {
-        var worker = new WorkerClient(["ace", "pilot"], "worker-coffee.js", "ace/mode/coffee_worker", "Worker");
+        var worker = new WorkerClient(["ace"], "worker-coffee.js", "ace/mode/coffee_worker", "Worker");
         worker.attachToDocument(session.getDocument());
         
         worker.on("error", function(e) {
@@ -18952,11 +15897,11 @@ exports.Mode = Mode;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/mode/coffee_highlight_rules', ['require', 'exports', 'module' , 'pilot/lang', 'pilot/oop', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
+define('ace/mode/coffee_highlight_rules', ['require', 'exports', 'module' , 'ace/lib/lang', 'ace/lib/oop', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
 
-    var lang = require("pilot/lang");
-    var oop = require("pilot/oop");
-    var TextHighlightRules = require("ace/mode/text_highlight_rules").TextHighlightRules;
+    var lang = require("../lib/lang");
+    var oop = require("../lib/oop");
+    var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
     
     oop.inherits(CoffeeHighlightRules, TextHighlightRules);
 
@@ -19176,16 +16121,16 @@ define('ace/mode/coffee_highlight_rules', ['require', 'exports', 'module' , 'pil
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/worker/worker_client', ['require', 'exports', 'module' , 'pilot/oop', 'pilot/event_emitter'], function(require, exports, module) {
+define('ace/worker/worker_client', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/lib/event_emitter'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var EventEmitter = require("pilot/event_emitter").EventEmitter;
+var oop = require("../lib/oop");
+var EventEmitter = require("../lib/event_emitter").EventEmitter;
 
 var WorkerClient = function(topLevelNamespaces, packagedJs, module, classname) {
 
     this.changeListener = this.changeListener.bind(this);
 
-    if (require.packaged) {
+    if (window.require.packaged) {
         var base = this.$guessBasePath();
         var worker = this.$worker = new Worker(base + packagedJs);
     }
@@ -19365,15 +16310,15 @@ exports.WorkerClient = WorkerClient;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/mode/coldfusion', ['require', 'exports', 'module' , 'pilot/oop', 'ace/mode/text', 'ace/mode/javascript', 'ace/mode/css', 'ace/tokenizer', 'ace/mode/coldfusion_highlight_rules', 'ace/mode/behaviour/xml'], function(require, exports, module) {
+define('ace/mode/coldfusion', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/text', 'ace/mode/javascript', 'ace/mode/css', 'ace/tokenizer', 'ace/mode/coldfusion_highlight_rules', 'ace/mode/behaviour/xml'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var TextMode = require("ace/mode/text").Mode;
-var JavaScriptMode = require("ace/mode/javascript").Mode;
-var CssMode = require("ace/mode/css").Mode;
-var Tokenizer = require("ace/tokenizer").Tokenizer;
-var ColdfusionHighlightRules = require("ace/mode/coldfusion_highlight_rules").ColdfusionHighlightRules;
-var XmlBehaviour = require("ace/mode/behaviour/xml").XmlBehaviour;
+var oop = require("../lib/oop");
+var TextMode = require("./text").Mode;
+var JavaScriptMode = require("./javascript").Mode;
+var CssMode = require("./css").Mode;
+var Tokenizer = require("../tokenizer").Tokenizer;
+var ColdfusionHighlightRules = require("./coldfusion_highlight_rules").ColdfusionHighlightRules;
+var XmlBehaviour = require("./behaviour/xml").XmlBehaviour;
 
 var Mode = function() {
     var highlighter = new ColdfusionHighlightRules();
@@ -19443,16 +16388,16 @@ exports.Mode = Mode;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/mode/javascript', ['require', 'exports', 'module' , 'pilot/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/javascript_highlight_rules', 'ace/mode/matching_brace_outdent', 'ace/range', 'ace/worker/worker_client', 'ace/mode/behaviour/cstyle'], function(require, exports, module) {
+define('ace/mode/javascript', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/javascript_highlight_rules', 'ace/mode/matching_brace_outdent', 'ace/range', 'ace/worker/worker_client', 'ace/mode/behaviour/cstyle'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var TextMode = require("ace/mode/text").Mode;
-var Tokenizer = require("ace/tokenizer").Tokenizer;
-var JavaScriptHighlightRules = require("ace/mode/javascript_highlight_rules").JavaScriptHighlightRules;
-var MatchingBraceOutdent = require("ace/mode/matching_brace_outdent").MatchingBraceOutdent;
-var Range = require("ace/range").Range;
-var WorkerClient = require("ace/worker/worker_client").WorkerClient;
-var CstyleBehaviour = require("ace/mode/behaviour/cstyle").CstyleBehaviour;
+var oop = require("../lib/oop");
+var TextMode = require("./text").Mode;
+var Tokenizer = require("../tokenizer").Tokenizer;
+var JavaScriptHighlightRules = require("./javascript_highlight_rules").JavaScriptHighlightRules;
+var MatchingBraceOutdent = require("./matching_brace_outdent").MatchingBraceOutdent;
+var Range = require("../range").Range;
+var WorkerClient = require("../worker/worker_client").WorkerClient;
+var CstyleBehaviour = require("./behaviour/cstyle").CstyleBehaviour;
 
 var Mode = function() {
     this.$tokenizer = new Tokenizer(new JavaScriptHighlightRules().getRules());
@@ -19533,8 +16478,8 @@ oop.inherits(Mode, TextMode);
     };
     
     this.createWorker = function(session) {
-        var worker = new WorkerClient(["ace", "pilot"], "worker-javascript.js", "ace/mode/javascript_worker", "JavaScriptWorker");
-		worker.attachToDocument(session.getDocument());
+        var worker = new WorkerClient(["ace"], "worker-javascript.js", "ace/mode/javascript_worker", "JavaScriptWorker");
+        worker.attachToDocument(session.getDocument());
             
         worker.on("jslint", function(results) {
             var errors = [];
@@ -19605,13 +16550,13 @@ exports.Mode = Mode;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/mode/javascript_highlight_rules', ['require', 'exports', 'module' , 'pilot/oop', 'pilot/lang', 'ace/unicode', 'ace/mode/doc_comment_highlight_rules', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
+define('ace/mode/javascript_highlight_rules', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/lib/lang', 'ace/unicode', 'ace/mode/doc_comment_highlight_rules', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var lang = require("pilot/lang");
-var unicode = require("ace/unicode");
-var DocCommentHighlightRules = require("ace/mode/doc_comment_highlight_rules").DocCommentHighlightRules;
-var TextHighlightRules = require("ace/mode/text_highlight_rules").TextHighlightRules;
+var oop = require("../lib/oop");
+var lang = require("../lib/lang");
+var unicode = require("../unicode");
+var DocCommentHighlightRules = require("./doc_comment_highlight_rules").DocCommentHighlightRules;
+var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var JavaScriptHighlightRules = function() {
 
@@ -19882,14 +16827,14 @@ exports.JavaScriptHighlightRules = JavaScriptHighlightRules;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/mode/css', ['require', 'exports', 'module' , 'pilot/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/css_highlight_rules', 'ace/mode/matching_brace_outdent', 'ace/worker/worker_client'], function(require, exports, module) {
+define('ace/mode/css', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/css_highlight_rules', 'ace/mode/matching_brace_outdent', 'ace/worker/worker_client'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var TextMode = require("ace/mode/text").Mode;
-var Tokenizer = require("ace/tokenizer").Tokenizer;
-var CssHighlightRules = require("ace/mode/css_highlight_rules").CssHighlightRules;
-var MatchingBraceOutdent = require("ace/mode/matching_brace_outdent").MatchingBraceOutdent;
-var WorkerClient = require("ace/worker/worker_client").WorkerClient;
+var oop = require("../lib/oop");
+var TextMode = require("./text").Mode;
+var Tokenizer = require("../tokenizer").Tokenizer;
+var CssHighlightRules = require("./css_highlight_rules").CssHighlightRules;
+var MatchingBraceOutdent = require("./matching_brace_outdent").MatchingBraceOutdent;
+var WorkerClient = require("../worker/worker_client").WorkerClient;
 
 var Mode = function() {
     this.$tokenizer = new Tokenizer(new CssHighlightRules().getRules());
@@ -19925,7 +16870,7 @@ oop.inherits(Mode, TextMode);
     };
     
     this.createWorker = function(session) {
-        var worker = new WorkerClient(["ace", "pilot"], "worker-css.js", "ace/mode/css_worker", "Worker");
+        var worker = new WorkerClient(["ace"], "worker-css.js", "ace/mode/css_worker", "Worker");
         worker.attachToDocument(session.getDocument());
         
         worker.on("csslint", function(e) {
@@ -19986,11 +16931,11 @@ exports.Mode = Mode;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/mode/css_highlight_rules', ['require', 'exports', 'module' , 'pilot/oop', 'pilot/lang', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
+define('ace/mode/css_highlight_rules', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/lib/lang', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var lang = require("pilot/lang");
-var TextHighlightRules = require("ace/mode/text_highlight_rules").TextHighlightRules;
+var oop = require("../lib/oop");
+var lang = require("../lib/lang");
+var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var CssHighlightRules = function() {
 
@@ -20312,12 +17257,12 @@ exports.CssHighlightRules = CssHighlightRules;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/mode/coldfusion_highlight_rules', ['require', 'exports', 'module' , 'pilot/oop', 'ace/mode/css_highlight_rules', 'ace/mode/javascript_highlight_rules', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
+define('ace/mode/coldfusion_highlight_rules', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/css_highlight_rules', 'ace/mode/javascript_highlight_rules', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var CssHighlightRules = require("ace/mode/css_highlight_rules").CssHighlightRules;
-var JavaScriptHighlightRules = require("ace/mode/javascript_highlight_rules").JavaScriptHighlightRules;
-var TextHighlightRules = require("ace/mode/text_highlight_rules").TextHighlightRules;
+var oop = require("../lib/oop");
+var CssHighlightRules = require("./css_highlight_rules").CssHighlightRules;
+var JavaScriptHighlightRules = require("./javascript_highlight_rules").JavaScriptHighlightRules;
+var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var ColdfusionHighlightRules = function() {
 
@@ -20511,11 +17456,11 @@ exports.ColdfusionHighlightRules = ColdfusionHighlightRules;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/mode/behaviour/xml', ['require', 'exports', 'module' , 'pilot/oop', 'ace/mode/behaviour', 'ace/mode/behaviour/cstyle'], function(require, exports, module) {
+define('ace/mode/behaviour/xml', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/behaviour', 'ace/mode/behaviour/cstyle'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var Behaviour = require('ace/mode/behaviour').Behaviour;
-var CstyleBehaviour = require('ace/mode/behaviour/cstyle').CstyleBehaviour;
+var oop = require("../../lib/oop");
+var Behaviour = require("../behaviour").Behaviour;
+var CstyleBehaviour = require("./cstyle").CstyleBehaviour;
 
 var XmlBehaviour = function () {
     
@@ -20563,14 +17508,14 @@ var XmlBehaviour = function () {
 oop.inherits(XmlBehaviour, Behaviour);
 
 exports.XmlBehaviour = XmlBehaviour;
-});define('ace/mode/csharp', ['require', 'exports', 'module' , 'pilot/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/csharp_highlight_rules', 'ace/mode/matching_brace_outdent', 'ace/mode/behaviour/cstyle'], function(require, exports, module) {
+});define('ace/mode/csharp', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/csharp_highlight_rules', 'ace/mode/matching_brace_outdent', 'ace/mode/behaviour/cstyle'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var TextMode = require("ace/mode/text").Mode;
-var Tokenizer = require("ace/tokenizer").Tokenizer;
-var CSharpHighlightRules = require("ace/mode/csharp_highlight_rules").CSharpHighlightRules;
-var MatchingBraceOutdent = require("ace/mode/matching_brace_outdent").MatchingBraceOutdent;
-var CstyleBehaviour = require("ace/mode/behaviour/cstyle").CstyleBehaviour;
+var oop = require("../lib/oop");
+var TextMode = require("./text").Mode;
+var Tokenizer = require("../tokenizer").Tokenizer;
+var CSharpHighlightRules = require("./csharp_highlight_rules").CSharpHighlightRules;
+var MatchingBraceOutdent = require("./matching_brace_outdent").MatchingBraceOutdent;
+var CstyleBehaviour = require("./behaviour/cstyle").CstyleBehaviour;
 
 var Mode = function() {
     this.$tokenizer = new Tokenizer(new CSharpHighlightRules().getRules());
@@ -20619,12 +17564,12 @@ oop.inherits(Mode, TextMode);
 
 exports.Mode = Mode;
 });
-define('ace/mode/csharp_highlight_rules', ['require', 'exports', 'module' , 'pilot/oop', 'pilot/lang', 'ace/mode/doc_comment_highlight_rules', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
+define('ace/mode/csharp_highlight_rules', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/lib/lang', 'ace/mode/doc_comment_highlight_rules', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var lang = require("pilot/lang");
-var DocCommentHighlightRules = require("ace/mode/doc_comment_highlight_rules").DocCommentHighlightRules;
-var TextHighlightRules = require("ace/mode/text_highlight_rules").TextHighlightRules;
+var oop = require("../lib/oop");
+var lang = require("../lib/lang");
+var DocCommentHighlightRules = require("./doc_comment_highlight_rules").DocCommentHighlightRules;
+var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var CSharpHighlightRules = function() {
     
@@ -20722,14 +17667,14 @@ oop.inherits(CSharpHighlightRules, TextHighlightRules);
 
 exports.CSharpHighlightRules = CSharpHighlightRules;
 });
-define('ace/mode/groovy', ['require', 'exports', 'module' , 'pilot/oop', 'ace/mode/javascript', 'ace/tokenizer', 'ace/mode/groovy_highlight_rules', 'ace/mode/matching_brace_outdent', 'ace/mode/behaviour/cstyle'], function(require, exports, module) {
+define('ace/mode/groovy', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/javascript', 'ace/tokenizer', 'ace/mode/groovy_highlight_rules', 'ace/mode/matching_brace_outdent', 'ace/mode/behaviour/cstyle'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var JavaScriptMode = require("ace/mode/javascript").Mode;
-var Tokenizer = require("ace/tokenizer").Tokenizer;
-var GroovyHighlightRules = require("ace/mode/groovy_highlight_rules").GroovyHighlightRules;
-var MatchingBraceOutdent = require("ace/mode/matching_brace_outdent").MatchingBraceOutdent;
-var CstyleBehaviour = require("ace/mode/behaviour/cstyle").CstyleBehaviour;
+var oop = require("../lib/oop");
+var JavaScriptMode = require("./javascript").Mode;
+var Tokenizer = require("../tokenizer").Tokenizer;
+var GroovyHighlightRules = require("./groovy_highlight_rules").GroovyHighlightRules;
+var MatchingBraceOutdent = require("./matching_brace_outdent").MatchingBraceOutdent;
+var CstyleBehaviour = require("./behaviour/cstyle").CstyleBehaviour;
 
 var Mode = function() {
     this.$tokenizer = new Tokenizer(new GroovyHighlightRules().getRules());
@@ -20748,12 +17693,12 @@ oop.inherits(Mode, JavaScriptMode);
 
 exports.Mode = Mode;
 });
-define('ace/mode/groovy_highlight_rules', ['require', 'exports', 'module' , 'pilot/oop', 'pilot/lang', 'ace/mode/doc_comment_highlight_rules', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
+define('ace/mode/groovy_highlight_rules', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/lib/lang', 'ace/mode/doc_comment_highlight_rules', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var lang = require("pilot/lang");
-var DocCommentHighlightRules = require("ace/mode/doc_comment_highlight_rules").DocCommentHighlightRules;
-var TextHighlightRules = require("ace/mode/text_highlight_rules").TextHighlightRules;
+var oop = require("../lib/oop");
+var lang = require("../lib/lang");
+var DocCommentHighlightRules = require("./doc_comment_highlight_rules").DocCommentHighlightRules;
+var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var GroovyHighlightRules = function() {
 
@@ -20890,6 +17835,165 @@ oop.inherits(GroovyHighlightRules, TextHighlightRules);
 
 exports.GroovyHighlightRules = GroovyHighlightRules;
 });
+define('ace/mode/haxe', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/haxe_highlight_rules', 'ace/mode/matching_brace_outdent', 'ace/mode/behaviour/cstyle'], function(require, exports, module) {
+
+var oop = require("../lib/oop");
+var TextMode = require("./text").Mode;
+var Tokenizer = require("../tokenizer").Tokenizer;
+var HaxeHighlightRules = require("./haxe_highlight_rules").HaxeHighlightRules;
+var MatchingBraceOutdent = require("./matching_brace_outdent").MatchingBraceOutdent;
+var CstyleBehaviour = require("./behaviour/cstyle").CstyleBehaviour;
+
+var Mode = function() {
+    this.$tokenizer = new Tokenizer(new HaxeHighlightRules().getRules());
+    this.$outdent = new MatchingBraceOutdent();
+    this.$behaviour = new CstyleBehaviour();
+};
+oop.inherits(Mode, TextMode);
+
+(function() {
+
+      this.getNextLineIndent = function(state, line, tab) {
+          var indent = this.$getIndent(line);
+
+          var tokenizedLine = this.$tokenizer.getLineTokens(line, state);
+          var tokens = tokenizedLine.tokens;
+          var endState = tokenizedLine.state;
+
+          if (tokens.length && tokens[tokens.length-1].type == "comment") {
+              return indent;
+          }
+
+          if (state == "start") {
+              var match = line.match(/^.*[\{\(\[]\s*$/);
+              if (match) {
+                  indent += tab;
+              }
+          }
+
+          return indent;
+      };
+
+      this.checkOutdent = function(state, line, input) {
+          return this.$outdent.checkOutdent(line, input);
+      };
+
+      this.autoOutdent = function(state, doc, row) {
+          this.$outdent.autoOutdent(doc, row);
+      };
+
+
+    this.createWorker = function(session) {
+        return null;
+    };
+
+}).call(Mode.prototype);
+
+exports.Mode = Mode;
+});
+define('ace/mode/haxe_highlight_rules', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/lib/lang', 'ace/mode/doc_comment_highlight_rules', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
+
+var oop = require("../lib/oop");
+var lang = require("../lib/lang");
+var DocCommentHighlightRules = require("./doc_comment_highlight_rules").DocCommentHighlightRules;
+var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
+
+var HaxeHighlightRules = function() {
+
+    var keywords = lang.arrayToMap(
+        ("break|case|cast|catch|class|continue|default|else|enum|extends|for|function|if|implements|import|in|inline|interface|new|override|package|private|public|return|static|super|switch|this|throw|trace|try|typedef|untyped|var|while|Array|Void|Bool|Int|UInt|Float|Dynamic|String|List|Hash|IntHash|Error|Unknown|Type|Std").split("|")
+    );
+
+    var buildinConstants = lang.arrayToMap(
+        ("null|true|false").split("|")
+    );
+
+
+    // regexp must not have capturing parentheses. Use (?:) instead.
+    // regexps are ordered -> the first match is used
+
+    this.$rules = {
+        "start" : [
+            {
+                token : "comment",
+                regex : "\\/\\/.*$"
+            },
+            new DocCommentHighlightRules().getStartRule("doc-start"),
+            {
+                token : "comment", // multi line comment
+                regex : "\\/\\*",
+                merge : true,
+                next : "comment"
+            }, {
+                token : "string.regexp",
+                regex : "[/](?:(?:\\[(?:\\\\]|[^\\]])+\\])|(?:\\\\/|[^\\]/]))*[/]\\w*\\s*(?=[).,;]|$)"
+            }, {
+                token : "string", // single line
+                regex : '["](?:(?:\\\\.)|(?:[^"\\\\]))*?["]'
+            }, {
+                token : "string", // single line
+                regex : "['](?:(?:\\\\.)|(?:[^'\\\\]))*?[']"
+            }, {
+                token : "constant.numeric", // hex
+                regex : "0[xX][0-9a-fA-F]+\\b"
+            }, {
+                token : "constant.numeric", // float
+                regex : "[+-]?\\d+(?:(?:\\.\\d*)?(?:[eE][+-]?\\d+)?)?\\b"
+            }, {
+                token : "constant.language.boolean",
+                regex : "(?:true|false)\\b"
+            }, {
+                token : function(value) {
+                    if (value == "this")
+                        return "variable.language";
+                    else if (keywords.hasOwnProperty(value))
+                        return "keyword";
+                    else if (buildinConstants.hasOwnProperty(value))
+                        return "constant.language";
+                    else
+                        return "identifier";
+                },
+                // TODO: Unicode escape sequences
+                // TODO: Unicode identifiers
+                regex : "[a-zA-Z_$][a-zA-Z0-9_$]*\\b"
+            }, {
+                token : "keyword.operator",
+                regex : "!|\\$|%|&|\\*|\\-\\-|\\-|\\+\\+|\\+|~|===|==|=|!=|!==|<=|>=|<<=|>>=|>>>=|<>|<|>|!|&&|\\|\\||\\?\\:|\\*=|%=|\\+=|\\-=|&=|\\^=|\\b(?:in|instanceof|new|delete|typeof|void)"
+            }, {
+                token : "punctuation.operator",
+                regex : "\\?|\\:|\\,|\\;|\\."
+            }, {
+                token : "paren.lparen",
+                regex : "[[({<]"
+            }, {
+                token : "paren.rparen",
+                regex : "[\\])}>]"
+            }, {
+                token : "text",
+                regex : "\\s+"
+            }
+        ],
+        "comment" : [
+            {
+                token : "comment", // closing comment
+                regex : ".*?\\*\\/",
+                next : "start"
+            }, {
+                token : "comment", // comment spanning whole line
+                merge : true,
+                regex : ".+"
+            }
+        ]
+    };
+
+    this.embedRules(DocCommentHighlightRules, "doc-",
+        [ new DocCommentHighlightRules().getEndRule("start") ]);
+};
+
+oop.inherits(HaxeHighlightRules, TextHighlightRules);
+
+exports.HaxeHighlightRules = HaxeHighlightRules;
+});
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -20927,15 +18031,15 @@ exports.GroovyHighlightRules = GroovyHighlightRules;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/mode/html', ['require', 'exports', 'module' , 'pilot/oop', 'ace/mode/text', 'ace/mode/javascript', 'ace/mode/css', 'ace/tokenizer', 'ace/mode/html_highlight_rules', 'ace/mode/behaviour/xml'], function(require, exports, module) {
+define('ace/mode/html', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/text', 'ace/mode/javascript', 'ace/mode/css', 'ace/tokenizer', 'ace/mode/html_highlight_rules', 'ace/mode/behaviour/xml'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var TextMode = require("ace/mode/text").Mode;
-var JavaScriptMode = require("ace/mode/javascript").Mode;
-var CssMode = require("ace/mode/css").Mode;
-var Tokenizer = require("ace/tokenizer").Tokenizer;
-var HtmlHighlightRules = require("ace/mode/html_highlight_rules").HtmlHighlightRules;
-var XmlBehaviour = require("ace/mode/behaviour/xml").XmlBehaviour;
+var oop = require("../lib/oop");
+var TextMode = require("./text").Mode;
+var JavaScriptMode = require("./javascript").Mode;
+var CssMode = require("./css").Mode;
+var Tokenizer = require("../tokenizer").Tokenizer;
+var HtmlHighlightRules = require("./html_highlight_rules").HtmlHighlightRules;
+var XmlBehaviour = require("./behaviour/xml").XmlBehaviour;
 
 var Mode = function() {
     var highlighter = new HtmlHighlightRules();
@@ -21005,12 +18109,12 @@ exports.Mode = Mode;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/mode/html_highlight_rules', ['require', 'exports', 'module' , 'pilot/oop', 'ace/mode/css_highlight_rules', 'ace/mode/javascript_highlight_rules', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
+define('ace/mode/html_highlight_rules', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/css_highlight_rules', 'ace/mode/javascript_highlight_rules', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var CssHighlightRules = require("ace/mode/css_highlight_rules").CssHighlightRules;
-var JavaScriptHighlightRules = require("ace/mode/javascript_highlight_rules").JavaScriptHighlightRules;
-var TextHighlightRules = require("ace/mode/text_highlight_rules").TextHighlightRules;
+var oop = require("../lib/oop");
+var CssHighlightRules = require("./css_highlight_rules").CssHighlightRules;
+var JavaScriptHighlightRules = require("./javascript_highlight_rules").JavaScriptHighlightRules;
+var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var HtmlHighlightRules = function() {
 
@@ -21165,14 +18269,15 @@ var HtmlHighlightRules = function() {
 oop.inherits(HtmlHighlightRules, TextHighlightRules);
 
 exports.HtmlHighlightRules = HtmlHighlightRules;
-});define('ace/mode/java', ['require', 'exports', 'module' , 'pilot/oop', 'ace/mode/javascript', 'ace/tokenizer', 'ace/mode/java_highlight_rules', 'ace/mode/matching_brace_outdent', 'ace/mode/behaviour/cstyle'], function(require, exports, module) {
+});
+define('ace/mode/java', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/javascript', 'ace/tokenizer', 'ace/mode/java_highlight_rules', 'ace/mode/matching_brace_outdent', 'ace/mode/behaviour/cstyle'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var JavaScriptMode = require("ace/mode/javascript").Mode;
-var Tokenizer = require("ace/tokenizer").Tokenizer;
-var JavaHighlightRules = require("ace/mode/java_highlight_rules").JavaHighlightRules;
-var MatchingBraceOutdent = require("ace/mode/matching_brace_outdent").MatchingBraceOutdent;
-var CstyleBehaviour = require("ace/mode/behaviour/cstyle").CstyleBehaviour;
+var oop = require("../lib/oop");
+var JavaScriptMode = require("./javascript").Mode;
+var Tokenizer = require("../tokenizer").Tokenizer;
+var JavaHighlightRules = require("./java_highlight_rules").JavaHighlightRules;
+var MatchingBraceOutdent = require("./matching_brace_outdent").MatchingBraceOutdent;
+var CstyleBehaviour = require("./behaviour/cstyle").CstyleBehaviour;
 
 var Mode = function() {
     this.$tokenizer = new Tokenizer(new JavaHighlightRules().getRules());
@@ -21191,12 +18296,12 @@ oop.inherits(Mode, JavaScriptMode);
 
 exports.Mode = Mode;
 });
-define('ace/mode/java_highlight_rules', ['require', 'exports', 'module' , 'pilot/oop', 'pilot/lang', 'ace/mode/doc_comment_highlight_rules', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
+define('ace/mode/java_highlight_rules', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/lib/lang', 'ace/mode/doc_comment_highlight_rules', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var lang = require("pilot/lang");
-var DocCommentHighlightRules = require("ace/mode/doc_comment_highlight_rules").DocCommentHighlightRules;
-var TextHighlightRules = require("ace/mode/text_highlight_rules").TextHighlightRules;
+var oop = require("../lib/oop");
+var lang = require("../lib/lang");
+var DocCommentHighlightRules = require("./doc_comment_highlight_rules").DocCommentHighlightRules;
+var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var JavaHighlightRules = function() {
 
@@ -21371,15 +18476,15 @@ exports.JavaHighlightRules = JavaHighlightRules;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/mode/json', ['require', 'exports', 'module' , 'pilot/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/json_highlight_rules', 'ace/mode/matching_brace_outdent', 'ace/range', 'ace/mode/behaviour/cstyle'], function(require, exports, module) {
+define('ace/mode/json', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/json_highlight_rules', 'ace/mode/matching_brace_outdent', 'ace/range', 'ace/mode/behaviour/cstyle'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var TextMode = require("ace/mode/text").Mode;
-var Tokenizer = require("ace/tokenizer").Tokenizer;
-var HighlightRules = require("ace/mode/json_highlight_rules").JsonHighlightRules;
-var MatchingBraceOutdent = require("ace/mode/matching_brace_outdent").MatchingBraceOutdent;
-var Range = require("ace/range").Range;
-var CstyleBehaviour = require("ace/mode/behaviour/cstyle").CstyleBehaviour;
+var oop = require("../lib/oop");
+var TextMode = require("./text").Mode;
+var Tokenizer = require("../tokenizer").Tokenizer;
+var HighlightRules = require("./json_highlight_rules").JsonHighlightRules;
+var MatchingBraceOutdent = require("./matching_brace_outdent").MatchingBraceOutdent;
+var Range = require("../range").Range;
+var CstyleBehaviour = require("./behaviour/cstyle").CstyleBehaviour;
 
 var Mode = function() {
     this.$tokenizer = new Tokenizer(new HighlightRules().getRules());
@@ -21456,11 +18561,11 @@ exports.Mode = Mode;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/mode/json_highlight_rules', ['require', 'exports', 'module' , 'pilot/oop', 'pilot/lang', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
+define('ace/mode/json_highlight_rules', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/lib/lang', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var lang = require("pilot/lang");
-var TextHighlightRules = require("ace/mode/text_highlight_rules").TextHighlightRules;
+var oop = require("../lib/oop");
+var lang = require("../lib/lang");
+var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var JsonHighlightRules = function() {
 
@@ -21505,13 +18610,13 @@ oop.inherits(JsonHighlightRules, TextHighlightRules);
 
 exports.JsonHighlightRules = JsonHighlightRules;
 });
-define('ace/mode/latex', ['require', 'exports', 'module' , 'pilot/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/latex_highlight_rules', 'ace/range'], function(require, exports, module) {
+define('ace/mode/latex', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/latex_highlight_rules', 'ace/range'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var TextMode = require("ace/mode/text").Mode;
-var Tokenizer = require("ace/tokenizer").Tokenizer;
-var LatexHighlightRules = require("ace/mode/latex_highlight_rules").LatexHighlightRules;
-var Range = require("ace/range").Range;
+var oop = require("../lib/oop");
+var TextMode = require("./text").Mode;
+var Tokenizer = require("../tokenizer").Tokenizer;
+var LatexHighlightRules = require("./latex_highlight_rules").LatexHighlightRules;
+var Range = require("../range").Range;
 
 var Mode = function()
 {
@@ -21563,10 +18668,10 @@ oop.inherits(Mode, TextMode);
 exports.Mode = Mode;
 
 });
-define('ace/mode/latex_highlight_rules', ['require', 'exports', 'module' , 'pilot/oop', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
+define('ace/mode/latex_highlight_rules', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var TextHighlightRules = require("ace/mode/text_highlight_rules").TextHighlightRules;
+var oop = require("../lib/oop");
+var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var LatexHighlightRules = function()
 {   
@@ -21640,12 +18745,12 @@ exports.LatexHighlightRules = LatexHighlightRules;
 *
 * ***** END LICENSE BLOCK ***** */
 
-define('ace/mode/lua', ['require', 'exports', 'module' , 'pilot/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/lua_highlight_rules', 'ace/range'], function(require, exports, module) {
-var oop = require("pilot/oop");
-var TextMode = require("ace/mode/text").Mode;
-var Tokenizer = require("ace/tokenizer").Tokenizer;
-var LuaHighlightRules = require("ace/mode/lua_highlight_rules").LuaHighlightRules;
-var Range = require("ace/range").Range;
+define('ace/mode/lua', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/lua_highlight_rules', 'ace/range'], function(require, exports, module) {
+var oop = require("../lib/oop");
+var TextMode = require("./text").Mode;
+var Tokenizer = require("../tokenizer").Tokenizer;
+var LuaHighlightRules = require("./lua_highlight_rules").LuaHighlightRules;
+var Range = require("../range").Range;
 
 var Mode = function() {
     this.$tokenizer = new Tokenizer(new LuaHighlightRules().getRules());
@@ -21760,11 +18865,11 @@ exports.Mode = Mode;
 *
 * ***** END LICENSE BLOCK ***** */
 
-define('ace/mode/lua_highlight_rules', ['require', 'exports', 'module' , 'pilot/oop', 'pilot/lang', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
+define('ace/mode/lua_highlight_rules', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/lib/lang', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var lang = require("pilot/lang");
-var TextHighlightRules = require("ace/mode/text_highlight_rules").TextHighlightRules;
+var oop = require("../lib/oop");
+var lang = require("../lib/lang");
+var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var LuaHighlightRules = function() {
 
@@ -22196,16 +19301,16 @@ exports.LuaHighlightRules = LuaHighlightRules;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/mode/markdown', ['require', 'exports', 'module' , 'pilot/oop', 'ace/mode/text', 'ace/mode/javascript', 'ace/mode/xml', 'ace/mode/html', 'ace/tokenizer', 'ace/mode/markdown_highlight_rules', 'ace/range'], function(require, exports, module) {
+define('ace/mode/markdown', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/text', 'ace/mode/javascript', 'ace/mode/xml', 'ace/mode/html', 'ace/tokenizer', 'ace/mode/markdown_highlight_rules', 'ace/range'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var TextMode = require("ace/mode/text").Mode;
-var JavaScriptMode = require("ace/mode/javascript").Mode;
-var XmlMode = require("ace/mode/xml").Mode;
-var HtmlMode = require("ace/mode/html").Mode;
-var Tokenizer = require("ace/tokenizer").Tokenizer;
-var MarkdownHighlightRules = require("ace/mode/markdown_highlight_rules").MarkdownHighlightRules;
-var Range = require("ace/range").Range;
+var oop = require("../lib/oop");
+var TextMode = require("./text").Mode;
+var JavaScriptMode = require("./javascript").Mode;
+var XmlMode = require("./xml").Mode;
+var HtmlMode = require("./html").Mode;
+var Tokenizer = require("../tokenizer").Tokenizer;
+var MarkdownHighlightRules = require("./markdown_highlight_rules").MarkdownHighlightRules;
+var Range = require("../range").Range;
 
 var Mode = function() {
     var highlighter = new MarkdownHighlightRules();
@@ -22273,13 +19378,13 @@ exports.Mode = Mode;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/mode/xml', ['require', 'exports', 'module' , 'pilot/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/xml_highlight_rules', 'ace/mode/behaviour/xml'], function(require, exports, module) {
+define('ace/mode/xml', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/xml_highlight_rules', 'ace/mode/behaviour/xml'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var TextMode = require("ace/mode/text").Mode;
-var Tokenizer = require("ace/tokenizer").Tokenizer;
-var XmlHighlightRules = require("ace/mode/xml_highlight_rules").XmlHighlightRules;
-var XmlBehaviour = require("ace/mode/behaviour/xml").XmlBehaviour;
+var oop = require("../lib/oop");
+var TextMode = require("./text").Mode;
+var Tokenizer = require("../tokenizer").Tokenizer;
+var XmlHighlightRules = require("./xml_highlight_rules").XmlHighlightRules;
+var XmlBehaviour = require("./behaviour/xml").XmlBehaviour;
 
 var Mode = function() {
     this.$tokenizer = new Tokenizer(new XmlHighlightRules().getRules());
@@ -22335,10 +19440,10 @@ exports.Mode = Mode;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/mode/xml_highlight_rules', ['require', 'exports', 'module' , 'pilot/oop', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
+define('ace/mode/xml_highlight_rules', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var TextHighlightRules = require("ace/mode/text_highlight_rules").TextHighlightRules;
+var oop = require("../lib/oop");
+var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var XmlHighlightRules = function() {
 
@@ -22484,14 +19589,14 @@ exports.XmlHighlightRules = XmlHighlightRules;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/mode/markdown_highlight_rules', ['require', 'exports', 'module' , 'pilot/oop', 'ace/mode/text_highlight_rules', 'ace/mode/javascript_highlight_rules', 'ace/mode/xml_highlight_rules', 'ace/mode/html_highlight_rules', 'ace/mode/css_highlight_rules'], function(require, exports, module) {
+define('ace/mode/markdown_highlight_rules', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/text_highlight_rules', 'ace/mode/javascript_highlight_rules', 'ace/mode/xml_highlight_rules', 'ace/mode/html_highlight_rules', 'ace/mode/css_highlight_rules'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var TextHighlightRules = require("ace/mode/text_highlight_rules").TextHighlightRules;
-var JavaScriptHighlightRules = require("ace/mode/javascript_highlight_rules").JavaScriptHighlightRules;
-var XmlHighlightRules = require("ace/mode/xml_highlight_rules").XmlHighlightRules;
-var HtmlHighlightRules = require("ace/mode/html_highlight_rules").HtmlHighlightRules;
-var CssHighlightRules = require("ace/mode/css_highlight_rules").CssHighlightRules;
+var oop = require("../lib/oop");
+var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
+var JavaScriptHighlightRules = require("./javascript_highlight_rules").JavaScriptHighlightRules;
+var XmlHighlightRules = require("./xml_highlight_rules").XmlHighlightRules;
+var HtmlHighlightRules = require("./html_highlight_rules").HtmlHighlightRules;
+var CssHighlightRules = require("./css_highlight_rules").CssHighlightRules;
 
 function github_embed(tag, prefix) {
   return { // Github style block
@@ -22676,14 +19781,14 @@ exports.MarkdownHighlightRules = MarkdownHighlightRules;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/mode/ocaml', ['require', 'exports', 'module' , 'pilot/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/ocaml_highlight_rules', 'ace/mode/matching_brace_outdent', 'ace/range'], function(require, exports, module) {
+define('ace/mode/ocaml', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/ocaml_highlight_rules', 'ace/mode/matching_brace_outdent', 'ace/range'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var TextMode = require("ace/mode/text").Mode;
-var Tokenizer = require("ace/tokenizer").Tokenizer;
-var OcamlHighlightRules = require("ace/mode/ocaml_highlight_rules").OcamlHighlightRules;
-var MatchingBraceOutdent = require("ace/mode/matching_brace_outdent").MatchingBraceOutdent;
-var Range = require("ace/range").Range;
+var oop = require("../lib/oop");
+var TextMode = require("./text").Mode;
+var Tokenizer = require("../tokenizer").Tokenizer;
+var OcamlHighlightRules = require("./ocaml_highlight_rules").OcamlHighlightRules;
+var MatchingBraceOutdent = require("./matching_brace_outdent").MatchingBraceOutdent;
+var Range = require("../range").Range;
 
 var Mode = function() {
     this.$tokenizer = new Tokenizer(new OcamlHighlightRules().getRules());
@@ -22780,11 +19885,11 @@ exports.Mode = Mode;
  *
  */
 
-define('ace/mode/ocaml_highlight_rules', ['require', 'exports', 'module' , 'pilot/oop', 'pilot/lang', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
+define('ace/mode/ocaml_highlight_rules', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/lib/lang', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var lang = require("pilot/lang");
-var TextHighlightRules = require("ace/mode/text_highlight_rules").TextHighlightRules;
+var oop = require("../lib/oop");
+var lang = require("../lib/lang");
+var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var OcamlHighlightRules = function() {
 
@@ -23132,14 +20237,14 @@ exports.OcamlHighlightRules = OcamlHighlightRules;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/mode/perl', ['require', 'exports', 'module' , 'pilot/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/perl_highlight_rules', 'ace/mode/matching_brace_outdent', 'ace/range'], function(require, exports, module) {
+define('ace/mode/perl', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/perl_highlight_rules', 'ace/mode/matching_brace_outdent', 'ace/range'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var TextMode = require("ace/mode/text").Mode;
-var Tokenizer = require("ace/tokenizer").Tokenizer;
-var PerlHighlightRules = require("ace/mode/perl_highlight_rules").PerlHighlightRules;
-var MatchingBraceOutdent = require("ace/mode/matching_brace_outdent").MatchingBraceOutdent;
-var Range = require("ace/range").Range;
+var oop = require("../lib/oop");
+var TextMode = require("./text").Mode;
+var Tokenizer = require("../tokenizer").Tokenizer;
+var PerlHighlightRules = require("./perl_highlight_rules").PerlHighlightRules;
+var MatchingBraceOutdent = require("./matching_brace_outdent").MatchingBraceOutdent;
+var Range = require("../range").Range;
 
 var Mode = function() {
     this.$tokenizer = new Tokenizer(new PerlHighlightRules().getRules());
@@ -23248,11 +20353,11 @@ exports.Mode = Mode;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/mode/perl_highlight_rules', ['require', 'exports', 'module' , 'pilot/oop', 'pilot/lang', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
+define('ace/mode/perl_highlight_rules', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/lib/lang', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var lang = require("pilot/lang");
-var TextHighlightRules = require("ace/mode/text_highlight_rules").TextHighlightRules;
+var oop = require("../lib/oop");
+var lang = require("../lib/lang");
+var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var PerlHighlightRules = function() {
 
@@ -23415,15 +20520,15 @@ exports.PerlHighlightRules = PerlHighlightRules;
 *
 * ***** END LICENSE BLOCK ***** */
 
-define('ace/mode/php', ['require', 'exports', 'module' , 'pilot/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/php_highlight_rules', 'ace/mode/matching_brace_outdent', 'ace/range', 'ace/mode/behaviour/cstyle'], function(require, exports, module) {
+define('ace/mode/php', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/php_highlight_rules', 'ace/mode/matching_brace_outdent', 'ace/range', 'ace/mode/behaviour/cstyle'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var TextMode = require("ace/mode/text").Mode;
-var Tokenizer = require("ace/tokenizer").Tokenizer;
-var PhpHighlightRules = require("ace/mode/php_highlight_rules").PhpHighlightRules;
-var MatchingBraceOutdent = require("ace/mode/matching_brace_outdent").MatchingBraceOutdent;
-var Range = require("ace/range").Range;
-var CstyleBehaviour = require("ace/mode/behaviour/cstyle").CstyleBehaviour;
+var oop = require("../lib/oop");
+var TextMode = require("./text").Mode;
+var Tokenizer = require("../tokenizer").Tokenizer;
+var PhpHighlightRules = require("./php_highlight_rules").PhpHighlightRules;
+var MatchingBraceOutdent = require("./matching_brace_outdent").MatchingBraceOutdent;
+var Range = require("../range").Range;
+var CstyleBehaviour = require("./behaviour/cstyle").CstyleBehaviour;
 
 var Mode = function() {
     this.$tokenizer = new Tokenizer(new PhpHighlightRules().getRules());
@@ -23534,12 +20639,12 @@ exports.Mode = Mode;
  * ***** END LICENSE BLOCK *****
  */
 
-define('ace/mode/php_highlight_rules', ['require', 'exports', 'module' , 'pilot/oop', 'pilot/lang', 'ace/mode/doc_comment_highlight_rules', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
+define('ace/mode/php_highlight_rules', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/lib/lang', 'ace/mode/doc_comment_highlight_rules', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var lang = require("pilot/lang");
-var DocCommentHighlightRules = require("ace/mode/doc_comment_highlight_rules").DocCommentHighlightRules;
-var TextHighlightRules = require("ace/mode/text_highlight_rules").TextHighlightRules;
+var oop = require("../lib/oop");
+var lang = require("../lib/lang");
+var DocCommentHighlightRules = require("./doc_comment_highlight_rules").DocCommentHighlightRules;
+var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var PhpHighlightRules = function() {
     // http://php.net/quickref.php
@@ -24555,14 +21660,14 @@ oop.inherits(PhpHighlightRules, TextHighlightRules);
 
 exports.PhpHighlightRules = PhpHighlightRules;
 });
-define('ace/mode/powershell', ['require', 'exports', 'module' , 'pilot/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/powershell_highlight_rules', 'ace/mode/matching_brace_outdent', 'ace/mode/behaviour/cstyle'], function(require, exports, module) {
+define('ace/mode/powershell', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/powershell_highlight_rules', 'ace/mode/matching_brace_outdent', 'ace/mode/behaviour/cstyle'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var TextMode = require("ace/mode/text").Mode;
-var Tokenizer = require("ace/tokenizer").Tokenizer;
-var PowershellHighlightRules = require("ace/mode/powershell_highlight_rules").PowershellHighlightRules;
-var MatchingBraceOutdent = require("ace/mode/matching_brace_outdent").MatchingBraceOutdent;
-var CstyleBehaviour = require("ace/mode/behaviour/cstyle").CstyleBehaviour;
+var oop = require("../lib/oop");
+var TextMode = require("./text").Mode;
+var Tokenizer = require("../tokenizer").Tokenizer;
+var PowershellHighlightRules = require("./powershell_highlight_rules").PowershellHighlightRules;
+var MatchingBraceOutdent = require("./matching_brace_outdent").MatchingBraceOutdent;
+var CstyleBehaviour = require("./behaviour/cstyle").CstyleBehaviour;
 
 var Mode = function() {
     this.$tokenizer = new Tokenizer(new PowershellHighlightRules().getRules());
@@ -24573,34 +21678,34 @@ oop.inherits(Mode, TextMode);
 
 (function() {
     
-	  this.getNextLineIndent = function(state, line, tab) {
-	      var indent = this.$getIndent(line);
+      this.getNextLineIndent = function(state, line, tab) {
+          var indent = this.$getIndent(line);
 
-	      var tokenizedLine = this.$tokenizer.getLineTokens(line, state);
-	      var tokens = tokenizedLine.tokens;
-	      var endState = tokenizedLine.state;
+          var tokenizedLine = this.$tokenizer.getLineTokens(line, state);
+          var tokens = tokenizedLine.tokens;
+          var endState = tokenizedLine.state;
 
-	      if (tokens.length && tokens[tokens.length-1].type == "comment") {
-	          return indent;
-	      }
+          if (tokens.length && tokens[tokens.length-1].type == "comment") {
+              return indent;
+          }
       
-	      if (state == "start") {
-	          var match = line.match(/^.*[\{\(\[]\s*$/);
-	          if (match) {
-	              indent += tab;
-	          }
-	      }
+          if (state == "start") {
+              var match = line.match(/^.*[\{\(\[]\s*$/);
+              if (match) {
+                  indent += tab;
+              }
+          }
 
-	      return indent;
-	  };
+          return indent;
+      };
 
-	  this.checkOutdent = function(state, line, input) {
-	      return this.$outdent.checkOutdent(line, input);
-	  };
+      this.checkOutdent = function(state, line, input) {
+          return this.$outdent.checkOutdent(line, input);
+      };
 
-	  this.autoOutdent = function(state, doc, row) {
-	      this.$outdent.autoOutdent(doc, row);
-	  };
+      this.autoOutdent = function(state, doc, row) {
+          this.$outdent.autoOutdent(doc, row);
+      };
 
 
     this.createWorker = function(session) {
@@ -24611,12 +21716,12 @@ oop.inherits(Mode, TextMode);
 
 exports.Mode = Mode;
 });
-define('ace/mode/powershell_highlight_rules', ['require', 'exports', 'module' , 'pilot/oop', 'pilot/lang', 'ace/mode/doc_comment_highlight_rules', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
+define('ace/mode/powershell_highlight_rules', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/lib/lang', 'ace/mode/doc_comment_highlight_rules', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var lang = require("pilot/lang");
-var DocCommentHighlightRules = require("ace/mode/doc_comment_highlight_rules").DocCommentHighlightRules;
-var TextHighlightRules = require("ace/mode/text_highlight_rules").TextHighlightRules;
+var oop = require("../lib/oop");
+var lang = require("../lib/lang");
+var DocCommentHighlightRules = require("./doc_comment_highlight_rules").DocCommentHighlightRules;
+var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var PowershellHighlightRules = function() {
     
@@ -24787,14 +21892,14 @@ exports.PowershellHighlightRules = PowershellHighlightRules;
 *
 * ***** END LICENSE BLOCK ***** */
 
-define('ace/mode/python', ['require', 'exports', 'module' , 'pilot/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/python_highlight_rules', 'ace/mode/matching_brace_outdent', 'ace/range'], function(require, exports, module) {
+define('ace/mode/python', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/python_highlight_rules', 'ace/mode/matching_brace_outdent', 'ace/range'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var TextMode = require("ace/mode/text").Mode;
-var Tokenizer = require("ace/tokenizer").Tokenizer;
-var PythonHighlightRules = require("ace/mode/python_highlight_rules").PythonHighlightRules;
-var MatchingBraceOutdent = require("ace/mode/matching_brace_outdent").MatchingBraceOutdent;
-var Range = require("ace/range").Range;
+var oop = require("../lib/oop");
+var TextMode = require("./text").Mode;
+var Tokenizer = require("../tokenizer").Tokenizer;
+var PythonHighlightRules = require("./python_highlight_rules").PythonHighlightRules;
+var MatchingBraceOutdent = require("./matching_brace_outdent").MatchingBraceOutdent;
+var Range = require("../range").Range;
 
 var Mode = function() {
     this.$tokenizer = new Tokenizer(new PythonHighlightRules().getRules());
@@ -24937,11 +22042,11 @@ exports.Mode = Mode;
  * TODO: python delimiters
  */
 
-define('ace/mode/python_highlight_rules', ['require', 'exports', 'module' , 'pilot/oop', 'pilot/lang', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
+define('ace/mode/python_highlight_rules', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/lib/lang', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var lang = require("pilot/lang");
-var TextHighlightRules = require("ace/mode/text_highlight_rules").TextHighlightRules;
+var oop = require("../lib/oop");
+var lang = require("../lib/lang");
+var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var PythonHighlightRules = function() {
 
@@ -25077,14 +22182,14 @@ oop.inherits(PythonHighlightRules, TextHighlightRules);
 
 exports.PythonHighlightRules = PythonHighlightRules;
 });
-define('ace/mode/scala', ['require', 'exports', 'module' , 'pilot/oop', 'ace/mode/javascript', 'ace/tokenizer', 'ace/mode/scala_highlight_rules', 'ace/mode/matching_brace_outdent', 'ace/mode/behaviour/cstyle'], function(require, exports, module) {
+define('ace/mode/scala', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/javascript', 'ace/tokenizer', 'ace/mode/scala_highlight_rules', 'ace/mode/matching_brace_outdent', 'ace/mode/behaviour/cstyle'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var JavaScriptMode = require("ace/mode/javascript").Mode;
-var Tokenizer = require("ace/tokenizer").Tokenizer;
-var ScalaHighlightRules = require("ace/mode/scala_highlight_rules").ScalaHighlightRules;
-var MatchingBraceOutdent = require("ace/mode/matching_brace_outdent").MatchingBraceOutdent;
-var CstyleBehaviour = require("ace/mode/behaviour/cstyle").CstyleBehaviour;
+var oop = require("../lib/oop");
+var JavaScriptMode = require("./javascript").Mode;
+var Tokenizer = require("../tokenizer").Tokenizer;
+var ScalaHighlightRules = require("./scala_highlight_rules").ScalaHighlightRules;
+var MatchingBraceOutdent = require("./matching_brace_outdent").MatchingBraceOutdent;
+var CstyleBehaviour = require("./behaviour/cstyle").CstyleBehaviour;
 
 var Mode = function() {
     this.$tokenizer = new Tokenizer(new ScalaHighlightRules().getRules());
@@ -25103,12 +22208,12 @@ oop.inherits(Mode, JavaScriptMode);
 
 exports.Mode = Mode;
 });
-define('ace/mode/scala_highlight_rules', ['require', 'exports', 'module' , 'pilot/oop', 'pilot/lang', 'ace/mode/doc_comment_highlight_rules', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
+define('ace/mode/scala_highlight_rules', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/lib/lang', 'ace/mode/doc_comment_highlight_rules', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var lang = require("pilot/lang");
-var DocCommentHighlightRules = require("ace/mode/doc_comment_highlight_rules").DocCommentHighlightRules;
-var TextHighlightRules = require("ace/mode/text_highlight_rules").TextHighlightRules;
+var oop = require("../lib/oop");
+var lang = require("../lib/lang");
+var DocCommentHighlightRules = require("./doc_comment_highlight_rules").DocCommentHighlightRules;
+var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var ScalaHighlightRules = function() {
 
@@ -25283,13 +22388,13 @@ exports.ScalaHighlightRules = ScalaHighlightRules;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/mode/scss', ['require', 'exports', 'module' , 'pilot/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/scss_highlight_rules', 'ace/mode/matching_brace_outdent'], function(require, exports, module) {
+define('ace/mode/scss', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/scss_highlight_rules', 'ace/mode/matching_brace_outdent'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var TextMode = require("ace/mode/text").Mode;
-var Tokenizer = require("ace/tokenizer").Tokenizer;
-var ScssHighlightRules = require("ace/mode/scss_highlight_rules").ScssHighlightRules;
-var MatchingBraceOutdent = require("ace/mode/matching_brace_outdent").MatchingBraceOutdent;
+var oop = require("../lib/oop");
+var TextMode = require("./text").Mode;
+var Tokenizer = require("../tokenizer").Tokenizer;
+var ScssHighlightRules = require("./scss_highlight_rules").ScssHighlightRules;
+var MatchingBraceOutdent = require("./matching_brace_outdent").MatchingBraceOutdent;
 
 var Mode = function() {
     this.$tokenizer = new Tokenizer(new ScssHighlightRules().getRules());
@@ -25366,11 +22471,11 @@ exports.Mode = Mode;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/mode/scss_highlight_rules', ['require', 'exports', 'module' , 'pilot/oop', 'pilot/lang', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
+define('ace/mode/scss_highlight_rules', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/lib/lang', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var lang = require("pilot/lang");
-var TextHighlightRules = require("ace/mode/text_highlight_rules").TextHighlightRules;
+var oop = require("../lib/oop");
+var lang = require("../lib/lang");
+var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var ScssHighlightRules = function() {
     
@@ -25730,14 +22835,14 @@ exports.ScssHighlightRules = ScssHighlightRules;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/mode/ruby', ['require', 'exports', 'module' , 'pilot/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/ruby_highlight_rules', 'ace/mode/matching_brace_outdent', 'ace/range'], function(require, exports, module) {
+define('ace/mode/ruby', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/ruby_highlight_rules', 'ace/mode/matching_brace_outdent', 'ace/range'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var TextMode = require("ace/mode/text").Mode;
-var Tokenizer = require("ace/tokenizer").Tokenizer;
-var RubyHighlightRules = require("ace/mode/ruby_highlight_rules").RubyHighlightRules;
-var MatchingBraceOutdent = require("ace/mode/matching_brace_outdent").MatchingBraceOutdent;
-var Range = require("ace/range").Range;
+var oop = require("../lib/oop");
+var TextMode = require("./text").Mode;
+var Tokenizer = require("../tokenizer").Tokenizer;
+var RubyHighlightRules = require("./ruby_highlight_rules").RubyHighlightRules;
+var MatchingBraceOutdent = require("./matching_brace_outdent").MatchingBraceOutdent;
+var Range = require("../range").Range;
 
 var Mode = function() {
     this.$tokenizer = new Tokenizer(new RubyHighlightRules().getRules());
@@ -25847,11 +22952,11 @@ exports.Mode = Mode;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/mode/ruby_highlight_rules', ['require', 'exports', 'module' , 'pilot/oop', 'pilot/lang', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
+define('ace/mode/ruby_highlight_rules', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/lib/lang', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var lang = require("pilot/lang");
-var TextHighlightRules = require("ace/mode/text_highlight_rules").TextHighlightRules;
+var oop = require("../lib/oop");
+var lang = require("../lib/lang");
+var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var RubyHighlightRules = function() {
 
@@ -26022,53 +23127,54 @@ exports.RubyHighlightRules = RubyHighlightRules;
 *
 * ***** END LICENSE BLOCK ***** */
 
-define('ace/mode/sql', ['require', 'exports', 'module' , 'pilot/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/sql_highlight_rules', 'ace/range'], function(require, exports, module) {
+define('ace/mode/sql', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/sql_highlight_rules', 'ace/range'], function(require, exports, module) {
 
-    var oop = require("pilot/oop");
-    var TextMode = require("ace/mode/text").Mode;
-    var Tokenizer = require("ace/tokenizer").Tokenizer;
-    var SqlHighlightRules = require("ace/mode/sql_highlight_rules").SqlHighlightRules;
-    var Range = require("ace/range").Range;
+var oop = require("../lib/oop");
+var TextMode = require("./text").Mode;
+var Tokenizer = require("../tokenizer").Tokenizer;
+var SqlHighlightRules = require("./sql_highlight_rules").SqlHighlightRules;
+var Range = require("../range").Range;
 
-    var Mode = function() {
-        this.$tokenizer = new Tokenizer(new SqlHighlightRules().getRules());
+var Mode = function() {
+    this.$tokenizer = new Tokenizer(new SqlHighlightRules().getRules());
+};
+oop.inherits(Mode, TextMode);
+
+(function() {
+
+    this.toggleCommentLines = function(state, doc, startRow, endRow) {
+        var outdent = true;
+        var outentedRows = [];
+        var re = /^(\s*)--/;
+
+        for (var i=startRow; i<= endRow; i++) {
+            if (!re.test(doc.getLine(i))) {
+                outdent = false;
+                break;
+            }
+        }
+
+        if (outdent) {
+            var deleteRange = new Range(0, 0, 0, 0);
+            for (var i=startRow; i<= endRow; i++)
+            {
+                var line = doc.getLine(i);
+                var m = line.match(re);
+                deleteRange.start.row = i;
+                deleteRange.end.row = i;
+                deleteRange.end.column = m[0].length;
+                doc.replace(deleteRange, m[1]);
+            }
+        }
+        else {
+            doc.indentRows(startRow, endRow, "--");
+        }
     };
-    oop.inherits(Mode, TextMode);
 
-    (function() {
+}).call(Mode.prototype);
 
-        this.toggleCommentLines = function(state, doc, startRow, endRow) {
-            var outdent = true;
-            var outentedRows = [];
-            var re = /^(\s*)--/;
+exports.Mode = Mode;
 
-            for (var i=startRow; i<= endRow; i++) {
-                if (!re.test(doc.getLine(i))) {
-                    outdent = false;
-                    break;
-                }
-            }
-
-            if (outdent) {
-                var deleteRange = new Range(0, 0, 0, 0);
-                for (var i=startRow; i<= endRow; i++)
-                {
-                    var line = doc.getLine(i);
-                    var m = line.match(re);
-                    deleteRange.start.row = i;
-                    deleteRange.end.row = i;
-                    deleteRange.end.column = m[0].length;
-                    doc.replace(deleteRange, m[1]);
-                }
-            }
-            else {
-                doc.indentRows(startRow, endRow, "--");
-            }
-        };
-
-    }).call(Mode.prototype);
-
-    exports.Mode = Mode;
 });
 /* ***** BEGIN LICENSE BLOCK *****
  * The Original Code is Ajax.org Code Editor (ACE).
@@ -26092,11 +23198,11 @@ define('ace/mode/sql', ['require', 'exports', 'module' , 'pilot/oop', 'ace/mode/
  *
  */
 
-define('ace/mode/sql_highlight_rules', ['require', 'exports', 'module' , 'pilot/oop', 'pilot/lang', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
+define('ace/mode/sql_highlight_rules', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/lib/lang', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var lang = require("pilot/lang");
-var TextHighlightRules = require("ace/mode/text_highlight_rules").TextHighlightRules;
+var oop = require("../lib/oop");
+var lang = require("../lib/lang");
+var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var SqlHighlightRules = function() {
 
@@ -26197,14 +23303,14 @@ exports.SqlHighlightRules = SqlHighlightRules;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/mode/SVG', ['require', 'exports', 'module' , 'pilot/oop', 'ace/mode/text', 'ace/mode/javascript', 'ace/tokenizer', 'ace/mode/svg_highlight_rules', 'ace/mode/behaviour/xml'], function(require, exports, module) {
+define('ace/mode/SVG', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/text', 'ace/mode/javascript', 'ace/tokenizer', 'ace/mode/svg_highlight_rules', 'ace/mode/behaviour/xml'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var XmlMode = require("ace/mode/text").Mode;
-var JavaScriptMode = require("ace/mode/javascript").Mode;
-var Tokenizer = require("ace/tokenizer").Tokenizer;
-var SvgHighlightRules = require("ace/mode/svg_highlight_rules").SvgHighlightRules;
-var XmlBehaviour = require("ace/mode/behaviour/xml").XmlBehaviour;
+var oop = require("../lib/oop");
+var XmlMode = require("./text").Mode;
+var JavaScriptMode = require("./javascript").Mode;
+var Tokenizer = require("../tokenizer").Tokenizer;
+var SvgHighlightRules = require("./svg_highlight_rules").SvgHighlightRules;
+var XmlBehaviour = require("./behaviour/xml").XmlBehaviour;
 
 var Mode = function() {
     this.highlighter = new SvgHighlightRules();
@@ -26274,11 +23380,11 @@ exports.Mode = Mode;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/mode/svg_highlight_rules', ['require', 'exports', 'module' , 'pilot/oop', 'ace/mode/javascript_highlight_rules', 'ace/mode/xml_highlight_rules'], function(require, exports, module) {
+define('ace/mode/svg_highlight_rules', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/javascript_highlight_rules', 'ace/mode/xml_highlight_rules'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var JavaScriptHighlightRules = require("ace/mode/javascript_highlight_rules").JavaScriptHighlightRules;
-var XmlHighlightRules = require("ace/mode/xml_highlight_rules").XmlHighlightRules;
+var oop = require("../lib/oop");
+var JavaScriptHighlightRules = require("./javascript_highlight_rules").JavaScriptHighlightRules;
+var XmlHighlightRules = require("./xml_highlight_rules").XmlHighlightRules;
 
 var SvgHighlightRules = function() {
     XmlHighlightRules.call(this);
@@ -26359,14 +23465,14 @@ exports.SvgHighlightRules = SvgHighlightRules;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/mode/textile', ['require', 'exports', 'module' , 'pilot/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/textile_highlight_rules', 'ace/mode/matching_brace_outdent', 'ace/range'], function(require, exports, module) {
+define('ace/mode/textile', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/text', 'ace/tokenizer', 'ace/mode/textile_highlight_rules', 'ace/mode/matching_brace_outdent', 'ace/range'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var TextMode = require("ace/mode/text").Mode;
-var Tokenizer = require("ace/tokenizer").Tokenizer;
-var TextileHighlightRules = require("ace/mode/textile_highlight_rules").TextileHighlightRules;
-var MatchingBraceOutdent = require("ace/mode/matching_brace_outdent").MatchingBraceOutdent;
-var Range = require("ace/range").Range;
+var oop = require("../lib/oop");
+var TextMode = require("./text").Mode;
+var Tokenizer = require("../tokenizer").Tokenizer;
+var TextileHighlightRules = require("./textile_highlight_rules").TextileHighlightRules;
+var MatchingBraceOutdent = require("./matching_brace_outdent").MatchingBraceOutdent;
+var Range = require("../range").Range;
 
 var Mode = function()
 {
@@ -26435,10 +23541,10 @@ exports.Mode = Mode;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/mode/textile_highlight_rules', ['require', 'exports', 'module' , 'pilot/oop', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
+define('ace/mode/textile_highlight_rules', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var TextHighlightRules = require("ace/mode/text_highlight_rules").TextHighlightRules;
+var oop = require("../lib/oop");
+var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var TextileHighlightRules = function() {
     this.$rules = {
@@ -26498,6 +23604,825 @@ oop.inherits(TextileHighlightRules, TextHighlightRules);
 exports.TextileHighlightRules = TextileHighlightRules;
 
 });
+define("text!kitchen-sink/docs/plaintext.txt", [], "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.\n" +
+  "\n" +
+  "Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.\n" +
+  "\n" +
+  "Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi.\n" +
+  "\n" +
+  "Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming id quod mazim placerat facer possim assum. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.\n" +
+  "\n" +
+  "Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis.\n" +
+  "\n" +
+  "At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, At accusam aliquyam diam diam dolore dolores duo eirmod eos erat, et nonumy sed tempor et et invidunt justo labore Stet clita ea et gubergren, kasd magna no rebum. sanctus sea sed takimata ut vero voluptua. est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur");
+
+define("text!kitchen-sink/docs/javascript.js", [], "function foo(items) {\n" +
+  "    for (var i=0; i<items.length; i++) {\n" +
+  "        alert(items[i] + \"juhu\");\n" +
+  "    }	// Real Tab.\n" +
+  "}");
+
+define("text!kitchen-sink/docs/coffeescript.coffee", [], "#!/usr/bin/env coffee\n" +
+  "\n" +
+  "try\n" +
+  "    throw URIError decodeURI(0xC0ffee * 123456.7e-8 / .9)\n" +
+  "catch e\n" +
+  "    console.log 'qstring' + \"qqstring\" + '''\n" +
+  "        qdoc\n" +
+  "    ''' + \"\"\"\n" +
+  "        qqdoc\n" +
+  "    \"\"\"\n" +
+  "\n" +
+  "do ->\n" +
+  "    ###\n" +
+  "    herecomment\n" +
+  "    ###\n" +
+  "    re = /regex/imgy.test ///\n" +
+  "        heregex  # comment\n" +
+  "    ///imgy\n" +
+  "    this isnt: `just JavaScript`\n" +
+  "    undefined");
+
+define("text!kitchen-sink/docs/json.json", [], "{\n" +
+  " \"query\": {\n" +
+  "  \"count\": 10,\n" +
+  "  \"created\": \"2011-06-21T08:10:46Z\",\n" +
+  "  \"lang\": \"en-US\",\n" +
+  "  \"results\": {\n" +
+  "   \"photo\": [\n" +
+  "    {\n" +
+  "     \"farm\": \"6\",\n" +
+  "     \"id\": \"5855620975\",\n" +
+  "     \"isfamily\": \"0\",\n" +
+  "     \"isfriend\": \"0\",\n" +
+  "     \"ispublic\": \"1\",\n" +
+  "     \"owner\": \"32021554@N04\",\n" +
+  "     \"secret\": \"f1f5e8515d\",\n" +
+  "     \"server\": \"5110\",\n" +
+  "     \"title\": \"7087 bandit cat\"\n" +
+  "    },\n" +
+  "    {\n" +
+  "     \"farm\": \"4\",\n" +
+  "     \"id\": \"5856170534\",\n" +
+  "     \"isfamily\": \"0\",\n" +
+  "     \"isfriend\": \"0\",\n" +
+  "     \"ispublic\": \"1\",\n" +
+  "     \"owner\": \"32021554@N04\",\n" +
+  "     \"secret\": \"ff1efb2a6f\",\n" +
+  "     \"server\": \"3217\",\n" +
+  "     \"title\": \"6975 rusty cat\"\n" +
+  "    },\n" +
+  "    {\n" +
+  "     \"farm\": \"6\",\n" +
+  "     \"id\": \"5856172972\",\n" +
+  "     \"isfamily\": \"0\",\n" +
+  "     \"isfriend\": \"0\",\n" +
+  "     \"ispublic\": \"1\",\n" +
+  "     \"owner\": \"51249875@N03\",\n" +
+  "     \"secret\": \"6c6887347c\",\n" +
+  "     \"server\": \"5192\",\n" +
+  "     \"title\": \"watermarked-cats\"\n" +
+  "    },\n" +
+  "    {\n" +
+  "     \"farm\": \"6\",\n" +
+  "     \"id\": \"5856168328\",\n" +
+  "     \"isfamily\": \"0\",\n" +
+  "     \"isfriend\": \"0\",\n" +
+  "     \"ispublic\": \"1\",\n" +
+  "     \"owner\": \"32021554@N04\",\n" +
+  "     \"secret\": \"0c1cfdf64c\",\n" +
+  "     \"server\": \"5078\",\n" +
+  "     \"title\": \"7020 mandy cat\"\n" +
+  "    },\n" +
+  "    {\n" +
+  "     \"farm\": \"3\",\n" +
+  "     \"id\": \"5856171774\",\n" +
+  "     \"isfamily\": \"0\",\n" +
+  "     \"isfriend\": \"0\",\n" +
+  "     \"ispublic\": \"1\",\n" +
+  "     \"owner\": \"32021554@N04\",\n" +
+  "     \"secret\": \"7f5a3180ab\",\n" +
+  "     \"server\": \"2696\",\n" +
+  "     \"title\": \"7448 bobby cat\"\n" +
+  "    }\n" +
+  "   ]\n" +
+  "  }\n" +
+  " }\n" +
+  "}");
+
+define("text!kitchen-sink/docs/css.css", [], ".text-layer {\n" +
+  "    font-family: Monaco, \"Courier New\", monospace;\n" +
+  "    font-size: 12px;\n" +
+  "    cursor: text;\n" +
+  "}");
+
+define("text!kitchen-sink/docs/scss.scss", [], "/* style.scss */\n" +
+  "\n" +
+  "#navbar {\n" +
+  "    $navbar-width: 800px;\n" +
+  "    $items: 5;\n" +
+  "    $navbar-color: #ce4dd6;\n" +
+  "\n" +
+  "    width: $navbar-width;\n" +
+  "    border-bottom: 2px solid $navbar-color;\n" +
+  "\n" +
+  "    li {\n" +
+  "        float: left;\n" +
+  "        width: $navbar-width/$items - 10px;\n" +
+  "\n" +
+  "        background-color: lighten($navbar-color, 20%);\n" +
+  "        &:hover {\n" +
+  "            background-color: lighten($navbar-color, 10%);\n" +
+  "        }\n" +
+  "    }\n" +
+  "}");
+
+define("text!kitchen-sink/docs/html.html", [], "<html>\n" +
+  "    <head>\n" +
+  "\n" +
+  "    <style type=\"text/css\">\n" +
+  "        .text-layer {\n" +
+  "            font-family: Monaco, \"Courier New\", monospace;\n" +
+  "            font-size: 12px;\n" +
+  "            cursor: text;\n" +
+  "        }\n" +
+  "    </style>\n" +
+  "\n" +
+  "    </head>\n" +
+  "    <body>\n" +
+  "        <h1 style=\"color:red\">Juhu Kinners</h1>\n" +
+  "    </body>\n" +
+  "</html>");
+
+define("text!kitchen-sink/docs/xml.xml", [], "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+  "<query xmlns:yahoo=\"http://www.yahooapis.com/v1/base.rng\"\n" +
+  "    yahoo:count=\"7\" yahoo:created=\"2011-10-11T08:40:23Z\" yahoo:lang=\"en-US\">\n" +
+  "    <diagnostics>\n" +
+  "        <publiclyCallable>true</publiclyCallable>\n" +
+  "        <url execution-start-time=\"0\" execution-stop-time=\"25\" execution-time=\"25\"><![CDATA[http://where.yahooapis.com/v1/continents;start=0;count=10]]></url>\n" +
+  "        <user-time>26</user-time>\n" +
+  "        <service-time>25</service-time>\n" +
+  "        <build-version>21978</build-version>\n" +
+  "    </diagnostics> \n" +
+  "    <results>\n" +
+  "        <place xmlns=\"http://where.yahooapis.com/v1/schema.rng\"\n" +
+  "            xml:lang=\"en-US\" yahoo:uri=\"http://where.yahooapis.com/v1/place/24865670\">\n" +
+  "            <woeid>24865670</woeid>\n" +
+  "            <placeTypeName code=\"29\">Continent</placeTypeName>\n" +
+  "            <name>Africa</name>\n" +
+  "        </place>\n" +
+  "        <place xmlns=\"http://where.yahooapis.com/v1/schema.rng\"\n" +
+  "            xml:lang=\"en-US\" yahoo:uri=\"http://where.yahooapis.com/v1/place/24865675\">\n" +
+  "            <woeid>24865675</woeid>\n" +
+  "            <placeTypeName code=\"29\">Continent</placeTypeName>\n" +
+  "            <name>Europe</name>\n" +
+  "        </place>\n" +
+  "        <place xmlns=\"http://where.yahooapis.com/v1/schema.rng\"\n" +
+  "            xml:lang=\"en-US\" yahoo:uri=\"http://where.yahooapis.com/v1/place/24865673\">\n" +
+  "            <woeid>24865673</woeid>\n" +
+  "            <placeTypeName code=\"29\">Continent</placeTypeName>\n" +
+  "            <name>South America</name>\n" +
+  "        </place>\n" +
+  "        <place xmlns=\"http://where.yahooapis.com/v1/schema.rng\"\n" +
+  "            xml:lang=\"en-US\" yahoo:uri=\"http://where.yahooapis.com/v1/place/28289421\">\n" +
+  "            <woeid>28289421</woeid>\n" +
+  "            <placeTypeName code=\"29\">Continent</placeTypeName>\n" +
+  "            <name>Antarctic</name>\n" +
+  "        </place>\n" +
+  "        <place xmlns=\"http://where.yahooapis.com/v1/schema.rng\"\n" +
+  "            xml:lang=\"en-US\" yahoo:uri=\"http://where.yahooapis.com/v1/place/24865671\">\n" +
+  "            <woeid>24865671</woeid>\n" +
+  "            <placeTypeName code=\"29\">Continent</placeTypeName>\n" +
+  "            <name>Asia</name>\n" +
+  "        </place>\n" +
+  "        <place xmlns=\"http://where.yahooapis.com/v1/schema.rng\"\n" +
+  "            xml:lang=\"en-US\" yahoo:uri=\"http://where.yahooapis.com/v1/place/24865672\">\n" +
+  "            <woeid>24865672</woeid>\n" +
+  "            <placeTypeName code=\"29\">Continent</placeTypeName>\n" +
+  "            <name>North America</name>\n" +
+  "        </place>\n" +
+  "        <place xmlns=\"http://where.yahooapis.com/v1/schema.rng\"\n" +
+  "            xml:lang=\"en-US\" yahoo:uri=\"http://where.yahooapis.com/v1/place/55949070\">\n" +
+  "            <woeid>55949070</woeid>\n" +
+  "            <placeTypeName code=\"29\">Continent</placeTypeName>\n" +
+  "            <name>Australia</name>\n" +
+  "        </place>\n" +
+  "    </results>\n" +
+  "</query>");
+
+define("text!kitchen-sink/docs/svg.svg", [], "<svg\n" +
+  "  width=\"800\" height=\"600\"\n" +
+  "  xmlns=\"http://www.w3.org/2000/svg\"\n" +
+  "  onload=\"StartAnimation(evt)\">\n" +
+  "\n" +
+  "  <title>Test Tube Progress Bar</title>\n" +
+  "  <desc>Created for the Web Directions SVG competition</desc>\n" +
+  "\n" +
+  "  <script type=\"text/ecmascript\"><![CDATA[\n" +
+  "    var timevalue = 0;\n" +
+  "    var timer_increment = 1;\n" +
+  "    var max_time = 100;\n" +
+  "    var hickory;\n" +
+  "    var dickory;\n" +
+  "    var dock;\n" +
+  "    var i;\n" +
+  "\n" +
+  "    function StartAnimation(evt) {\n" +
+  "        hickory  = evt.target.ownerDocument.getElementById(\"hickory\");\n" +
+  "        dickory = evt.target.ownerDocument.getElementById(\"dickory\");\n" +
+  "        dock = evt.target.ownerDocument.getElementById(\"dock\");\n" +
+  "\n" +
+  "        ShowAndGrowElement();\n" +
+  "    }\n" +
+  "    function ShowAndGrowElement() {\n" +
+  "        timevalue = timevalue + timer_increment;\n" +
+  "        if (timevalue > max_time)\n" +
+  "            return;\n" +
+  "        // Scale the text string gradually until it is 20 times larger\n" +
+  "        scalefactor = (timevalue * 650) / max_time;\n" +
+  "\n" +
+  "        if (timevalue < 30) {\n" +
+  "            hickory.setAttribute(\"display\", \"\");\n" +
+  "            hickory.setAttribute(\"transform\", \"translate(\" + (600+scalefactor*3*-1 ) + \", -144 )\");\n" +
+  "        }\n" +
+  "\n" +
+  "        if (timevalue > 30 && timevalue < 66) {\n" +
+  "            dickory.setAttribute(\"display\", \"\");\n" +
+  "            dickory.setAttribute(\"transform\", \"translate(\" + (-795+scalefactor*2) + \", 0 )\");\n" +
+  "        }\n" +
+  "        if (timevalue > 66) {\n" +
+  "            dock.setAttribute(\"display\", \"\");\n" +
+  "            dock.setAttribute(\"transform\", \"translate(\" + (1450+scalefactor*2*-1) + \", 144 )\");\n" +
+  "        }\n" +
+  "\n" +
+  "        // Call ShowAndGrowElement again <timer_increment> milliseconds later.\n" +
+  "        setTimeout(\"ShowAndGrowElement()\", timer_increment)\n" +
+  "    }\n" +
+  "    window.ShowAndGrowElement = ShowAndGrowElement\n" +
+  "  ]]</script>\n" +
+  "\n" +
+  "  <rect\n" +
+  "    fill=\"#2e3436\"\n" +
+  "    fill-rule=\"nonzero\"\n" +
+  "    stroke-width=\"3\"\n" +
+  "    y=\"0\"\n" +
+  "    x=\"0\"\n" +
+  "    height=\"600\"\n" +
+  "    width=\"800\"\n" +
+  "    id=\"rect3590\"/>\n" +
+  "\n" +
+  "    <text\n" +
+  "       style=\"font-size:144px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans Bold\"\n" +
+  "       x=\"50\"\n" +
+  "       y=\"350\"\n" +
+  "       id=\"hickory\"\n" +
+  "       display=\"none\">\n" +
+  "        Hickory,</text>\n" +
+  "    <text\n" +
+  "       style=\"font-size:144px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans Bold\"\n" +
+  "       x=\"50\"\n" +
+  "       y=\"350\"\n" +
+  "       id=\"dickory\"\n" +
+  "       display=\"none\">\n" +
+  "        dickory,</text>\n" +
+  "    <text\n" +
+  "       style=\"font-size:144px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans Bold\"\n" +
+  "       x=\"50\"\n" +
+  "       y=\"350\"\n" +
+  "       id=\"dock\"\n" +
+  "       display=\"none\">\n" +
+  "        dock!</text>\n" +
+  "</svg>");
+
+define("text!kitchen-sink/docs/php.php", [], "<?php\n" +
+  "\n" +
+  "function nfact($n) {\n" +
+  "    if ($n == 0) {\n" +
+  "        return 1;\n" +
+  "    }\n" +
+  "    else {\n" +
+  "        return $n * nfact($n - 1);\n" +
+  "    }\n" +
+  "}\n" +
+  "\n" +
+  "echo \"\\n\\nPlease enter a whole number ... \";\n" +
+  "$num = trim(fgets(STDIN));\n" +
+  "\n" +
+  "// ===== PROCESS - Determing the factorial of the input number =====\n" +
+  "$output = \"\\n\\nFactorial \" . $num . \" = \" . nfact($num) . \"\\n\\n\";\n" +
+  "echo $output;\n" +
+  "\n" +
+  "?>");
+
+define("text!kitchen-sink/docs/coldfusion.cfm", [], "<!--- hello world --->\n" +
+  "\n" +
+  "<cfset welcome=\"Hello World!\">\n" +
+  "\n" +
+  "<cfoutput>#welcome#</cfoutput>");
+
+define("text!kitchen-sink/docs/python.py", [], "#!/usr/local/bin/python\n" +
+  "\n" +
+  "import string, sys\n" +
+  "\n" +
+  "# If no arguments were given, print a helpful message\n" +
+  "if len(sys.argv)==1:\n" +
+  "print '''Usage:\n" +
+  "    celsius temp1 temp2 ...'''\n" +
+  "sys.exit(0)\n" +
+  "\n" +
+  "# Loop over the arguments\n" +
+  "for i in sys.argv[1:]:\n" +
+  "    try:\n" +
+  "        fahrenheit=float(string.atoi(i))\n" +
+  "    except string.atoi_error:\n" +
+  "        print repr(i), \"not a numeric value\"\n" +
+  "    else:\n" +
+  "        celsius=(fahrenheit-32)*5.0/9.0\n" +
+  "        print '%i\\260F = %i\\260C' % (int(fahrenheit), int(celsius+.5))");
+
+define("text!kitchen-sink/docs/ruby.rb", [], "#!/usr/bin/ruby\n" +
+  "\n" +
+  "# Program to find the factorial of a number\n" +
+  "def fact(n)\n" +
+  "    if n == 0\n" +
+  "        1\n" +
+  "    else\n" +
+  "        n * fact(n-1)\n" +
+  "    end\n" +
+  "end\n" +
+  "\n" +
+  "puts fact(ARGV[0].to_i)");
+
+define("text!kitchen-sink/docs/perl.pl", [], "#!/usr/bin/perl\n" +
+  "use strict;\n" +
+  "use warnings;\n" +
+  "my $num_primes = 0;\n" +
+  "my @primes;\n" +
+  "\n" +
+  "# Put 2 as the first prime so we won't have an empty array\n" +
+  "$primes[$num_primes] = 2;\n" +
+  "$num_primes++;\n" +
+  "\n" +
+  "MAIN_LOOP:\n" +
+  "for my $number_to_check (3 .. 200)\n" +
+  "{\n" +
+  "    for my $p (0 .. ($num_primes-1))\n" +
+  "    {\n" +
+  "        if ($number_to_check % $primes[$p] == 0)\n" +
+  "        {\n" +
+  "            next MAIN_LOOP;\n" +
+  "        }\n" +
+  "    }\n" +
+  "\n" +
+  "    # If we reached this point it means $number_to_check is not\n" +
+  "    # divisable by any prime number that came before it.\n" +
+  "    $primes[$num_primes] = $number_to_check;\n" +
+  "    $num_primes++;\n" +
+  "}\n" +
+  "\n" +
+  "for my $p (0 .. ($num_primes-1))\n" +
+  "{\n" +
+  "    print $primes[$p], \", \";\n" +
+  "}\n" +
+  "print \"\\n\";\n" +
+  "");
+
+define("text!kitchen-sink/docs/ocaml.ml", [], "(*\n" +
+  " * Example of early return implementation taken from\n" +
+  " * http://ocaml.janestreet.com/?q=node/91\n" +
+  " *)\n" +
+  "\n" +
+  "let with_return (type t) (f : _ -> t) =\n" +
+  "  let module M =\n" +
+  "     struct exception Return of t end\n" +
+  "  in\n" +
+  "  let return = { return = (fun x -> raise (M.Return x)); } in\n" +
+  "  try f return with M.Return x -> x\n" +
+  "\n" +
+  "\n" +
+  "(* Function that uses the 'early return' functionality provided by `with_return` *)\n" +
+  "let sum_until_first_negative list =\n" +
+  "  with_return (fun r ->\n" +
+  "    List.fold list ~init:0 ~f:(fun acc x ->\n" +
+  "      if x >= 0 then acc + x else r.return acc))");
+
+define("text!kitchen-sink/docs/lua.lua", [], "--[[--\n" +
+  "num_args takes in 5.1 byte code and extracts the number of arguments\n" +
+  "from its function header.\n" +
+  "--]]--\n" +
+  "\n" +
+  "function int(t)\n" +
+  "	return t:byte(1)+t:byte(2)*0x100+t:byte(3)*0x10000+t:byte(4)*0x1000000\n" +
+  "end\n" +
+  "\n" +
+  "function num_args(func)\n" +
+  "	local dump = string.dump(func)\n" +
+  "	local offset, cursor = int(dump:sub(13)), offset + 26\n" +
+  "	--Get the params and var flag (whether there's a ... in the param)\n" +
+  "	return dump:sub(cursor):byte(), dump:sub(cursor+1):byte()\n" +
+  "end\n" +
+  "\n" +
+  "-- Usage:\n" +
+  "num_args(function(a,b,c,d, ...) end) -- return 4, 7\n" +
+  "\n" +
+  "-- Python styled string format operator\n" +
+  "local gm = debug.getmetatable(\"\")\n" +
+  "\n" +
+  "gm.__mod=function(self, other)\n" +
+  "    if type(other) ~= \"table\" then other = {other} end\n" +
+  "    for i,v in ipairs(other) do other[i] = tostring(v) end\n" +
+  "    return self:format(unpack(other))\n" +
+  "end\n" +
+  "\n" +
+  "print([===[\n" +
+  "    blah blah %s, (%d %d)\n" +
+  "]===]%{\"blah\", num_args(int)})\n" +
+  "\n" +
+  "--[=[--\n" +
+  "table.maxn is deprecated, use # instead.\n" +
+  "--]=]--\n" +
+  "print(table.maxn{1,2,[4]=4,[8]=8) -- outputs 8 instead of 2\n" +
+  "");
+
+define("text!kitchen-sink/docs/java.java", [], "public class InfiniteLoop {\n" +
+  "\n" +
+  "    /*\n" +
+  "     * This will cause the program to hang...\n" +
+  "     *\n" +
+  "     * Taken from:\n" +
+  "     * http://www.exploringbinary.com/java-hangs-when-converting-2-2250738585072012e-308/\n" +
+  "     */\n" +
+  "    public static void main(String[] args) {\n" +
+  "        double d = Double.parseDouble(\"2.2250738585072012e-308\");\n" +
+  "\n" +
+  "        // unreachable code\n" +
+  "        System.out.println(\"Value: \" + d);\n" +
+  "    }\n" +
+  "}");
+
+define("text!kitchen-sink/docs/clojure.clj", [], "(defn parting\n" +
+  "  \"returns a String parting in a given language\"\n" +
+  "  ([] (parting \"World\"))\n" +
+  "  ([name] (parting name \"en\"))\n" +
+  "  ([name language]\n" +
+  "    ; condp is similar to a case statement in other languages.\n" +
+  "    ; It is described in more detail later.\n" +
+  "    ; It is used here to take different actions based on whether the\n" +
+  "    ; parameter \"language\" is set to \"en\", \"es\" or something else.\n" +
+  "    (condp = language\n" +
+  "      \"en\" (str \"Goodbye, \" name)\n" +
+  "      \"es\" (str \"Adios, \" name)\n" +
+  "      (throw (IllegalArgumentException.\n" +
+  "        (str \"unsupported language \" language))))))\n" +
+  "\n" +
+  "(println (parting)) ; -> Goodbye, World\n" +
+  "(println (parting \"Mark\")) ; -> Goodbye, Mark\n" +
+  "(println (parting \"Mark\" \"es\")) ; -> Adios, Mark\n" +
+  "(println (parting \"Mark\", \"xy\")) ; -> java.lang.IllegalArgumentException: unsupported language xy");
+
+define("text!kitchen-sink/docs/groovy.groovy", [], "//http://groovy.codehaus.org/Concurrency+with+Groovy\n" +
+  "import java.util.concurrent.atomic.AtomicInteger\n" +
+  "\n" +
+  "def counter = new AtomicInteger()\n" +
+  "\n" +
+  "synchronized out(message) {\n" +
+  "    println(message)\n" +
+  "}\n" +
+  "\n" +
+  "def th = Thread.start {\n" +
+  "    for( i in 1..8 ) {\n" +
+  "        sleep 30\n" +
+  "        out \"thread loop $i\"\n" +
+  "        counter.incrementAndGet()\n" +
+  "    }\n" +
+  "}\n" +
+  "\n" +
+  "for( j in 1..4 ) {\n" +
+  "    sleep 50\n" +
+  "    out \"main loop $j\"\n" +
+  "    counter.incrementAndGet()\n" +
+  "}\n" +
+  "\n" +
+  "th.join()\n" +
+  "\n" +
+  "assert counter.get() == 12");
+
+define("text!kitchen-sink/docs/scala.scala", [], "//http://www.scala-lang.org/node/227\n" +
+  "/* Defines a new method 'sort' for array objects */\n" +
+  "object implicits extends Application {\n" +
+  "  implicit def arrayWrapper[A : ClassManifest](x: Array[A]) =\n" +
+  "    new {\n" +
+  "      def sort(p: (A, A) => Boolean) = {\n" +
+  "        util.Sorting.stableSort(x, p); x\n" +
+  "      }\n" +
+  "    }\n" +
+  "  val x = Array(2, 3, 1, 4)\n" +
+  "  println(\"x = \"+ x.sort((x: Int, y: Int) => x < y))\n" +
+  "}");
+
+define("text!kitchen-sink/docs/csharp.cs", [], "public void HelloWorld() {\n" +
+  "    //Say Hello!\n" +
+  "    Console.WriteLine(\"Hello World\");\n" +
+  "}");
+
+define("text!kitchen-sink/docs/powershell.ps1", [], "# This is a simple comment\n" +
+  "function Hello($name) {\n" +
+  "  Write-host \"Hello $name\"\n" +
+  "}\n" +
+  "\n" +
+  "function add($left, $right=4) {\n" +
+  "    if ($right -ne 4) {\n" +
+  "        return $left\n" +
+  "    } elseif ($left -eq $null -and $right -eq 2) {\n" +
+  "        return 3\n" +
+  "    } else {\n" +
+  "        return 2\n" +
+  "    }\n" +
+  "}\n" +
+  "\n" +
+  "$number = 1 + 2;\n" +
+  "$number += 3\n" +
+  "\n" +
+  "Write-Host Hello -name \"World\"\n" +
+  "\n" +
+  "$an_array = @(1, 2, 3)\n" +
+  "$a_hash = @{\"something\" = \"something else\"}\n" +
+  "\n" +
+  "& notepad .\\readme.md\n" +
+  "");
+
+define("text!kitchen-sink/docs/cpp.cpp", [], "// compound assignment operators\n" +
+  "\n" +
+  "#include <iostream>\n" +
+  "using namespace std;\n" +
+  "\n" +
+  "int main ()\n" +
+  "{\n" +
+  "    int a, b=3; /* foobar */\n" +
+  "    a = b;\n" +
+  "    a+=2; // equivalent to a=a+2\n" +
+  "    cout << a;\n" +
+  "    return 0;\n" +
+  "}");
+
+define("text!kitchen-sink/docs/Haxe.hx", [], "class Haxe \n" +
+  "{\n" +
+  "    public static function main() \n" +
+  "    {\n" +
+  "        // Say Hello!\n" +
+  "        var greeting:String = \"Hello World\";\n" +
+  "        trace(greeting);\n" +
+  "        \n" +
+  "        var targets:Array<String> = [\"Flash\",\"Javascript\",\"PHP\",\"Neko\",\"C++\",\"iOS\",\"Android\",\"webOS\"];\n" +
+  "        trace(\"Haxe is a great language that can target:\");\n" +
+  "        for (target in targets)\n" +
+  "        {\n" +
+  "            trace (\" - \" + target);\n" +
+  "        }\n" +
+  "        trace(\"And many more!\");\n" +
+  "    }\n" +
+  "}");
+
+define("text!kitchen-sink/docs/markdown.md", [], "Ace (Ajax.org Cloud9 Editor)\n" +
+  "============================\n" +
+  "\n" +
+  "Ace is a standalone code editor written in JavaScript. Our goal is to create a browser based editor that matches and extends the features, usability and performance of existing native editors such as TextMate, Vim or Eclipse. It can be easily embedded in any web page or JavaScript application. Ace is developed as the primary editor for [Cloud9 IDE](http://www.cloud9ide.com/) and the successor of the Mozilla Skywriter (Bespin) Project.\n" +
+  "\n" +
+  "Features\n" +
+  "--------\n" +
+  "\n" +
+  "* Syntax highlighting\n" +
+  "* Automatic indent and outdent\n" +
+  "* An optional command line\n" +
+  "* Handles huge documents (100,000 lines and more are no problem)\n" +
+  "* Fully customizable key bindings including VI and Emacs modes\n" +
+  "* Themes (TextMate themes can be imported)\n" +
+  "* Search and replace with regular expressions\n" +
+  "* Highlight matching parentheses\n" +
+  "* Toggle between soft tabs and real tabs\n" +
+  "* Displays hidden characters\n" +
+  "* Drag and drop text using the mouse\n" +
+  "* Line wrapping\n" +
+  "* Unstructured / user code folding\n" +
+  "* Live syntax checker (currently JavaScript/CoffeeScript)\n" +
+  "\n" +
+  "Take Ace for a spin!\n" +
+  "--------------------\n" +
+  "\n" +
+  "Check out the Ace live [demo](http://ajaxorg.github.com/ace/) or get a [Cloud9 IDE account](http://run.cloud9ide.com) to experience Ace while editing one of your own GitHub projects.\n" +
+  "\n" +
+  "If you want, you can use Ace as a textarea replacement thanks to the [Ace Bookmarklet](http://ajaxorg.github.com/ace/build/textarea/editor.html).\n" +
+  "\n" +
+  "History\n" +
+  "-------\n" +
+  "\n" +
+  "Previously known as “Bespin” and “Skywriter” it’s now known as Ace (Ajax.org Cloud9 Editor)! Bespin and Ace started as two independent projects, both aiming to build a no-compromise code editor component for the web. Bespin started as part of Mozilla Labs and was based on the canvas tag, while Ace is the Editor component of the Cloud9 IDE and is using the DOM for rendering. After the release of Ace at JSConf.eu 2010 in Berlin the Skywriter team decided to merge Ace with a simplified version of Skywriter's plugin system and some of Skywriter's extensibility points. All these changes have been merged back to Ace. Both Ajax.org and Mozilla are actively developing and maintaining Ace.\n" +
+  "\n" +
+  "Getting the code\n" +
+  "----------------\n" +
+  "\n" +
+  "Ace is a community project. We actively encourage and support contributions. The Ace source code is hosted on GitHub. It is released under the Mozilla tri-license (MPL/GPL/LGPL), the same license used by Firefox. This license is friendly to all kinds of projects, whether open source or not. Take charge of your editor and add your favorite language highlighting and keybindings!\n" +
+  "\n" +
+  "```bash\n" +
+  "    git clone git://github.com/ajaxorg/ace.git\n" +
+  "    cd ace\n" +
+  "    git submodule update --init --recursive\n" +
+  "```\n" +
+  "\n" +
+  "Embedding Ace\n" +
+  "-------------\n" +
+  "\n" +
+  "Ace can be easily embedded into any existing web page. The Ace git repository ships with a pre-packaged version of Ace inside of the `build` directory. The same packaged files are also available as a separate [download](https://github.com/ajaxorg/ace/downloads). Simply copy the contents of the `src` subdirectory somewhere into your project and take a look at the included demos of how to use Ace.\n" +
+  "\n" +
+  "The easiest version is simply:\n" +
+  "\n" +
+  "```html\n" +
+  "    <div id=\"editor\">some text</div>\n" +
+  "    <script src=\"src/ace.js\" type=\"text/javascript\" charset=\"utf-8\"></script>\n" +
+  "    <script>\n" +
+  "    window.onload = function() {\n" +
+  "        var editor = ace.edit(\"editor\");\n" +
+  "    };\n" +
+  "    </script>\n" +
+  "```\n" +
+  "\n" +
+  "With \"editor\" being the id of the DOM element, which should be converted to an editor. Note that this element must be explicitly sized and positioned `absolute` or `relative` for Ace to work. e.g.\n" +
+  "\n" +
+  "```css\n" +
+  "    #editor {\n" +
+  "        position: absolute;\n" +
+  "        width: 500px;\n" +
+  "        height: 400px;\n" +
+  "    }\n" +
+  "```\n" +
+  "\n" +
+  "To change the theme simply include the Theme's JavaScript file\n" +
+  "\n" +
+  "```html\n" +
+  "    <script src=\"src/theme-twilight.js\" type=\"text/javascript\" charset=\"utf-8\"></script>\n" +
+  "```\n" +
+  "\n" +
+  "and configure the editor to use the theme:\n" +
+  "\n" +
+  "```javascript\n" +
+  "    editor.setTheme(\"ace/theme/twilight\");\n" +
+  "```\n" +
+  "\n" +
+  "By default the editor only supports plain text mode; many other languages are available as separate modules. After including the mode's JavaScript file:\n" +
+  "\n" +
+  "```html\n" +
+  "    <script src=\"src/mode-javascript.js\" type=\"text/javascript\" charset=\"utf-8\"></script>\n" +
+  "```\n" +
+  "\n" +
+  "Then the mode can be used like this:\n" +
+  "\n" +
+  "```javascript\n" +
+  "    var JavaScriptMode = require(\"ace/mode/javascript\").Mode;\n" +
+  "    editor.getSession().setMode(new JavaScriptMode());\n" +
+  "```\n" +
+  "\n" +
+  "Documentation\n" +
+  "-------------\n" +
+  "\n" +
+  "You find a lot more sample code in the [demo app](https://github.com/ajaxorg/ace/blob/master/demo/demo.js).\n" +
+  "\n" +
+  "There is also some documentation on the [wiki page](https://github.com/ajaxorg/ace/wiki).\n" +
+  "\n" +
+  "If you still need help, feel free to drop a mail on the [ace mailing list](http://groups.google.com/group/ace-discuss).\n" +
+  "\n" +
+  "Running Ace\n" +
+  "-----------\n" +
+  "\n" +
+  "After the checkout Ace works out of the box. No build step is required. Open 'editor.html' in any browser except Google Chrome. Google Chrome doesn't allow XMLHTTPRequests from files loaded from disc (i.e. with a file:/// URL). To open Ace in Chrome simply start the bundled mini HTTP server:\n" +
+  "\n" +
+  "```bash\n" +
+  "    ./static.py\n" +
+  "```\n" +
+  "\n" +
+  "Or using Node.JS\n" +
+  "\n" +
+  "```bash\n" +
+  "    ./static.js\n" +
+  "```\n" +
+  "\n" +
+  "The editor can then be opened at http://localhost:8888/index.html.\n" +
+  "\n" +
+  "Package Ace\n" +
+  "-----------\n" +
+  "\n" +
+  "To package Ace we use the dryice build tool developed by the Mozilla Skywriter team. Before you can build you need to make sure that the submodules are up to date.\n" +
+  "\n" +
+  "```bash\n" +
+  "    git submodule update --init --recursive\n" +
+  "```\n" +
+  "\n" +
+  "Afterwards Ace can be built by calling\n" +
+  "\n" +
+  "```bash\n" +
+  "    ./Makefile.dryice.js normal\n" +
+  "```\n" +
+  "\n" +
+  "The packaged Ace will be put in the 'build' folder.\n" +
+  "\n" +
+  "To build the bookmarklet version execute\n" +
+  "\n" +
+  "```bash\n" +
+  "    ./Makefile.dryice.js bm\n" +
+  "```\n" +
+  "\n" +
+  "Running the Unit Tests\n" +
+  "----------------------\n" +
+  "\n" +
+  "The Ace unit tests run on node.js. Before the first run a couple of node modules have to be installed. The easiest way to do this is by using the node package manager (npm). In the Ace base directory simply call\n" +
+  "\n" +
+  "```bash\n" +
+  "    npm link .\n" +
+  "```\n" +
+  "\n" +
+  "To run the tests call:\n" +
+  "\n" +
+  "```bash\n" +
+  "    node lib/ace/test/all.js\n" +
+  "```\n" +
+  "\n" +
+  "You can also run the tests in your browser by serving:\n" +
+  "\n" +
+  "    http://localhost:8888/lib/ace/test/tests.html\n" +
+  "\n" +
+  "This makes debugging failing tests way more easier.\n" +
+  "\n" +
+  "Contributing\n" +
+  "------------\n" +
+  "\n" +
+  "Ace wouldn't be what it is without contributions! Feel free to fork and improve/enhance Ace any way you want. If you feel that the editor or the Ace community will benefit from your changes, please open a pull request. To protect the interests of the Ace contributors and users we require contributors to sign a Contributors License Agreement (CLA) before we pull the changes into the main repository. Our CLA is the simplest of agreements, requiring that the contributions you make to an ajax.org project are only those you're allowed to make. This helps us significantly reduce future legal risk for everyone involved. It is easy, helps everyone, takes ten minutes, and only needs to be completed once.  There are two versions of the agreement:\n" +
+  "\n" +
+  "1. [The Individual CLA](https://github.com/ajaxorg/ace/raw/master/doc/Contributor_License_Agreement-v2.pdf): use this version if you're working on an ajax.org in your spare time, or can clearly claim ownership of copyright in what you'll be submitting.\n" +
+  "2. [The Corporate CLA](https://github.com/ajaxorg/ace/raw/master/doc/Corporate_Contributor_License_Agreement-v2.pdf): have your corporate lawyer review and submit this if your company is going to be contributing to ajax.org  projects\n" +
+  "\n" +
+  "If you want to contribute to an ajax.org project please print the CLA and fill it out and sign it. Then either send it by snail mail or fax to us or send it back scanned (or as a photo) by email.\n" +
+  "\n" +
+  "Email: fabian.jakobs@web.de\n" +
+  "\n" +
+  "Fax: +31 (0) 206388953\n" +
+  "\n" +
+  "Address: Ajax.org B.V.\n" +
+  "  Keizersgracht 241\n" +
+  "  1016 EA, Amsterdam\n" +
+  "  the Netherlands");
+
+define("text!kitchen-sink/docs/textile.textile", [], "h1. Textile document\n" +
+  "\n" +
+  "h2. Heading Two\n" +
+  "\n" +
+  "h3. A two-line\n" +
+  "    header\n" +
+  "\n" +
+  "h2. Another two-line\n" +
+  "header\n" +
+  "\n" +
+  "Paragraph:\n" +
+  "one, two,\n" +
+  "thee lines!\n" +
+  "\n" +
+  "p(classone two three). This is a paragraph with classes\n" +
+  "\n" +
+  "p(#id). (one with an id)\n" +
+  "\n" +
+  "p(one two three#my_id). ..classes + id\n" +
+  "\n" +
+  "* Unordered list\n" +
+  "** sublist\n" +
+  "* back again!\n" +
+  "** sublist again..\n" +
+  "\n" +
+  "# ordered\n" +
+  "\n" +
+  "bg. Blockquote!\n" +
+  "    This is a two-list blockquote..!");
+
+define("text!kitchen-sink/docs/latex.tex", [], "\\usepackage{amsmath}\n" +
+  "\\title{\\LaTeX}\n" +
+  "\\date{}\n" +
+  "\\begin{document}\n" +
+  "  \\maketitle\n" +
+  "  \\LaTeX{} is a document preparation system for the \\TeX{}\n" +
+  "  typesetting program. It offers programmable desktop publishing\n" +
+  "  features and extensive facilities for automating most aspects of\n" +
+  "  typesetting and desktop publishing, including numbering and\n" +
+  "  cross-referencing, tables and figures, page layout, bibliographies,\n" +
+  "  and much more. \\LaTeX{} was originally written in 1984 by Leslie\n" +
+  "  Lamport and has become the dominant method for using \\TeX; few\n" +
+  "  people write in plain \\TeX{} anymore. The current version  is\n" +
+  "  \\LaTeXe.\n" +
+  " \n" +
+  "  % This is a comment; it will not be shown in the final output.\n" +
+  "  % The following shows a little of the typesetting power of LaTeX:\n" +
+  "  \\begin{align}\n" +
+  "    E &= mc^2                              \\\\\n" +
+  "    m &= \\frac{m_0}{\\sqrt{1-\\frac{v^2}{c^2}}}\n" +
+  "  \\end{align}\n" +
+  "\\end{document}");
+
 /* vim:ts=4:sts=4:sw=4:
  * ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
@@ -26536,16 +24461,16 @@ exports.TextileHighlightRules = TextileHighlightRules;
  *
  * ***** END LICENSE BLOCK ***** */
 
-define('ace/split', ['require', 'exports', 'module' , 'pilot/oop', 'pilot/dom', 'pilot/lang', 'pilot/event_emitter', 'ace/editor', 'ace/virtual_renderer', 'ace/edit_session'], function(require, exports, module) {
+define('ace/split', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/lib/dom', 'ace/lib/lang', 'ace/lib/event_emitter', 'ace/editor', 'ace/virtual_renderer', 'ace/edit_session'], function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var dom = require("pilot/dom");
-var lang = require("pilot/lang");
-var EventEmitter = require("pilot/event_emitter").EventEmitter;
+var oop = require("./lib/oop");
+var dom = require("./lib/dom");
+var lang = require("./lib/lang");
+var EventEmitter = require("./lib/event_emitter").EventEmitter;
 
-var Editor = require("ace/editor").Editor;
-var Renderer = require("ace/virtual_renderer").VirtualRenderer;
-var EditSession = require("ace/edit_session").EditSession;
+var Editor = require("./editor").Editor;
+var Renderer = require("./virtual_renderer").VirtualRenderer;
+var EditSession = require("./edit_session").EditSession;
 
 var Split = function(container, theme, splits) {
     this.BELOW = 1;
@@ -26795,1211 +24720,3 @@ function UndoManagerProxy(undoManager, session) {
 
 exports.Split = Split;
 });
-define("text!demo/kitchen-sink/docs/clojure.clj", [], "(defn parting\n" +
-  "  \"returns a String parting in a given language\"\n" +
-  "  ([] (parting \"World\"))\n" +
-  "  ([name] (parting name \"en\"))\n" +
-  "  ([name language]\n" +
-  "    ; condp is similar to a case statement in other languages.\n" +
-  "    ; It is described in more detail later.\n" +
-  "    ; It is used here to take different actions based on whether the\n" +
-  "    ; parameter \"language\" is set to \"en\", \"es\" or something else.\n" +
-  "    (condp = language\n" +
-  "      \"en\" (str \"Goodbye, \" name)\n" +
-  "      \"es\" (str \"Adios, \" name)\n" +
-  "      (throw (IllegalArgumentException.\n" +
-  "        (str \"unsupported language \" language))))))\n" +
-  "\n" +
-  "(println (parting)) ; -> Goodbye, World\n" +
-  "(println (parting \"Mark\")) ; -> Goodbye, Mark\n" +
-  "(println (parting \"Mark\" \"es\")) ; -> Adios, Mark\n" +
-  "(println (parting \"Mark\", \"xy\")) ; -> java.lang.IllegalArgumentException: unsupported language xy");
-
-define("text!demo/kitchen-sink/docs/coffeescript.coffee", [], "#!/usr/bin/env coffee\n" +
-  "\n" +
-  "try\n" +
-  "    throw URIError decodeURI(0xC0ffee * 123456.7e-8 / .9)\n" +
-  "catch e\n" +
-  "    console.log 'qstring' + \"qqstring\" + '''\n" +
-  "        qdoc\n" +
-  "    ''' + \"\"\"\n" +
-  "        qqdoc\n" +
-  "    \"\"\"\n" +
-  "\n" +
-  "do ->\n" +
-  "    ###\n" +
-  "    herecomment\n" +
-  "    ###\n" +
-  "    re = /regex/imgy.test ///\n" +
-  "        heregex  # comment\n" +
-  "    ///imgy\n" +
-  "    this isnt: `just JavaScript`\n" +
-  "    undefined");
-
-define("text!demo/kitchen-sink/docs/coldfusion.cfm", [], "<!--- hello world --->\n" +
-  "\n" +
-  "<cfset welcome=\"Hello World!\">\n" +
-  "\n" +
-  "<cfoutput>#welcome#</cfoutput>");
-
-define("text!demo/kitchen-sink/docs/cpp.cpp", [], "// compound assignment operators\n" +
-  "\n" +
-  "#include <iostream>\n" +
-  "using namespace std;\n" +
-  "\n" +
-  "int main ()\n" +
-  "{\n" +
-  "    int a, b=3; /* foobar */\n" +
-  "    a = b;\n" +
-  "    a+=2; // equivalent to a=a+2\n" +
-  "    cout << a;\n" +
-  "    return 0;\n" +
-  "}");
-
-define("text!demo/kitchen-sink/docs/csharp.cs", [], "public void HelloWorld() {\n" +
-  "    //Say Hello!\n" +
-  "    Console.WriteLine(\"Hello World\");\n" +
-  "}");
-
-define("text!demo/kitchen-sink/docs/css.css", [], ".text-layer {\n" +
-  "    font-family: Monaco, \"Courier New\", monospace;\n" +
-  "    font-size: 12px;\n" +
-  "    cursor: text;\n" +
-  "}");
-
-define("text!demo/kitchen-sink/docs/groovy.groovy", [], "//http://groovy.codehaus.org/Concurrency+with+Groovy\n" +
-  "import java.util.concurrent.atomic.AtomicInteger\n" +
-  "\n" +
-  "def counter = new AtomicInteger()\n" +
-  "\n" +
-  "synchronized out(message) {\n" +
-  "    println(message)\n" +
-  "}\n" +
-  "\n" +
-  "def th = Thread.start {\n" +
-  "    for( i in 1..8 ) {\n" +
-  "        sleep 30\n" +
-  "        out \"thread loop $i\"\n" +
-  "        counter.incrementAndGet()\n" +
-  "    }\n" +
-  "}\n" +
-  "\n" +
-  "for( j in 1..4 ) {\n" +
-  "    sleep 50\n" +
-  "    out \"main loop $j\"\n" +
-  "    counter.incrementAndGet()\n" +
-  "}\n" +
-  "\n" +
-  "th.join()\n" +
-  "\n" +
-  "assert counter.get() == 12");
-
-define("text!demo/kitchen-sink/docs/html.html", [], "<html>\n" +
-  "    <head>\n" +
-  "\n" +
-  "    <style type=\"text/css\">\n" +
-  "        .text-layer {\n" +
-  "            font-family: Monaco, \"Courier New\", monospace;\n" +
-  "            font-size: 12px;\n" +
-  "            cursor: text;\n" +
-  "        }\n" +
-  "    </style>\n" +
-  "\n" +
-  "    </head>\n" +
-  "    <body>\n" +
-  "        <h1 style=\"color:red\">Juhu Kinners</h1>\n" +
-  "    </body>\n" +
-  "</html>");
-
-define("text!demo/kitchen-sink/docs/java.java", [], "public class InfiniteLoop {\n" +
-  "\n" +
-  "    /*\n" +
-  "     * This will cause the program to hang...\n" +
-  "     *\n" +
-  "     * Taken from:\n" +
-  "     * http://www.exploringbinary.com/java-hangs-when-converting-2-2250738585072012e-308/\n" +
-  "     */\n" +
-  "    public static void main(String[] args) {\n" +
-  "        double d = Double.parseDouble(\"2.2250738585072012e-308\");\n" +
-  "\n" +
-  "        // unreachable code\n" +
-  "        System.out.println(\"Value: \" + d);\n" +
-  "    }\n" +
-  "}");
-
-define("text!demo/kitchen-sink/docs/javascript.js", [], "function foo(items) {\n" +
-  "    for (var i=0; i<items.length; i++) {\n" +
-  "        alert(items[i] + \"juhu\");\n" +
-  "    }	// Real Tab.\n" +
-  "}");
-
-define("text!demo/kitchen-sink/docs/json.json", [], "{\n" +
-  " \"query\": {\n" +
-  "  \"count\": 10,\n" +
-  "  \"created\": \"2011-06-21T08:10:46Z\",\n" +
-  "  \"lang\": \"en-US\",\n" +
-  "  \"results\": {\n" +
-  "   \"photo\": [\n" +
-  "    {\n" +
-  "     \"farm\": \"6\",\n" +
-  "     \"id\": \"5855620975\",\n" +
-  "     \"isfamily\": \"0\",\n" +
-  "     \"isfriend\": \"0\",\n" +
-  "     \"ispublic\": \"1\",\n" +
-  "     \"owner\": \"32021554@N04\",\n" +
-  "     \"secret\": \"f1f5e8515d\",\n" +
-  "     \"server\": \"5110\",\n" +
-  "     \"title\": \"7087 bandit cat\"\n" +
-  "    },\n" +
-  "    {\n" +
-  "     \"farm\": \"4\",\n" +
-  "     \"id\": \"5856170534\",\n" +
-  "     \"isfamily\": \"0\",\n" +
-  "     \"isfriend\": \"0\",\n" +
-  "     \"ispublic\": \"1\",\n" +
-  "     \"owner\": \"32021554@N04\",\n" +
-  "     \"secret\": \"ff1efb2a6f\",\n" +
-  "     \"server\": \"3217\",\n" +
-  "     \"title\": \"6975 rusty cat\"\n" +
-  "    },\n" +
-  "    {\n" +
-  "     \"farm\": \"6\",\n" +
-  "     \"id\": \"5856172972\",\n" +
-  "     \"isfamily\": \"0\",\n" +
-  "     \"isfriend\": \"0\",\n" +
-  "     \"ispublic\": \"1\",\n" +
-  "     \"owner\": \"51249875@N03\",\n" +
-  "     \"secret\": \"6c6887347c\",\n" +
-  "     \"server\": \"5192\",\n" +
-  "     \"title\": \"watermarked-cats\"\n" +
-  "    },\n" +
-  "    {\n" +
-  "     \"farm\": \"6\",\n" +
-  "     \"id\": \"5856168328\",\n" +
-  "     \"isfamily\": \"0\",\n" +
-  "     \"isfriend\": \"0\",\n" +
-  "     \"ispublic\": \"1\",\n" +
-  "     \"owner\": \"32021554@N04\",\n" +
-  "     \"secret\": \"0c1cfdf64c\",\n" +
-  "     \"server\": \"5078\",\n" +
-  "     \"title\": \"7020 mandy cat\"\n" +
-  "    },\n" +
-  "    {\n" +
-  "     \"farm\": \"3\",\n" +
-  "     \"id\": \"5856171774\",\n" +
-  "     \"isfamily\": \"0\",\n" +
-  "     \"isfriend\": \"0\",\n" +
-  "     \"ispublic\": \"1\",\n" +
-  "     \"owner\": \"32021554@N04\",\n" +
-  "     \"secret\": \"7f5a3180ab\",\n" +
-  "     \"server\": \"2696\",\n" +
-  "     \"title\": \"7448 bobby cat\"\n" +
-  "    }\n" +
-  "   ]\n" +
-  "  }\n" +
-  " }\n" +
-  "}");
-
-define("text!demo/kitchen-sink/docs/latex.tex", [], "\\usepackage{amsmath}\n" +
-  "\\title{\\LaTeX}\n" +
-  "\\date{}\n" +
-  "\\begin{document}\n" +
-  "  \\maketitle\n" +
-  "  \\LaTeX{} is a document preparation system for the \\TeX{}\n" +
-  "  typesetting program. It offers programmable desktop publishing\n" +
-  "  features and extensive facilities for automating most aspects of\n" +
-  "  typesetting and desktop publishing, including numbering and\n" +
-  "  cross-referencing, tables and figures, page layout, bibliographies,\n" +
-  "  and much more. \\LaTeX{} was originally written in 1984 by Leslie\n" +
-  "  Lamport and has become the dominant method for using \\TeX; few\n" +
-  "  people write in plain \\TeX{} anymore. The current version  is\n" +
-  "  \\LaTeXe.\n" +
-  " \n" +
-  "  % This is a comment; it will not be shown in the final output.\n" +
-  "  % The following shows a little of the typesetting power of LaTeX:\n" +
-  "  \\begin{align}\n" +
-  "    E &= mc^2                              \\\\\n" +
-  "    m &= \\frac{m_0}{\\sqrt{1-\\frac{v^2}{c^2}}}\n" +
-  "  \\end{align}\n" +
-  "\\end{document}");
-
-define("text!demo/kitchen-sink/docs/lua.lua", [], "--[[--\n" +
-  "num_args takes in 5.1 byte code and extracts the number of arguments\n" +
-  "from its function header.\n" +
-  "--]]--\n" +
-  "\n" +
-  "function int(t)\n" +
-  "	return t:byte(1)+t:byte(2)*0x100+t:byte(3)*0x10000+t:byte(4)*0x1000000\n" +
-  "end\n" +
-  "\n" +
-  "function num_args(func)\n" +
-  "	local dump = string.dump(func)\n" +
-  "	local offset, cursor = int(dump:sub(13)), offset + 26\n" +
-  "	--Get the params and var flag (whether there's a ... in the param)\n" +
-  "	return dump:sub(cursor):byte(), dump:sub(cursor+1):byte()\n" +
-  "end\n" +
-  "\n" +
-  "-- Usage:\n" +
-  "num_args(function(a,b,c,d, ...) end) -- return 4, 7\n" +
-  "\n" +
-  "-- Python styled string format operator\n" +
-  "local gm = debug.getmetatable(\"\")\n" +
-  "\n" +
-  "gm.__mod=function(self, other)\n" +
-  "    if type(other) ~= \"table\" then other = {other} end\n" +
-  "    for i,v in ipairs(other) do other[i] = tostring(v) end\n" +
-  "    return self:format(unpack(other))\n" +
-  "end\n" +
-  "\n" +
-  "print([===[\n" +
-  "    blah blah %s, (%d %d)\n" +
-  "]===]%{\"blah\", num_args(int)})\n" +
-  "\n" +
-  "--[=[--\n" +
-  "table.maxn is deprecated, use # instead.\n" +
-  "--]=]--\n" +
-  "print(table.maxn{1,2,[4]=4,[8]=8) -- outputs 8 instead of 2\n" +
-  "");
-
-define("text!demo/kitchen-sink/docs/markdown.md", [], "Ace (Ajax.org Cloud9 Editor)\n" +
-  "============================\n" +
-  "\n" +
-  "Ace is a standalone code editor written in JavaScript. Our goal is to create a browser based editor that matches and extends the features, usability and performance of existing native editors such as TextMate, Vim or Eclipse. It can be easily embedded in any web page or JavaScript application. Ace is developed as the primary editor for [Cloud9 IDE](http://www.cloud9ide.com/) and the successor of the Mozilla Skywriter (Bespin) Project.\n" +
-  "\n" +
-  "Features\n" +
-  "--------\n" +
-  "\n" +
-  "* Syntax highlighting\n" +
-  "* Automatic indent and outdent\n" +
-  "* An optional command line\n" +
-  "* Handles huge documents (100,000 lines and more are no problem)\n" +
-  "* Fully customizable key bindings including VI and Emacs modes\n" +
-  "* Themes (TextMate themes can be imported)\n" +
-  "* Search and replace with regular expressions\n" +
-  "* Highlight matching parentheses\n" +
-  "* Toggle between soft tabs and real tabs\n" +
-  "* Displays hidden characters\n" +
-  "* Drag and drop text using the mouse\n" +
-  "* Line wrapping\n" +
-  "* Unstructured / user code folding\n" +
-  "* Live syntax checker (currently JavaScript/CoffeeScript)\n" +
-  "\n" +
-  "Take Ace for a spin!\n" +
-  "--------------------\n" +
-  "\n" +
-  "Check out the Ace live [demo](http://ajaxorg.github.com/ace/) or get a [Cloud9 IDE account](http://run.cloud9ide.com) to experience Ace while editing one of your own GitHub projects.\n" +
-  "\n" +
-  "If you want, you can use Ace as a textarea replacement thanks to the [Ace Bookmarklet](http://ajaxorg.github.com/ace/build/textarea/editor.html).\n" +
-  "\n" +
-  "History\n" +
-  "-------\n" +
-  "\n" +
-  "Previously known as “Bespin” and “Skywriter” it’s now known as Ace (Ajax.org Cloud9 Editor)! Bespin and Ace started as two independent projects, both aiming to build a no-compromise code editor component for the web. Bespin started as part of Mozilla Labs and was based on the canvas tag, while Ace is the Editor component of the Cloud9 IDE and is using the DOM for rendering. After the release of Ace at JSConf.eu 2010 in Berlin the Skywriter team decided to merge Ace with a simplified version of Skywriter's plugin system and some of Skywriter's extensibility points. All these changes have been merged back to Ace. Both Ajax.org and Mozilla are actively developing and maintaining Ace.\n" +
-  "\n" +
-  "Getting the code\n" +
-  "----------------\n" +
-  "\n" +
-  "Ace is a community project. We actively encourage and support contributions. The Ace source code is hosted on GitHub. It is released under the Mozilla tri-license (MPL/GPL/LGPL), the same license used by Firefox. This license is friendly to all kinds of projects, whether open source or not. Take charge of your editor and add your favorite language highlighting and keybindings!\n" +
-  "\n" +
-  "```bash\n" +
-  "    git clone git://github.com/ajaxorg/ace.git\n" +
-  "    cd ace\n" +
-  "    git submodule update --init --recursive\n" +
-  "```\n" +
-  "\n" +
-  "Embedding Ace\n" +
-  "-------------\n" +
-  "\n" +
-  "Ace can be easily embedded into any existing web page. The Ace git repository ships with a pre-packaged version of Ace inside of the `build` directory. The same packaged files are also available as a separate [download](https://github.com/ajaxorg/ace/downloads). Simply copy the contents of the `src` subdirectory somewhere into your project and take a look at the included demos of how to use Ace.\n" +
-  "\n" +
-  "The easiest version is simply:\n" +
-  "\n" +
-  "```html\n" +
-  "    <div id=\"editor\">some text</div>\n" +
-  "    <script src=\"src/ace.js\" type=\"text/javascript\" charset=\"utf-8\"></script>\n" +
-  "    <script>\n" +
-  "    window.onload = function() {\n" +
-  "        var editor = ace.edit(\"editor\");\n" +
-  "    };\n" +
-  "    </script>\n" +
-  "```\n" +
-  "\n" +
-  "With \"editor\" being the id of the DOM element, which should be converted to an editor. Note that this element must be explicitly sized and positioned `absolute` or `relative` for Ace to work. e.g.\n" +
-  "\n" +
-  "```css\n" +
-  "    #editor {\n" +
-  "        position: absolute;\n" +
-  "        width: 500px;\n" +
-  "        height: 400px;\n" +
-  "    }\n" +
-  "```\n" +
-  "\n" +
-  "To change the theme simply include the Theme's JavaScript file\n" +
-  "\n" +
-  "```html\n" +
-  "    <script src=\"src/theme-twilight.js\" type=\"text/javascript\" charset=\"utf-8\"></script>\n" +
-  "```\n" +
-  "\n" +
-  "and configure the editor to use the theme:\n" +
-  "\n" +
-  "```javascript\n" +
-  "    editor.setTheme(\"ace/theme/twilight\");\n" +
-  "```\n" +
-  "\n" +
-  "By default the editor only supports plain text mode; many other languages are available as separate modules. After including the mode's JavaScript file:\n" +
-  "\n" +
-  "```html\n" +
-  "    <script src=\"src/mode-javascript.js\" type=\"text/javascript\" charset=\"utf-8\"></script>\n" +
-  "```\n" +
-  "\n" +
-  "Then the mode can be used like this:\n" +
-  "\n" +
-  "```javascript\n" +
-  "    var JavaScriptMode = require(\"ace/mode/javascript\").Mode;\n" +
-  "    editor.getSession().setMode(new JavaScriptMode());\n" +
-  "```\n" +
-  "\n" +
-  "Documentation\n" +
-  "-------------\n" +
-  "\n" +
-  "You find a lot more sample code in the [demo app](https://github.com/ajaxorg/ace/blob/master/demo/demo.js).\n" +
-  "\n" +
-  "There is also some documentation on the [wiki page](https://github.com/ajaxorg/ace/wiki).\n" +
-  "\n" +
-  "If you still need help, feel free to drop a mail on the [ace mailing list](http://groups.google.com/group/ace-discuss).\n" +
-  "\n" +
-  "Running Ace\n" +
-  "-----------\n" +
-  "\n" +
-  "After the checkout Ace works out of the box. No build step is required. Open 'editor.html' in any browser except Google Chrome. Google Chrome doesn't allow XMLHTTPRequests from files loaded from disc (i.e. with a file:/// URL). To open Ace in Chrome simply start the bundled mini HTTP server:\n" +
-  "\n" +
-  "```bash\n" +
-  "    ./static.py\n" +
-  "```\n" +
-  "\n" +
-  "Or using Node.JS\n" +
-  "\n" +
-  "```bash\n" +
-  "    ./static.js\n" +
-  "```\n" +
-  "\n" +
-  "The editor can then be opened at http://localhost:8888/index.html.\n" +
-  "\n" +
-  "Package Ace\n" +
-  "-----------\n" +
-  "\n" +
-  "To package Ace we use the dryice build tool developed by the Mozilla Skywriter team. Before you can build you need to make sure that the submodules are up to date.\n" +
-  "\n" +
-  "```bash\n" +
-  "    git submodule update --init --recursive\n" +
-  "```\n" +
-  "\n" +
-  "Afterwards Ace can be built by calling\n" +
-  "\n" +
-  "```bash\n" +
-  "    ./Makefile.dryice.js normal\n" +
-  "```\n" +
-  "\n" +
-  "The packaged Ace will be put in the 'build' folder.\n" +
-  "\n" +
-  "To build the bookmarklet version execute\n" +
-  "\n" +
-  "```bash\n" +
-  "    ./Makefile.dryice.js bm\n" +
-  "```\n" +
-  "\n" +
-  "Running the Unit Tests\n" +
-  "----------------------\n" +
-  "\n" +
-  "The Ace unit tests run on node.js. Before the first run a couple of node modules have to be installed. The easiest way to do this is by using the node package manager (npm). In the Ace base directory simply call\n" +
-  "\n" +
-  "```bash\n" +
-  "    npm link .\n" +
-  "```\n" +
-  "\n" +
-  "To run the tests call:\n" +
-  "\n" +
-  "```bash\n" +
-  "    node lib/ace/test/all.js\n" +
-  "```\n" +
-  "\n" +
-  "You can also run the tests in your browser by serving:\n" +
-  "\n" +
-  "    http://localhost:8888/lib/ace/test/tests.html\n" +
-  "\n" +
-  "This makes debugging failing tests way more easier.\n" +
-  "\n" +
-  "Contributing\n" +
-  "------------\n" +
-  "\n" +
-  "Ace wouldn't be what it is without contributions! Feel free to fork and improve/enhance Ace any way you want. If you feel that the editor or the Ace community will benefit from your changes, please open a pull request. To protect the interests of the Ace contributors and users we require contributors to sign a Contributors License Agreement (CLA) before we pull the changes into the main repository. Our CLA is the simplest of agreements, requiring that the contributions you make to an ajax.org project are only those you're allowed to make. This helps us significantly reduce future legal risk for everyone involved. It is easy, helps everyone, takes ten minutes, and only needs to be completed once.  There are two versions of the agreement:\n" +
-  "\n" +
-  "1. [The Individual CLA](https://github.com/ajaxorg/ace/raw/master/doc/Contributor_License_Agreement-v2.pdf): use this version if you're working on an ajax.org in your spare time, or can clearly claim ownership of copyright in what you'll be submitting.\n" +
-  "2. [The Corporate CLA](https://github.com/ajaxorg/ace/raw/master/doc/Corporate_Contributor_License_Agreement-v2.pdf): have your corporate lawyer review and submit this if your company is going to be contributing to ajax.org  projects\n" +
-  "\n" +
-  "If you want to contribute to an ajax.org project please print the CLA and fill it out and sign it. Then either send it by snail mail or fax to us or send it back scanned (or as a photo) by email.\n" +
-  "\n" +
-  "Email: fabian.jakobs@web.de\n" +
-  "\n" +
-  "Fax: +31 (0) 206388953\n" +
-  "\n" +
-  "Address: Ajax.org B.V.\n" +
-  "  Keizersgracht 241\n" +
-  "  1016 EA, Amsterdam\n" +
-  "  the Netherlands");
-
-define("text!demo/kitchen-sink/docs/ocaml.ml", [], "(*\n" +
-  " * Example of early return implementation taken from\n" +
-  " * http://ocaml.janestreet.com/?q=node/91\n" +
-  " *)\n" +
-  "\n" +
-  "let with_return (type t) (f : _ -> t) =\n" +
-  "  let module M =\n" +
-  "     struct exception Return of t end\n" +
-  "  in\n" +
-  "  let return = { return = (fun x -> raise (M.Return x)); } in\n" +
-  "  try f return with M.Return x -> x\n" +
-  "\n" +
-  "\n" +
-  "(* Function that uses the 'early return' functionality provided by `with_return` *)\n" +
-  "let sum_until_first_negative list =\n" +
-  "  with_return (fun r ->\n" +
-  "    List.fold list ~init:0 ~f:(fun acc x ->\n" +
-  "      if x >= 0 then acc + x else r.return acc))");
-
-define("text!demo/kitchen-sink/docs/perl.pl", [], "#!/usr/bin/perl\n" +
-  "use strict;\n" +
-  "use warnings;\n" +
-  "my $num_primes = 0;\n" +
-  "my @primes;\n" +
-  "\n" +
-  "# Put 2 as the first prime so we won't have an empty array\n" +
-  "$primes[$num_primes] = 2;\n" +
-  "$num_primes++;\n" +
-  "\n" +
-  "MAIN_LOOP:\n" +
-  "for my $number_to_check (3 .. 200)\n" +
-  "{\n" +
-  "    for my $p (0 .. ($num_primes-1))\n" +
-  "    {\n" +
-  "        if ($number_to_check % $primes[$p] == 0)\n" +
-  "        {\n" +
-  "            next MAIN_LOOP;\n" +
-  "        }\n" +
-  "    }\n" +
-  "\n" +
-  "    # If we reached this point it means $number_to_check is not\n" +
-  "    # divisable by any prime number that came before it.\n" +
-  "    $primes[$num_primes] = $number_to_check;\n" +
-  "    $num_primes++;\n" +
-  "}\n" +
-  "\n" +
-  "for my $p (0 .. ($num_primes-1))\n" +
-  "{\n" +
-  "    print $primes[$p], \", \";\n" +
-  "}\n" +
-  "print \"\\n\";\n" +
-  "");
-
-define("text!demo/kitchen-sink/docs/php.php", [], "<?php\n" +
-  "\n" +
-  "function nfact($n) {\n" +
-  "    if ($n == 0) {\n" +
-  "        return 1;\n" +
-  "    }\n" +
-  "    else {\n" +
-  "        return $n * nfact($n - 1);\n" +
-  "    }\n" +
-  "}\n" +
-  "\n" +
-  "echo \"\\n\\nPlease enter a whole number ... \";\n" +
-  "$num = trim(fgets(STDIN));\n" +
-  "\n" +
-  "// ===== PROCESS - Determing the factorial of the input number =====\n" +
-  "$output = \"\\n\\nFactorial \" . $num . \" = \" . nfact($num) . \"\\n\\n\";\n" +
-  "echo $output;\n" +
-  "\n" +
-  "?>");
-
-define("text!demo/kitchen-sink/docs/plaintext.txt", [], "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.\n" +
-  "\n" +
-  "Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.\n" +
-  "\n" +
-  "Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi.\n" +
-  "\n" +
-  "Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming id quod mazim placerat facer possim assum. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.\n" +
-  "\n" +
-  "Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis.\n" +
-  "\n" +
-  "At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, At accusam aliquyam diam diam dolore dolores duo eirmod eos erat, et nonumy sed tempor et et invidunt justo labore Stet clita ea et gubergren, kasd magna no rebum. sanctus sea sed takimata ut vero voluptua. est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur");
-
-define("text!demo/kitchen-sink/docs/powershell.ps1", [], "# This is a simple comment\n" +
-  "function Hello($name) {\n" +
-  "  Write-host \"Hello $name\"\n" +
-  "}\n" +
-  "\n" +
-  "function add($left, $right=4) {\n" +
-  "    if ($right -ne 4) {\n" +
-  "        return $left\n" +
-  "    } elseif ($left -eq $null -and $right -eq 2) {\n" +
-  "        return 3\n" +
-  "    } else {\n" +
-  "        return 2\n" +
-  "    }\n" +
-  "}\n" +
-  "\n" +
-  "$number = 1 + 2;\n" +
-  "$number += 3\n" +
-  "\n" +
-  "Write-Host Hello -name \"World\"\n" +
-  "\n" +
-  "$an_array = @(1, 2, 3)\n" +
-  "$a_hash = @{\"something\" = \"something else\"}\n" +
-  "\n" +
-  "& notepad .\\readme.md\n" +
-  "");
-
-define("text!demo/kitchen-sink/docs/python.py", [], "#!/usr/local/bin/python\n" +
-  "\n" +
-  "import string, sys\n" +
-  "\n" +
-  "# If no arguments were given, print a helpful message\n" +
-  "if len(sys.argv)==1:\n" +
-  "print '''Usage:\n" +
-  "    celsius temp1 temp2 ...'''\n" +
-  "sys.exit(0)\n" +
-  "\n" +
-  "# Loop over the arguments\n" +
-  "for i in sys.argv[1:]:\n" +
-  "    try:\n" +
-  "        fahrenheit=float(string.atoi(i))\n" +
-  "    except string.atoi_error:\n" +
-  "        print repr(i), \"not a numeric value\"\n" +
-  "    else:\n" +
-  "        celsius=(fahrenheit-32)*5.0/9.0\n" +
-  "        print '%i\\260F = %i\\260C' % (int(fahrenheit), int(celsius+.5))");
-
-define("text!demo/kitchen-sink/docs/ruby.rb", [], "#!/usr/bin/ruby\n" +
-  "\n" +
-  "# Program to find the factorial of a number\n" +
-  "def fact(n)\n" +
-  "    if n == 0\n" +
-  "        1\n" +
-  "    else\n" +
-  "        n * fact(n-1)\n" +
-  "    end\n" +
-  "end\n" +
-  "\n" +
-  "puts fact(ARGV[0].to_i)");
-
-define("text!demo/kitchen-sink/docs/scala.scala", [], "//http://www.scala-lang.org/node/227\n" +
-  "/* Defines a new method 'sort' for array objects */\n" +
-  "object implicits extends Application {\n" +
-  "  implicit def arrayWrapper[A : ClassManifest](x: Array[A]) =\n" +
-  "    new {\n" +
-  "      def sort(p: (A, A) => Boolean) = {\n" +
-  "        util.Sorting.stableSort(x, p); x\n" +
-  "      }\n" +
-  "    }\n" +
-  "  val x = Array(2, 3, 1, 4)\n" +
-  "  println(\"x = \"+ x.sort((x: Int, y: Int) => x < y))\n" +
-  "}");
-
-define("text!demo/kitchen-sink/docs/scss.scss", [], "/* style.scss */\n" +
-  "\n" +
-  "#navbar {\n" +
-  "    $navbar-width: 800px;\n" +
-  "    $items: 5;\n" +
-  "    $navbar-color: #ce4dd6;\n" +
-  "\n" +
-  "    width: $navbar-width;\n" +
-  "    border-bottom: 2px solid $navbar-color;\n" +
-  "\n" +
-  "    li {\n" +
-  "        float: left;\n" +
-  "        width: $navbar-width/$items - 10px;\n" +
-  "\n" +
-  "        background-color: lighten($navbar-color, 20%);\n" +
-  "        &:hover {\n" +
-  "            background-color: lighten($navbar-color, 10%);\n" +
-  "        }\n" +
-  "    }\n" +
-  "}");
-
-define("text!demo/kitchen-sink/docs/sql.sql", [], "SELECT city, COUNT(id) AS users_count\n" +
-  "FROM users\n" +
-  "WHERE group_name = 'salesman'\n" +
-  "AND created > '2011-05-21'\n" +
-  "GROUP BY 1\n" +
-  "ORDER BY 2 DESC");
-
-define("text!demo/kitchen-sink/docs/svg.svg", [], "<svg\n" +
-  "  width=\"800\" height=\"600\"\n" +
-  "  xmlns=\"http://www.w3.org/2000/svg\"\n" +
-  "  onload=\"StartAnimation(evt)\">\n" +
-  "\n" +
-  "  <title>Test Tube Progress Bar</title>\n" +
-  "  <desc>Created for the Web Directions SVG competition</desc>\n" +
-  "\n" +
-  "  <script type=\"text/ecmascript\"><![CDATA[\n" +
-  "    var timevalue = 0;\n" +
-  "    var timer_increment = 1;\n" +
-  "    var max_time = 100;\n" +
-  "    var hickory;\n" +
-  "    var dickory;\n" +
-  "    var dock;\n" +
-  "    var i;\n" +
-  "\n" +
-  "    function StartAnimation(evt) {\n" +
-  "        hickory  = evt.target.ownerDocument.getElementById(\"hickory\");\n" +
-  "        dickory = evt.target.ownerDocument.getElementById(\"dickory\");\n" +
-  "        dock = evt.target.ownerDocument.getElementById(\"dock\");\n" +
-  "\n" +
-  "        ShowAndGrowElement();\n" +
-  "    }\n" +
-  "    function ShowAndGrowElement() {\n" +
-  "        timevalue = timevalue + timer_increment;\n" +
-  "        if (timevalue > max_time)\n" +
-  "            return;\n" +
-  "        // Scale the text string gradually until it is 20 times larger\n" +
-  "        scalefactor = (timevalue * 650) / max_time;\n" +
-  "\n" +
-  "        if (timevalue < 30) {\n" +
-  "            hickory.setAttribute(\"display\", \"\");\n" +
-  "            hickory.setAttribute(\"transform\", \"translate(\" + (600+scalefactor*3*-1 ) + \", -144 )\");\n" +
-  "        }\n" +
-  "\n" +
-  "        if (timevalue > 30 && timevalue < 66) {\n" +
-  "            dickory.setAttribute(\"display\", \"\");\n" +
-  "            dickory.setAttribute(\"transform\", \"translate(\" + (-795+scalefactor*2) + \", 0 )\");\n" +
-  "        }\n" +
-  "        if (timevalue > 66) {\n" +
-  "            dock.setAttribute(\"display\", \"\");\n" +
-  "            dock.setAttribute(\"transform\", \"translate(\" + (1450+scalefactor*2*-1) + \", 144 )\");\n" +
-  "        }\n" +
-  "\n" +
-  "        // Call ShowAndGrowElement again <timer_increment> milliseconds later.\n" +
-  "        setTimeout(\"ShowAndGrowElement()\", timer_increment)\n" +
-  "    }\n" +
-  "    window.ShowAndGrowElement = ShowAndGrowElement\n" +
-  "  ]]</script>\n" +
-  "\n" +
-  "  <rect\n" +
-  "    fill=\"#2e3436\"\n" +
-  "    fill-rule=\"nonzero\"\n" +
-  "    stroke-width=\"3\"\n" +
-  "    y=\"0\"\n" +
-  "    x=\"0\"\n" +
-  "    height=\"600\"\n" +
-  "    width=\"800\"\n" +
-  "    id=\"rect3590\"/>\n" +
-  "\n" +
-  "    <text\n" +
-  "       style=\"font-size:144px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans Bold\"\n" +
-  "       x=\"50\"\n" +
-  "       y=\"350\"\n" +
-  "       id=\"hickory\"\n" +
-  "       display=\"none\">\n" +
-  "        Hickory,</text>\n" +
-  "    <text\n" +
-  "       style=\"font-size:144px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans Bold\"\n" +
-  "       x=\"50\"\n" +
-  "       y=\"350\"\n" +
-  "       id=\"dickory\"\n" +
-  "       display=\"none\">\n" +
-  "        dickory,</text>\n" +
-  "    <text\n" +
-  "       style=\"font-size:144px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans Bold\"\n" +
-  "       x=\"50\"\n" +
-  "       y=\"350\"\n" +
-  "       id=\"dock\"\n" +
-  "       display=\"none\">\n" +
-  "        dock!</text>\n" +
-  "</svg>");
-
-define("text!demo/kitchen-sink/docs/textile.textile", [], "h1. Textile document\n" +
-  "\n" +
-  "h2. Heading Two\n" +
-  "\n" +
-  "h3. A two-line\n" +
-  "    header\n" +
-  "\n" +
-  "h2. Another two-line\n" +
-  "header\n" +
-  "\n" +
-  "Paragraph:\n" +
-  "one, two,\n" +
-  "thee lines!\n" +
-  "\n" +
-  "p(classone two three). This is a paragraph with classes\n" +
-  "\n" +
-  "p(#id). (one with an id)\n" +
-  "\n" +
-  "p(one two three#my_id). ..classes + id\n" +
-  "\n" +
-  "* Unordered list\n" +
-  "** sublist\n" +
-  "* back again!\n" +
-  "** sublist again..\n" +
-  "\n" +
-  "# ordered\n" +
-  "\n" +
-  "bg. Blockquote!\n" +
-  "    This is a two-list blockquote..!");
-
-define("text!demo/kitchen-sink/docs/xml.xml", [], "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-  "<query xmlns:yahoo=\"http://www.yahooapis.com/v1/base.rng\"\n" +
-  "    yahoo:count=\"7\" yahoo:created=\"2011-10-11T08:40:23Z\" yahoo:lang=\"en-US\">\n" +
-  "    <diagnostics>\n" +
-  "        <publiclyCallable>true</publiclyCallable>\n" +
-  "        <url execution-start-time=\"0\" execution-stop-time=\"25\" execution-time=\"25\"><![CDATA[http://where.yahooapis.com/v1/continents;start=0;count=10]]></url>\n" +
-  "        <user-time>26</user-time>\n" +
-  "        <service-time>25</service-time>\n" +
-  "        <build-version>21978</build-version>\n" +
-  "    </diagnostics> \n" +
-  "    <results>\n" +
-  "        <place xmlns=\"http://where.yahooapis.com/v1/schema.rng\"\n" +
-  "            xml:lang=\"en-US\" yahoo:uri=\"http://where.yahooapis.com/v1/place/24865670\">\n" +
-  "            <woeid>24865670</woeid>\n" +
-  "            <placeTypeName code=\"29\">Continent</placeTypeName>\n" +
-  "            <name>Africa</name>\n" +
-  "        </place>\n" +
-  "        <place xmlns=\"http://where.yahooapis.com/v1/schema.rng\"\n" +
-  "            xml:lang=\"en-US\" yahoo:uri=\"http://where.yahooapis.com/v1/place/24865675\">\n" +
-  "            <woeid>24865675</woeid>\n" +
-  "            <placeTypeName code=\"29\">Continent</placeTypeName>\n" +
-  "            <name>Europe</name>\n" +
-  "        </place>\n" +
-  "        <place xmlns=\"http://where.yahooapis.com/v1/schema.rng\"\n" +
-  "            xml:lang=\"en-US\" yahoo:uri=\"http://where.yahooapis.com/v1/place/24865673\">\n" +
-  "            <woeid>24865673</woeid>\n" +
-  "            <placeTypeName code=\"29\">Continent</placeTypeName>\n" +
-  "            <name>South America</name>\n" +
-  "        </place>\n" +
-  "        <place xmlns=\"http://where.yahooapis.com/v1/schema.rng\"\n" +
-  "            xml:lang=\"en-US\" yahoo:uri=\"http://where.yahooapis.com/v1/place/28289421\">\n" +
-  "            <woeid>28289421</woeid>\n" +
-  "            <placeTypeName code=\"29\">Continent</placeTypeName>\n" +
-  "            <name>Antarctic</name>\n" +
-  "        </place>\n" +
-  "        <place xmlns=\"http://where.yahooapis.com/v1/schema.rng\"\n" +
-  "            xml:lang=\"en-US\" yahoo:uri=\"http://where.yahooapis.com/v1/place/24865671\">\n" +
-  "            <woeid>24865671</woeid>\n" +
-  "            <placeTypeName code=\"29\">Continent</placeTypeName>\n" +
-  "            <name>Asia</name>\n" +
-  "        </place>\n" +
-  "        <place xmlns=\"http://where.yahooapis.com/v1/schema.rng\"\n" +
-  "            xml:lang=\"en-US\" yahoo:uri=\"http://where.yahooapis.com/v1/place/24865672\">\n" +
-  "            <woeid>24865672</woeid>\n" +
-  "            <placeTypeName code=\"29\">Continent</placeTypeName>\n" +
-  "            <name>North America</name>\n" +
-  "        </place>\n" +
-  "        <place xmlns=\"http://where.yahooapis.com/v1/schema.rng\"\n" +
-  "            xml:lang=\"en-US\" yahoo:uri=\"http://where.yahooapis.com/v1/place/55949070\">\n" +
-  "            <woeid>55949070</woeid>\n" +
-  "            <placeTypeName code=\"29\">Continent</placeTypeName>\n" +
-  "            <name>Australia</name>\n" +
-  "        </place>\n" +
-  "    </results>\n" +
-  "</query>");
-
-define("text!ace/css/editor.css", [], "@import url(//fonts.googleapis.com/css?family=Droid+Sans+Mono);\n" +
-  "\n" +
-  "\n" +
-  ".ace_editor {\n" +
-  "    position: absolute;\n" +
-  "    overflow: hidden;\n" +
-  "    font-family: 'Monaco', 'Menlo', 'Droid Sans Mono', 'Courier New', monospace;\n" +
-  "    font-size: 12px;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_scroller {\n" +
-  "    position: absolute;\n" +
-  "    overflow-x: scroll;\n" +
-  "    overflow-y: hidden;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_content {\n" +
-  "    position: absolute;\n" +
-  "    box-sizing: border-box;\n" +
-  "    -moz-box-sizing: border-box;\n" +
-  "    -webkit-box-sizing: border-box;\n" +
-  "    cursor: text;\n" +
-  "}\n" +
-  "\n" +
-  "/* setting pointer-events: auto; on node under the mouse, which changes during scroll,\n" +
-  "  will break mouse wheel scrolling in Safari */\n" +
-  ".ace_content * {\n" +
-  "     pointer-events: none;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_composition {\n" +
-  "    position: absolute;\n" +
-  "    background: #555;\n" +
-  "    color: #DDD;\n" +
-  "    z-index: 4;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_gutter {\n" +
-  "    position: absolute;\n" +
-  "    overflow-x: hidden;\n" +
-  "    overflow-y: hidden;\n" +
-  "    height: 100%;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_gutter-cell.ace_error {\n" +
-  "    background-image: url(\"data:image/gif,GIF89a%10%00%10%00%D5%00%00%F5or%F5%87%88%F5nr%F4ns%EBmq%F5z%7F%DDJT%DEKS%DFOW%F1Yc%F2ah%CE(7%CE)8%D18E%DD%40M%F2KZ%EBU%60%F4%60m%DCir%C8%16(%C8%19*%CE%255%F1%3FR%F1%3FS%E6%AB%B5%CA%5DI%CEn%5E%F7%A2%9A%C9G%3E%E0a%5B%F7%89%85%F5yy%F6%82%80%ED%82%80%FF%BF%BF%E3%C4%C4%FF%FF%FF%FF%FF%FF%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00!%F9%04%01%00%00%25%00%2C%00%00%00%00%10%00%10%00%00%06p%C0%92pH%2C%1A%8F%C8%D2H%93%E1d4%23%E4%88%D3%09mB%1DN%B48%F5%90%40%60%92G%5B%94%20%3E%22%D2%87%24%FA%20%24%C5%06A%00%20%B1%07%02B%A38%89X.v%17%82%11%13q%10%0Fi%24%0F%8B%10%7BD%12%0Ei%09%92%09%0EpD%18%15%24%0A%9Ci%05%0C%18F%18%0B%07%04%01%04%06%A0H%18%12%0D%14%0D%12%A1I%B3%B4%B5IA%00%3B\");\n" +
-  "    background-repeat: no-repeat;\n" +
-  "    background-position: 4px center;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_gutter-cell.ace_warning {\n" +
-  "    background-image: url(\"data:image/gif,GIF89a%10%00%10%00%D5%00%00%FF%DBr%FF%DE%81%FF%E2%8D%FF%E2%8F%FF%E4%96%FF%E3%97%FF%E5%9D%FF%E6%9E%FF%EE%C1%FF%C8Z%FF%CDk%FF%D0s%FF%D4%81%FF%D5%82%FF%D5%83%FF%DC%97%FF%DE%9D%FF%E7%B8%FF%CCl%7BQ%13%80U%15%82W%16%81U%16%89%5B%18%87%5B%18%8C%5E%1A%94d%1D%C5%83-%C9%87%2F%C6%84.%C6%85.%CD%8B2%C9%871%CB%8A3%CD%8B5%DC%98%3F%DF%9BB%E0%9CC%E1%A5U%CB%871%CF%8B5%D1%8D6%DB%97%40%DF%9AB%DD%99B%E3%B0p%E7%CC%AE%FF%FF%FF%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00!%F9%04%01%00%00%2F%00%2C%00%00%00%00%10%00%10%00%00%06a%C0%97pH%2C%1A%8FH%A1%ABTr%25%87%2B%04%82%F4%7C%B9X%91%08%CB%99%1C!%26%13%84*iJ9(%15G%CA%84%14%01%1A%97%0C%03%80%3A%9A%3E%81%84%3E%11%08%B1%8B%20%02%12%0F%18%1A%0F%0A%03'F%1C%04%0B%10%16%18%10%0B%05%1CF%1D-%06%07%9A%9A-%1EG%1B%A0%A1%A0U%A4%A5%A6BA%00%3B\");\n" +
-  "    background-repeat: no-repeat;\n" +
-  "    background-position: 4px center;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_editor .ace_sb {\n" +
-  "    position: absolute;\n" +
-  "    overflow-x: hidden;\n" +
-  "    overflow-y: scroll;\n" +
-  "    right: 0;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_editor .ace_sb div {\n" +
-  "    position: absolute;\n" +
-  "    width: 1px;\n" +
-  "    left: 0;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_editor .ace_print_margin_layer {\n" +
-  "    z-index: 0;\n" +
-  "    position: absolute;\n" +
-  "    overflow: hidden;\n" +
-  "    margin: 0;\n" +
-  "    left: 0;\n" +
-  "    height: 100%;\n" +
-  "    width: 100%;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_editor .ace_print_margin {\n" +
-  "    position: absolute;\n" +
-  "    height: 100%;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_editor textarea {\n" +
-  "    position: fixed;\n" +
-  "    z-index: -1;\n" +
-  "    width: 10px;\n" +
-  "    height: 30px;\n" +
-  "    opacity: 0;\n" +
-  "    background: transparent;\n" +
-  "    appearance: none;\n" +
-  "    -moz-appearance: none;\n" +
-  "    border: none;\n" +
-  "    resize: none;\n" +
-  "    outline: none;\n" +
-  "    overflow: hidden;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_layer {\n" +
-  "    z-index: 1;\n" +
-  "    position: absolute;\n" +
-  "    overflow: hidden;\n" +
-  "    white-space: nowrap;\n" +
-  "    height: 100%;\n" +
-  "    width: 100%;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_text-layer {\n" +
-  "    color: black;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_cjk {\n" +
-  "    display: inline-block;\n" +
-  "    text-align: center;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_cursor-layer {\n" +
-  "    z-index: 4;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_cursor {\n" +
-  "    z-index: 4;\n" +
-  "    position: absolute;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_cursor.ace_hidden {\n" +
-  "    opacity: 0.2;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_line {\n" +
-  "    white-space: nowrap;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_marker-layer .ace_step {\n" +
-  "    position: absolute;\n" +
-  "    z-index: 3;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_marker-layer .ace_selection {\n" +
-  "    position: absolute;\n" +
-  "    z-index: 4;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_marker-layer .ace_bracket {\n" +
-  "    position: absolute;\n" +
-  "    z-index: 5;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_marker-layer .ace_active_line {\n" +
-  "    position: absolute;\n" +
-  "    z-index: 2;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_marker-layer .ace_selected_word {\n" +
-  "    position: absolute;\n" +
-  "    z-index: 6;\n" +
-  "    box-sizing: border-box;\n" +
-  "    -moz-box-sizing: border-box;\n" +
-  "    -webkit-box-sizing: border-box;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_line .ace_fold {\n" +
-  "    cursor: pointer;\n" +
-  "     pointer-events: auto;\n" +
-  "     color: darkred;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_fold:hover{\n" +
-  "    background: gold!important;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_dragging .ace_content {\n" +
-  "  cursor: move;\n" +
-  "}\n" +
-  "");
-
-define("text!ace/ext/static.css", [], ".ace_editor {\n" +
-  "   font-family: 'Monaco', 'Menlo', 'Droid Sans Mono', 'Courier New', monospace;\n" +
-  "   font-size: 12px;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_editor .ace_gutter { \n" +
-  "    width: 25px !important;\n" +
-  "    display: block;\n" +
-  "    float: left;\n" +
-  "    text-align: right; \n" +
-  "    padding: 0 3px 0 0; \n" +
-  "    margin-right: 3px;\n" +
-  "}\n" +
-  "\n" +
-  ".ace-row { clear: both; }\n" +
-  "\n" +
-  "*.ace_gutter-cell {\n" +
-  "  -moz-user-select: -moz-none;\n" +
-  "  -khtml-user-select: none;\n" +
-  "  -webkit-user-select: none;\n" +
-  "  user-select: none;\n" +
-  "}");
-
-define("text!lib/ace/css/editor.css", [], "@import url(//fonts.googleapis.com/css?family=Droid+Sans+Mono);\n" +
-  "\n" +
-  "\n" +
-  ".ace_editor {\n" +
-  "    position: absolute;\n" +
-  "    overflow: hidden;\n" +
-  "    font-family: 'Monaco', 'Menlo', 'Droid Sans Mono', 'Courier New', monospace;\n" +
-  "    font-size: 12px;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_scroller {\n" +
-  "    position: absolute;\n" +
-  "    overflow-x: scroll;\n" +
-  "    overflow-y: hidden;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_content {\n" +
-  "    position: absolute;\n" +
-  "    box-sizing: border-box;\n" +
-  "    -moz-box-sizing: border-box;\n" +
-  "    -webkit-box-sizing: border-box;\n" +
-  "    cursor: text;\n" +
-  "}\n" +
-  "\n" +
-  "/* setting pointer-events: auto; on node under the mouse, which changes during scroll,\n" +
-  "  will break mouse wheel scrolling in Safari */\n" +
-  ".ace_content * {\n" +
-  "     pointer-events: none;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_composition {\n" +
-  "    position: absolute;\n" +
-  "    background: #555;\n" +
-  "    color: #DDD;\n" +
-  "    z-index: 4;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_gutter {\n" +
-  "    position: absolute;\n" +
-  "    overflow-x: hidden;\n" +
-  "    overflow-y: hidden;\n" +
-  "    height: 100%;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_gutter-cell.ace_error {\n" +
-  "    background-image: url(\"data:image/gif,GIF89a%10%00%10%00%D5%00%00%F5or%F5%87%88%F5nr%F4ns%EBmq%F5z%7F%DDJT%DEKS%DFOW%F1Yc%F2ah%CE(7%CE)8%D18E%DD%40M%F2KZ%EBU%60%F4%60m%DCir%C8%16(%C8%19*%CE%255%F1%3FR%F1%3FS%E6%AB%B5%CA%5DI%CEn%5E%F7%A2%9A%C9G%3E%E0a%5B%F7%89%85%F5yy%F6%82%80%ED%82%80%FF%BF%BF%E3%C4%C4%FF%FF%FF%FF%FF%FF%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00!%F9%04%01%00%00%25%00%2C%00%00%00%00%10%00%10%00%00%06p%C0%92pH%2C%1A%8F%C8%D2H%93%E1d4%23%E4%88%D3%09mB%1DN%B48%F5%90%40%60%92G%5B%94%20%3E%22%D2%87%24%FA%20%24%C5%06A%00%20%B1%07%02B%A38%89X.v%17%82%11%13q%10%0Fi%24%0F%8B%10%7BD%12%0Ei%09%92%09%0EpD%18%15%24%0A%9Ci%05%0C%18F%18%0B%07%04%01%04%06%A0H%18%12%0D%14%0D%12%A1I%B3%B4%B5IA%00%3B\");\n" +
-  "    background-repeat: no-repeat;\n" +
-  "    background-position: 4px center;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_gutter-cell.ace_warning {\n" +
-  "    background-image: url(\"data:image/gif,GIF89a%10%00%10%00%D5%00%00%FF%DBr%FF%DE%81%FF%E2%8D%FF%E2%8F%FF%E4%96%FF%E3%97%FF%E5%9D%FF%E6%9E%FF%EE%C1%FF%C8Z%FF%CDk%FF%D0s%FF%D4%81%FF%D5%82%FF%D5%83%FF%DC%97%FF%DE%9D%FF%E7%B8%FF%CCl%7BQ%13%80U%15%82W%16%81U%16%89%5B%18%87%5B%18%8C%5E%1A%94d%1D%C5%83-%C9%87%2F%C6%84.%C6%85.%CD%8B2%C9%871%CB%8A3%CD%8B5%DC%98%3F%DF%9BB%E0%9CC%E1%A5U%CB%871%CF%8B5%D1%8D6%DB%97%40%DF%9AB%DD%99B%E3%B0p%E7%CC%AE%FF%FF%FF%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00!%F9%04%01%00%00%2F%00%2C%00%00%00%00%10%00%10%00%00%06a%C0%97pH%2C%1A%8FH%A1%ABTr%25%87%2B%04%82%F4%7C%B9X%91%08%CB%99%1C!%26%13%84*iJ9(%15G%CA%84%14%01%1A%97%0C%03%80%3A%9A%3E%81%84%3E%11%08%B1%8B%20%02%12%0F%18%1A%0F%0A%03'F%1C%04%0B%10%16%18%10%0B%05%1CF%1D-%06%07%9A%9A-%1EG%1B%A0%A1%A0U%A4%A5%A6BA%00%3B\");\n" +
-  "    background-repeat: no-repeat;\n" +
-  "    background-position: 4px center;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_editor .ace_sb {\n" +
-  "    position: absolute;\n" +
-  "    overflow-x: hidden;\n" +
-  "    overflow-y: scroll;\n" +
-  "    right: 0;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_editor .ace_sb div {\n" +
-  "    position: absolute;\n" +
-  "    width: 1px;\n" +
-  "    left: 0;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_editor .ace_print_margin_layer {\n" +
-  "    z-index: 0;\n" +
-  "    position: absolute;\n" +
-  "    overflow: hidden;\n" +
-  "    margin: 0;\n" +
-  "    left: 0;\n" +
-  "    height: 100%;\n" +
-  "    width: 100%;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_editor .ace_print_margin {\n" +
-  "    position: absolute;\n" +
-  "    height: 100%;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_editor textarea {\n" +
-  "    position: fixed;\n" +
-  "    z-index: -1;\n" +
-  "    width: 10px;\n" +
-  "    height: 30px;\n" +
-  "    opacity: 0;\n" +
-  "    background: transparent;\n" +
-  "    appearance: none;\n" +
-  "    -moz-appearance: none;\n" +
-  "    border: none;\n" +
-  "    resize: none;\n" +
-  "    outline: none;\n" +
-  "    overflow: hidden;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_layer {\n" +
-  "    z-index: 1;\n" +
-  "    position: absolute;\n" +
-  "    overflow: hidden;\n" +
-  "    white-space: nowrap;\n" +
-  "    height: 100%;\n" +
-  "    width: 100%;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_text-layer {\n" +
-  "    color: black;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_cjk {\n" +
-  "    display: inline-block;\n" +
-  "    text-align: center;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_cursor-layer {\n" +
-  "    z-index: 4;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_cursor {\n" +
-  "    z-index: 4;\n" +
-  "    position: absolute;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_cursor.ace_hidden {\n" +
-  "    opacity: 0.2;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_line {\n" +
-  "    white-space: nowrap;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_marker-layer .ace_step {\n" +
-  "    position: absolute;\n" +
-  "    z-index: 3;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_marker-layer .ace_selection {\n" +
-  "    position: absolute;\n" +
-  "    z-index: 4;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_marker-layer .ace_bracket {\n" +
-  "    position: absolute;\n" +
-  "    z-index: 5;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_marker-layer .ace_active_line {\n" +
-  "    position: absolute;\n" +
-  "    z-index: 2;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_marker-layer .ace_selected_word {\n" +
-  "    position: absolute;\n" +
-  "    z-index: 6;\n" +
-  "    box-sizing: border-box;\n" +
-  "    -moz-box-sizing: border-box;\n" +
-  "    -webkit-box-sizing: border-box;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_line .ace_fold {\n" +
-  "    cursor: pointer;\n" +
-  "     pointer-events: auto;\n" +
-  "     color: darkred;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_fold:hover{\n" +
-  "    background: gold!important;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_dragging .ace_content {\n" +
-  "  cursor: move;\n" +
-  "}\n" +
-  "");
-
-define("text!lib/ace/ext/static.css", [], ".ace_editor {\n" +
-  "   font-family: 'Monaco', 'Menlo', 'Droid Sans Mono', 'Courier New', monospace;\n" +
-  "   font-size: 12px;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_editor .ace_gutter { \n" +
-  "    width: 25px !important;\n" +
-  "    display: block;\n" +
-  "    float: left;\n" +
-  "    text-align: right; \n" +
-  "    padding: 0 3px 0 0; \n" +
-  "    margin-right: 3px;\n" +
-  "}\n" +
-  "\n" +
-  ".ace-row { clear: both; }\n" +
-  "\n" +
-  "*.ace_gutter-cell {\n" +
-  "  -moz-user-select: -moz-none;\n" +
-  "  -khtml-user-select: none;\n" +
-  "  -webkit-user-select: none;\n" +
-  "  user-select: none;\n" +
-  "}");
-
