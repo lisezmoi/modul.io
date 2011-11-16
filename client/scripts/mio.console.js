@@ -12,7 +12,7 @@
 
             // Clear button
             var buttonContainer = mio.util.createElt("div");
-            var button = mio.util.createElt("button", {content: "Clear", events: {
+            var button = mio.util.createElt("button", {content: "c", events: {
                 click: pub.clear
             }});
             buttonContainer.appendChild(button);

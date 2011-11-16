@@ -24,9 +24,16 @@ button::-moz-focus-inner {
   border: 0;
 }
 @font-face {
-  font-family: "Inconsolata";
+  font-family: 'Inconsolata';
   src: url("font/inconsolata/inconsolata-webfont.eot");
-  src: url("font/inconsolata/inconsolata-webfont.eot?#iefix") format("embedded-opentype"), url("font/inconsolata/inconsolata-webfont.woff") format("woff"), url("font/inconsolata/inconsolata-webfont.ttf") format("truetype"), url("font/inconsolata/inconsolata-webfont.svg#UrbanoLight") format("svg");
+  src: url("font/inconsolata/inconsolata-webfont.eot?#iefix") format('embedded-opentype'), url("font/inconsolata/inconsolata-webfont.woff") format('woff'), url("font/inconsolata/inconsolata-webfont.ttf") format('truetype'), url("font/inconsolata/inconsolata-webfont.svg#UrbanoLight") format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Modulicons';
+  src: url("font/modulicons/modulicons-webfont.eot");
+  src: url("font/modulicons/modulicons-webfont.eot?#iefix") format('embedded-opentype'), url("font/modulicons/modulicons-webfont.woff") format('woff'), url("font/modulicons/modulicons-webfont.ttf") format('truetype'), url("font/modulicons/modulicons-webfont.svg#UrbanoLight") format('svg');
   font-weight: normal;
   font-style: normal;
 }
@@ -49,8 +56,8 @@ html {
 #logo {
   position: absolute;
   z-index: 1;
-  left: 15px;
-  bottom: 15px;
+  left: 9px;
+  bottom: 9px;
   margin: 0;
   width: 104px;
   height: 21px;
@@ -76,8 +83,8 @@ html {
 }
 #loading {
   position: absolute;
-  top: 10px;
-  left: 10px;
+  top: u;
+  left: u;
   z-index: 999;
   margin: 0;
   font-size: 12px;
@@ -85,7 +92,7 @@ html {
   color: #fff;
 }
 .panel {
-  width: 300px;
+  width: 302px;
 }
 .panel h1 {
   margin: 0;
@@ -96,7 +103,7 @@ html {
   cursor: pointer;
 }
 .panel button.close {
-  width: 300px;
+  width: 302px;
   height: 32px;
   margin: 0;
   padding: 0 10px 0 0;
@@ -113,7 +120,6 @@ html {
 }
 .panel .content {
   overflow: auto;
-  position: relative;
   background: rgba(0,5,20,0.50);
 }
 .panel-position-tr,
@@ -121,20 +127,26 @@ html {
   border-bottom: 1px solid #dbe3e2;
 }
 .panel-position-tl {
-  margin-left: 10px;
+  border-top: 0;
+  padding-left: 4px;
+h1
+  padding-left: 4px;
 }
 .panel-position-br {
   border-top: 1px solid #dbe3e2;
 }
+#panel-codepad .ace_gutter {
+  background-color: #dbe3e2;
+}
 #panel-codepad {
-  width: 600px;
+  width: 604px;
 }
 #panel-codepad .content {
   background: none;
 }
 #ace-editor {
   position: relative;
-  width: 600px;
+  width: 604px;
 }
 #panel-console {
   position: relative;
@@ -146,7 +158,7 @@ html {
 }
 .modul-info {
   position: absolute;
-  width: 250px;
+  width: 302px;
   height: 200px;
   color: #dbe3e2;
   background: rgba(0,5,20,0.50);
@@ -156,33 +168,46 @@ button {
   border: solid 1px #435165;
   background: rgba(255,255,255,0.10);
   cursor: pointer;
-  width: 49%;
-  margin: 0 0 6px 0;
+  width: 145px;
   padding: 2px 0;
   cursor: pointer;
 }
 button:hover {
   border: solid 1px #dbe3e2;
 }
+.panel button {
+  margin: 4px 4px 0 4px;
+}
 .panel button:nth-child(2n+1) {
-  margin-right: 6px;
+  margin-right: 0;
 }
 #panel-console button,
 #panel-codepad button {
-  background: #398d69;
+  font-size: 28px;
+  position: absolute;
   border: 0;
-  color: #cafae4;
-  font-size: 17px;
-  padding: 2px 5px;
-  width: auto;
+  color: #dbe3e2;
+  padding: 0 0 4px 0;
+  margin: 0;
+  height: 23px;
+  width: 29px;
+  line-height: 20px;
   cursor: pointer;
-  border-bottom: 1px solid #155b39;
-  border-right: 1px solid #155b39;
+  background: none;
+}
+#panel-console button:hover,
+#panel-codepad button:hover {
+  color: #398d69;
+}
+#panel-console button:active,
+#panel-codepad button:active {
+  color: #dbe3e2;
 }
 #panel-console button {
-  position: absolute;
-  top: 33px;
-  right: -5px;
+  right: -30px;
+}
+#panel-codepad button {
+  left: -30px;
 }
 #panel-Actions button {
   white-space: pre;

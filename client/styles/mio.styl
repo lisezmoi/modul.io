@@ -7,7 +7,14 @@
     src url('font/inconsolata/inconsolata-webfont.eot?#iefix') format('embedded-opentype'), url('font/inconsolata/inconsolata-webfont.woff') format('woff'), url('font/inconsolata/inconsolata-webfont.ttf') format('truetype'), url('font/inconsolata/inconsolata-webfont.svg#UrbanoLight') format('svg')
     font-weight normal
     font-style normal
+@font-face
+    font-family 'Modulicons'
+    src url('font/modulicons/modulicons-webfont.eot')
+    src url('font/modulicons/modulicons-webfont.eot?#iefix') format('embedded-opentype'), url('font/modulicons/modulicons-webfont.woff') format('woff'), url('font/modulicons/modulicons-webfont.ttf') format('truetype'), url('font/modulicons/modulicons-webfont.svg#UrbanoLight') format('svg')
+    font-weight normal
+    font-style normal
 mono = "Inconsolata", courier new, monospace
+icon = "modulicons"
 tall = 17px
 medium = 14px
 small = 10px
@@ -20,8 +27,10 @@ light = #2D3741
 green = #398D69
 
 // Grid
-u = 10px
-p = 6px
+cell = 145px
+gutter = 4px
+panelw = cell*2 + gutter*3
+
 body
     font medium mono
 
@@ -40,8 +49,8 @@ body, html
 #logo
     position absolute
     z-index 1
-    left u+5
-    bottom u+5
+    left gutter+5
+    bottom gutter+5
     margin 0
     width 104px
     height 21px
@@ -77,7 +86,7 @@ body, html
 
 // Panels
 .panel
-    width u*30
+    width panelw
 
 .panel h1
     margin 0
@@ -88,7 +97,7 @@ body, html
     cursor pointer
 
 .panel button.close
-    width u*30
+    width cell*2 + gutter*3
     height 32px
     margin 0
     padding 0 10px 0 0
@@ -104,31 +113,34 @@ body, html
 
 .panel .content
     overflow auto
-    position relative
     background rgba(0, 5, 20, 0.5)
 
 .panel-position-tr, .panel-position-tl
     border-bottom 1px solid bone
 .panel-position-tl
-    margin-left u
+    border-top 0
+    padding-left gutter
+    h1
+    padding-left gutter
 .panel-position-br
     border-top 1px solid bone
 
 // Codepad
+#panel-codepad .ace_gutter
+    background-color bone
 #panel-codepad
-    width u*60
+    width panelw * 2
 
 #panel-codepad .content
     background none
 
 #ace-editor
     position relative
-    width u*60
+    width panelw*2
 
 // Console
 #panel-console
     position relative
-
 #panel-console .console
     pre
         color bone
@@ -137,7 +149,7 @@ body, html
 
 .modul-info
     position absolute
-    width 250px
+    width panelw
     height 200px
     color #dbe3e2
     background rgba(0, 5, 20, 0.5)
@@ -148,32 +160,36 @@ button
     border solid 1px #435165
     background rgba(255, 255, 255, 0.1)
     cursor pointer
-    width 49%
-    margin 0 0 6px 0
+    width cell
     padding 2px 0
     cursor pointer
     &:hover
         border solid 1px bone
 
 .panel button
+    margin gutter gutter 0 gutter
     &:nth-child(2n+1)
-        margin-right 6px
-
+        margin-right 0
 #panel-console button, #panel-codepad button
-    background green
-    border 0
-    color #CAFAE4
-    font-size tall
-    padding 2px 5px
-    width auto
-    cursor pointer
-    border-bottom 1px solid #155B39
-    border-right 1px solid #155B39
-#panel-console button
+    font-size 28px
     position absolute
-    top 33px
-    right -5px
-
+    border 0
+    color bone
+    padding 0 0 4px 0
+    margin 0
+    height 23px
+    width 29px
+    line-height 20px
+    cursor pointer
+    background none
+#panel-console button:hover, #panel-codepad button:hover
+    color green
+#panel-console button:active, #panel-codepad button:active
+    color bone
+#panel-console button
+    right -30px
+#panel-codepad button
+    left -30px
 #panel-Actions button
     white-space pre
 

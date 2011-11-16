@@ -19,7 +19,7 @@
             
             // Save button
             var buttonContainer = mio.util.createElt('div');
-            var button = mio.util.createElt('button', {content: 'Save & Run', events: {
+            var button = mio.util.createElt('button', {content: 's', events: {
                 click: function() {
                     mio.socket.emit('code', editor.getSession().getValue());
                 }
