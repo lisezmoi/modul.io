@@ -2,18 +2,21 @@
 <%
 	var site_url = "http://"+host+"/";
 %>
-<html>
+<html lang="en">
 <head>
-	<meta charset="utf-8">
+	<meta charset="utf-8" />
 	<title>modul.io</title>
 	<link rel="shortcut icon" href="/favicon.ico" />
-	<link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Droid+Sans+Mono" />
 	<link rel="stylesheet" href="<%- site_url %>styles/web.css" />
 </head>
-<body class="board">
-	<h2><%- user %>/<%- modul %> does not exist.</h2>
-	<form method="post" action="">
-		<button>Create it</button>
-	</form>
+	<header>
+		<h1>modul.io</h1>
+	</header>
+	<div class="modul-create only">
+        <h2><%- user %>/<%- modul %> does not exist.</h2>
+        <form method="post" action="">
+            <button>Create it</button>
+        </form>
+	</div>
 </body>
 </html>

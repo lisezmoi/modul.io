@@ -49,8 +49,8 @@ body, html
 #logo
     position absolute
     z-index 1
-    left gutter+5
-    bottom gutter+5
+    left gutter*2
+    bottom gutter*2
     margin 0
     width 104px
     height 21px
@@ -76,13 +76,11 @@ body, html
 
 #loading
     position absolute
-    top u
-    left u
+    font medium mono
+    bottom -4px
+    left panelw
     z-index 999
-    margin 0
-    font-size 12px
-    line-height 20px
-    color #fff
+    color bone
 
 // Panels
 .panel
@@ -175,7 +173,7 @@ button
     position absolute
     border 0
     color bone
-    padding 0 0 4px 0
+    padding 0 0 gutter 0
     margin 0
     height 23px
     width 29px

@@ -56,8 +56,8 @@ html {
 #logo {
   position: absolute;
   z-index: 1;
-  left: 9px;
-  bottom: 9px;
+  left: 8px;
+  bottom: 8px;
   margin: 0;
   width: 104px;
   height: 21px;
@@ -83,13 +83,11 @@ html {
 }
 #loading {
   position: absolute;
-  top: u;
-  left: u;
+  font: 14px "Inconsolata", courier new, monospace;
+  bottom: -4px;
+  left: 302px;
   z-index: 999;
-  margin: 0;
-  font-size: 12px;
-  line-height: 20px;
-  color: #fff;
+  color: #dbe3e2;
 }
 .panel {
   width: 302px;
