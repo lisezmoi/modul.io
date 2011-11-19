@@ -189,17 +189,17 @@ button.pressed {
 }
 #panel-console button,
 #panel-codepad button {
-  font-size: 28px;
   position: absolute;
-  border: 0;
-  color: #dbe3e2;
-  padding: 0 0 4px 0;
-  margin: 0;
-  height: 23px;
   width: 29px;
+  height: 23px;
+  margin: 0;
+  padding: 0 0 4px 0;
+  font-size: 28px;
   line-height: 20px;
-  cursor: pointer;
+  color: #dbe3e2;
   background: none;
+  border: 0;
+  cursor: pointer;
 }
 #panel-console button:hover,
 #panel-codepad button:hover {
@@ -210,9 +210,11 @@ button.pressed {
   color: #dbe3e2;
 }
 #panel-console button {
+  top: 32px;
   right: -30px;
 }
 #panel-codepad button {
+  top: 32px;
   left: -30px;
 }
 #panel-Actions button {
