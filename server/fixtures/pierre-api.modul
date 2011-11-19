@@ -26,7 +26,7 @@ var actionsPanel = ui.buttonsPanel("Actions", [
   }),
   ui.button('Test API', function() {
     ui.log('\n\Test API');
-    ui.log('World.getDimensions(): w:' + world.getDimensions()[0] + ' y:' + world.getDimensions()[1]);
+    ui.log('World.dimensions(): w:' + world.dimensions()[0] + ' y:' + world.dimensions()[1]);
     ui.log('Modul.getCoordinates(): x:' + modul.getCoordinates()[0] + ' y:' + modul.getCoordinates()[1]);
   }),
   ui.button('Test message', function() {
