@@ -38,7 +38,7 @@ button::-moz-focus-inner {
   font-style: normal;
 }
 body {
-  font: 14px "Inconsolata", courier new, monospace;
+  font: 14px "Inconsolata", "Courier New", monospace;
 }
 pre {
   margin: 0;
@@ -83,8 +83,8 @@ html {
 }
 #loading {
   position: absolute;
-  top: u;
-  left: u;
+  top: 10px;
+  left: 10px;
   z-index: 999;
   margin: 0;
   font-size: 12px;
@@ -153,7 +153,7 @@ h1
 }
 #panel-console .console pre {
   color: #dbe3e2;
-  font: 14px "Inconsolata", courier new, monospace;
+  font: 14px "Inconsolata", "Courier New", monospace;
   color: #75787f;
 }
 .modul-info {
