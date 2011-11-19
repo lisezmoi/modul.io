@@ -49,8 +49,8 @@ body, html
 #logo
     position absolute
     z-index 1
-    left gutter+5
-    bottom gutter+5
+    left gutter*4
+    bottom gutter*4
     margin 0
     width 104px
     height 21px
@@ -76,13 +76,11 @@ body, html
 
 #loading
     position absolute
-    top 10px
-    left 10px
+    bottom -4px
+    left panelw
+    font medium mono
     z-index 999
-    margin 0
-    font-size 12px
-    line-height 20px
-    color #fff
+    color bone
 
 // Panels
 .panel
@@ -119,9 +117,10 @@ body, html
     border-bottom 1px solid bone
 .panel-position-tl
     border-top 0
-    padding-left gutter
+    .console
+        padding-left gutter
     h1
-    padding-left gutter
+        padding-left gutter
 .panel-position-br
     border-top 1px solid bone
 
@@ -149,8 +148,8 @@ body, html
 
 .modul-info
     position absolute
-    width panelw
-    height 200px
+    width 200px
+    height 250px
     color #dbe3e2
     background rgba(0, 5, 20, 0.5)
 
@@ -164,7 +163,12 @@ button
     padding 2px 0
     cursor pointer
     &:hover
-        border solid 1px bone
+        border-color bone
+    &:active, &.pressed
+        background rgba(255, 255, 255, 0.05)
+        border-color #32395A
+
+
 
 .panel button
     margin gutter gutter 0 gutter
@@ -175,7 +179,7 @@ button
     position absolute
     border 0
     color bone
-    padding 0 0 4px 0
+    padding 0 0 gutter 0
     margin 0
     height 23px
     width 29px

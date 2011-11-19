@@ -24,14 +24,14 @@ button::-moz-focus-inner {
   border: 0;
 }
 @font-face {
-  font-family: "Inconsolata";
+  font-family: 'Inconsolata';
   src: url("font/inconsolata/inconsolata-webfont.eot");
-  src: url("font/inconsolata/inconsolata-webfont.eot?#iefix") format("embedded-opentype"), url("font/inconsolata/inconsolata-webfont.woff") format("woff"), url("font/inconsolata/inconsolata-webfont.ttf") format("truetype"), url("font/inconsolata/inconsolata-webfont.svg#UrbanoLight") format("svg");
+  src: url("font/inconsolata/inconsolata-webfont.eot?#iefix") format('embedded-opentype'), url("font/inconsolata/inconsolata-webfont.woff") format('woff'), url("font/inconsolata/inconsolata-webfont.ttf") format('truetype'), url("font/inconsolata/inconsolata-webfont.svg#UrbanoLight") format('svg');
   font-weight: normal;
   font-style: normal;
 }
 html {
-  background: #0b1728;
+  height: 100%;
 }
 body > header h1 {
   width: 198px;
@@ -41,8 +41,18 @@ body > header h1 {
   background: url("i/logo_198x38.png") no-repeat 0 50px;
 }
 body {
+  height: 100%;
   font: 16px "Inconsolata", courier new, monospace;
   padding: 0 0 120px;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-color: #70194d;
+  background-image: linear-gradient(bottom, #70194d 4%, #281247 52%, #0b1728 76%);
+  background-image: -o-linear-gradient(bottom, #70194d 4%, #281247 52%, #0b1728 76%);
+  background-image: -moz-linear-gradient(bottom, #70194d 4%, #281247 52%, #0b1728 76%);
+  background-image: -webkit-linear-gradient(bottom, #70194d 4%, #281247 52%, #0b1728 76%);
+  background-image: -ms-linear-gradient(bottom, #70194d 4%, #281247 52%, #0b1728 76%);
+  background-image: -webkit-gradient(linear, left bottom, left top, color-stop(0.04, #70194d), color-stop(0.52, #281247), color-stop(0.76, #0b1728));
 }
 h2 {
   color: #0b1728;
@@ -90,6 +100,14 @@ input {
   width: 120px;
   height: 62px;
   margin: 0 0 0 20px;
+}
+div.modul-create.only h2 {
+  text-align: center;
+}
+div.modul-create.only button {
+  width: 240px;
+  margin: 0 auto;
+  display: block;
 }
 .modul-list li {
   overflow: hidden;
