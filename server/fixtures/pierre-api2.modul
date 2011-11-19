@@ -1,4 +1,4 @@
-var ctx = modul.getCanvas();
+var ctx = modul.context;
 
 ctx.clearRect(0,0,50,50);
 ctx.fillStyle="#FF00FF";

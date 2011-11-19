@@ -1,8 +1,8 @@
-var ctx = modul.getCanvas();
+var ctx = modul.context;
 
 // ------- SKINS
 
-function skin_Default() {
+function defaultSkin() {
   ctx.clearRect(0,0,50,50);
   // modul.io DEFAULT SKIN
   ctx.beginPath();
@@ -385,55 +385,55 @@ var myCell = new Cell;
     ctx.fillRect(newx,newy-2, 1, 5);
   }
 // ------- Panel
-var actionsPanel = new ui.ButtonsPanel("Actions", [
-  new ui.Button("Left", function(){
+var actionsPanel = ui.buttonsPanel("Actions", [
+  ui.button("Left", function(){
     modul.move("left");
     bousole();
   }),
-  new ui.Button("Top", function(){
+  ui.button("Top", function(){
     modul.move("top");
     bousole();
   }),
-  new ui.Button("Bottom", function(){
+  ui.button("Bottom", function(){
     modul.move("bottom");
     bousole();
   }),
-  new ui.Button("Right", function(){
+  ui.button("Right", function(){
     modul.move("right");
     bousole();
   }),
-  new ui.Button("Say", function(msg){
+  ui.button("Say", function(msg){
     // say
   }),
-  new ui.Button("Balise", function(){
+  ui.button("Balise", function(){
     skinPosition();
   }),
-  new ui.Button("zombie", function(){
+  ui.button("zombie", function(){
     zombieState = !zombieState
   }),
-  new ui.Button("cellular", function(){
+  ui.button("cellular", function(){
     cellularState = !cellularState
   }),
-  new ui.Button("bousole", function(){
+  ui.button("bousole", function(){
     bousole();
   })
 ]);
 
 // ------- Panel
-var skinPanel = new ui.ButtonsPanel("skins", [
-    new ui.Button("default", skin_Default),
-    new ui.Button("blank", skin_Blank),
-    new ui.Button("kirby", skin_Kirby),
-    new ui.Button("mario", skin_Mario),
-    new ui.Button("blue", skin_Blue),
-    new ui.Button("error", skin_Error),
-    new ui.Button("glitch", skin_Glitch),
-    new ui.Button("win", skin_Win)
+var skinPanel = ui.buttonsPanel("skins", [
+    ui.button("default", defaultSkin),
+    ui.button("blank", skin_Blank),
+    ui.button("kirby", skin_Kirby),
+    ui.button("mario", skin_Mario),
+    ui.button("blue", skin_Blue),
+    ui.button("error", skin_Error),
+    ui.button("glitch", skin_Glitch),
+    ui.button("win", skin_Win)
 ]);
 
-world.onInterval(function(){
+world.on('interval', function(){
   if (zombieState) zombie();
   if (cellularState) cellular();
 });
 
-skin_Default();
+defaultSkin();

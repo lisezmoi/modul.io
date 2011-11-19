@@ -1,7 +1,7 @@
-var ctx = modul.getCanvas();
+var ctx = modul.context;
 
 // Let's draw the modul
-function default_skin() {
+function defaultSkin() {
   ctx.clearRect(0,0,50,50);
   // modul.io DEFAULT SKIN
   ctx.beginPath();
@@ -62,23 +62,23 @@ function default_skin() {
 }
 // You can fill your own panel
 // Here is the default "Actions" panel
-var actionsPanel = new ui.ButtonsPanel("Actions", [
-    new ui.Button("Left", function(){
+var actionsPanel = ui.buttonsPanel("Actions", [
+    ui.button("Left", function(){
         modul.move("left");
     }),
-    new ui.Button("Top", function(){
+    ui.button("Top", function(){
         modul.move("top");
     }),
-    new ui.Button("Bottom", function(){
+    ui.button("Bottom", function(){
         modul.move("bottom");
     }),
-    new ui.Button("Right", function(){
+    ui.button("Right", function(){
         modul.move("right");
     }),
-    new ui.Button("Default Skin", function(){
-        default_skin();
+    ui.button("Default Skin", function(){
+        defaultSkin();
     }),
 ]);
 
 // Finally the skin is drawn
-default_skin();
+defaultSkin();
