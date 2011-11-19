@@ -27,8 +27,9 @@ darker = #bbb
 // Grid
 u = 20px
 
+
 html
-    background: bg
+    height 100%
 
 body > header h1
     width 198px
@@ -38,9 +39,19 @@ body > header h1
     background url(i/logo_198x38.png) no-repeat 0 50px
 
 body
+    height 100%
     font small mono
     padding 0 0 u*6
-
+    background-repeat no-repeat
+    background-attachment fixed
+    background-color #70194d
+    background-image linear-gradient(bottom, rgb(112,25,77) 4%, rgb(40,18,71) 52%, rgb(11,23,40) 76%)
+    background-image -o-linear-gradient(bottom, rgb(112,25,77) 4%, rgb(40,18,71) 52%, rgb(11,23,40) 76%)
+    background-image -moz-linear-gradient(bottom, rgb(112,25,77) 4%, rgb(40,18,71) 52%, rgb(11,23,40) 76%)
+    background-image -webkit-linear-gradient(bottom, rgb(112,25,77) 4%, rgb(40,18,71) 52%, rgb(11,23,40) 76%)
+    background-image -ms-linear-gradient(bottom, rgb(112,25,77) 4%, rgb(40,18,71) 52%, rgb(11,23,40) 76%)
+    background-image -webkit-gradient(linear,left bottom,left top,color-stop(0.04,rgb(112,25,77)),color-stop(0.52, rgb(40,18,71)),color-stop(0.76, rgb(11,23,40)));
+    
 h2
     color bg
     font-size medium

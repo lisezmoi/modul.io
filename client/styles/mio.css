@@ -56,8 +56,8 @@ html {
 #logo {
   position: absolute;
   z-index: 1;
-  left: 8px;
-  bottom: 8px;
+  left: 16px;
+  bottom: 16px;
   margin: 0;
   width: 104px;
   height: 21px;
@@ -126,8 +126,11 @@ html {
 }
 .panel-position-tl {
   border-top: 0;
+}
+.panel-position-tl .console {
   padding-left: 4px;
-h1
+}
+.panel-position-tl h1 {
   padding-left: 4px;
 }
 .panel-position-br {
@@ -156,8 +159,8 @@ h1
 }
 .modul-info {
   position: absolute;
-  width: 302px;
-  height: 200px;
+  width: 200px;
+  height: 250px;
   color: #dbe3e2;
   background: rgba(0,5,20,0.50);
 }
@@ -171,7 +174,12 @@ button {
   cursor: pointer;
 }
 button:hover {
-  border: solid 1px #dbe3e2;
+  border-color: #dbe3e2;
+}
+button:active,
+button.pressed {
+  background: rgba(255,255,255,0.05);
+  border-color: #32395a;
 }
 .panel button {
   margin: 4px 4px 0 4px;
