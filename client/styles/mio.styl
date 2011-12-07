@@ -13,8 +13,8 @@
     src url('font/modulicons/modulicons-webfont.eot?#iefix') format('embedded-opentype'), url('font/modulicons/modulicons-webfont.woff') format('woff'), url('font/modulicons/modulicons-webfont.ttf') format('truetype'), url('font/modulicons/modulicons-webfont.svg#UrbanoLight') format('svg')
     font-weight normal
     font-style normal
-mono = "Inconsolata", courier new, monospace
-icon = "modulicons"
+mono = "Inconsolata", "Courier New", monospace
+icon = "Modulicons"
 tall = 17px
 medium = 14px
 small = 10px
@@ -76,9 +76,9 @@ body, html
 
 #loading
     position absolute
-    font medium mono
     bottom -4px
     left panelw
+    font medium mono
     z-index 999
     color bone
 
@@ -167,32 +167,32 @@ button
     &:active, &.pressed
         background rgba(255, 255, 255, 0.05)
         border-color #32395A
-        
-    
 
 .panel button
     margin gutter gutter 0 gutter
     &:nth-child(2n+1)
         margin-right 0
 #panel-console button, #panel-codepad button
-    font-size 28px
     position absolute
-    border 0
-    color bone
-    padding 0 0 gutter 0
-    margin 0
-    height 23px
     width 29px
+    height 23px
+    margin 0
+    padding 0 0 gutter 0
+    font-size 28px
     line-height 20px
-    cursor pointer
+    color bone
     background none
+    border 0
+    cursor pointer
 #panel-console button:hover, #panel-codepad button:hover
     color green
 #panel-console button:active, #panel-codepad button:active
     color bone
 #panel-console button
+    top 32px
     right -30px
 #panel-codepad button
+    top 32px
     left -30px
 #panel-Actions button
     white-space pre

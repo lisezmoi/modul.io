@@ -62,20 +62,20 @@ function defaultSkin() {
 }
 // You can fill your own panel
 // Here is the default "Actions" panel
-var actionsPanel = new ui.ButtonsPanel("Actions", [
-    new ui.Button("Left", function(){
+var actionsPanel = ui.buttonsPanel("Actions", [
+    ui.button("Left", function(){
         modul.move("left");
     }),
-    new ui.Button("Top", function(){
+    ui.button("Top", function(){
         modul.move("top");
     }),
-    new ui.Button("Bottom", function(){
+    ui.button("Bottom", function(){
         modul.move("bottom");
     }),
-    new ui.Button("Right", function(){
+    ui.button("Right", function(){
         modul.move("right");
     }),
-    new ui.Button("RainbowRandom", function(){
+    ui.button("RainbowRandom", function(){
         defaultSkin();
     }),
 ]);

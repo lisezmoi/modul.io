@@ -16,13 +16,15 @@
         "node": "~0.4.8"
     },
     "dependencies": {
-        "canvas": "~0.8.0",
-        "ejs": "~0.4.3",
-        "express": "~2.5.0",
-        "socket.io": "~0.8.6",
-        "underscore": "~1.2.1"
+        "canvas": "~0.8",
+        "ejs": "~0.4",
+        "express": "~2.5",
+        "socket.io": "~0.8",
+        "underscore": "~1.2"
     },
-    "devDependencies": {},
+    "devDependencies": {
+        "stylus": "~0.19"
+    },
     "bin" : {
         "modul.io" : "./bin/modul.io.js"
     },

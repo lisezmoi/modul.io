@@ -6,7 +6,7 @@
  * 
  */
 
-var ctx = modul.getCanvas();
+var ctx = modul.context;
 
 function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -327,7 +327,7 @@ var actionsPanel = new ButtonsPanel("Actions", [
 var activeFlag = false;
 
 //var i = 1;
-onInterval(function(){
+world.on('interval', function(){
      //actionsPanel.add(new Button("button:"+i, function(){}));
      //i++;
     
