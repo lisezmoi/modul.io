@@ -1,0 +1,136 @@
+@import 'reset'
+
+// Tools
+box-shadow(params)
+    -webkit-box-shadow params
+    -moz-box-shadow params
+    box-shadow params
+
+// Typography
+@font-face
+    font-family 'Inconsolata'
+    src url('font/inconsolata/inconsolata-webfont.eot')
+    src url('font/inconsolata/inconsolata-webfont.eot?#iefix') format('embedded-opentype'), url('font/inconsolata/inconsolata-webfont.woff') format('woff'), url('font/inconsolata/inconsolata-webfont.ttf') format('truetype'), url('font/inconsolata/inconsolata-webfont.svg#UrbanoLight') format('svg')
+    font-weight normal
+    font-style normal
+mono = "inconsolata", courier new, monospace
+sans = verdana, arial, sans-serif
+serif = Georgia, Times New Roman
+tall = 26px
+medium = 24px
+small = 18px
+smallest = 12px
+blue = #4F02C1
+
+// Colors
+bg = #0b1728
+gray = #ECECEC
+light = #2D3741
+darker = #bbb
+
+// Grid
+u = 20px
+
+html
+    height 100%
+
+body
+    height 100%
+    font smallest sans
+    padding 0 0 u*6
+    background-color gray
+
+h1
+    position absolute
+    left -1000px
+h2
+    color bg
+    font-size medium
+    margin 70px 0 u 0
+    text-shadow 0 1px 1px #fff
+    border-bottom 1px solid darker
+
+h3
+    font-weight normal
+    font-size small
+    margin u*2 0 u*.5 0
+    a
+        color grey
+h4
+    font-weight normal
+    font-size 15px
+    margin 0 0 u*.5 0
+p
+    margin 0 0 u*.5 0
+
+a
+    color blue
+    text-decoration none
+    &:hover
+        text-decoration underline
+        color black
+
+code
+    background #FEFBEC
+    border 1px solid #EFE7DB
+
+.sh_sourceCode
+    font-weight normal
+    font-style normal
+
+.sh_sourceCode .sh_symbol , .sh_sourceCode .sh_cbracket 
+    color #333
+
+.sh_sourceCode .sh_keyword
+    color #c96
+
+.sh_sourceCode .sh_string, .sh_sourceCode .sh_regexp, .sh_sourceCode .sh_number,
+.sh_sourceCode .sh_specialchar
+    color #690
+
+.sh_sourceCode .sh_comment
+    color #666
+    
+button
+    font small mono
+    background #eee
+    border 1px solid darker
+    border-color #fff darker darker #fff
+    &:hover
+        background #E4E4E4
+    &:active
+        background #E1E1E1
+#container, #toc    
+    padding u
+    background-color white
+    border 1px solid white
+#container
+    margin u*2 0 u*2 u*19
+    width u*30
+    #gtoc
+        font smallest sans
+    code
+        font 14px mono
+#toc
+    background white url(i/logo_170x36.png) no-repeat u u
+    width u*12
+    position fixed        
+    font smallest sans
+    height 100%
+    left u*2
+    top u*2
+    &>ul
+        display block
+        overflow auto
+        height 70%
+    ul
+        margin 0 0 u 0
+        li
+            margin 0 0 0px 0
+            li
+                padding 0 0 0 u
+    h2
+        margin u*5 0 10px 0
+        font smallest sans
+hr
+    display none
