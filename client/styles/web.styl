@@ -14,15 +14,18 @@ box-shadow(params)
     font-weight normal
     font-style normal
 mono = "Inconsolata", courier new, monospace
+sans = verdana, arial, sans-serif
 tall = 25px
 medium = 20px
 small = 16px
+mini = 10px
 
 // Colors
 bg = #0b1728
 gray = #ECECEC
 light = #2D3741
 darker = #bbb
+blue = #6593E8
 
 // Grid
 u = 20px
@@ -51,6 +54,33 @@ body
     background-image -webkit-linear-gradient(bottom, rgb(112,25,77) 4%, rgb(40,18,71) 52%, rgb(11,23,40) 76%)
     background-image -ms-linear-gradient(bottom, rgb(112,25,77) 4%, rgb(40,18,71) 52%, rgb(11,23,40) 76%)
     background-image -webkit-gradient(linear,left bottom,left top,color-stop(0.04,rgb(112,25,77)),color-stop(0.52, rgb(40,18,71)),color-stop(0.76, rgb(11,23,40)));
+    
+#topbar
+    width 100%
+    position absolute
+    top 0
+    left 0
+    font mini sans
+    letter-spacing:1px;
+    background rgba(3,14,32, 50%)
+    border-bottom 1px solid #381A62
+    padding 5px 0 4px 0
+    opacity .8
+    &:hover
+        opacity 1
+    ul
+        padding 0 u
+        li
+            display inline
+            padding 0px 6px
+            a
+                color #A2A3E2
+                text-decoration none
+                &:hover
+                    color white
+
+header
+    margin 40px 0
     
 h2
     color bg

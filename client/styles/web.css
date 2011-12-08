@@ -54,6 +54,38 @@ body {
   background-image: -ms-linear-gradient(bottom, #70194d 4%, #281247 52%, #0b1728 76%);
   background-image: -webkit-gradient(linear, left bottom, left top, color-stop(0.04, #70194d), color-stop(0.52, #281247), color-stop(0.76, #0b1728));
 }
+#topbar {
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  font: 10px verdana, arial, sans-serif;
+  letter-spacing: 1px;
+  background: #030e20;
+  border-bottom: 1px solid #381a62;
+  padding: 5px 0 4px 0;
+  opacity: 0.8;
+}
+#topbar:hover {
+  opacity: 1;
+}
+#topbar ul {
+  padding: 0 20px;
+}
+#topbar ul li {
+  display: inline;
+  padding: 0px 6px;
+}
+#topbar ul li a {
+  color: #a2a3e2;
+  text-decoration: none;
+}
+#topbar ul li a:hover {
+  color: #fff;
+}
+header {
+  margin: 40px 0;
+}
 h2 {
   color: #0b1728;
   font-size: 20px;
