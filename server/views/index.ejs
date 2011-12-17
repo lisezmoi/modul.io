@@ -10,21 +10,22 @@
 	<link rel="stylesheet" href="<%- site_url %>styles/web.css" />
 </head>
 <body>
-    <div id="topbar">
-        <ul>
-            <li><a href="">Play</a></li>
-            <li><a href="">Doc</a></li>
-            <li><a href="">Fork</a></li>
-            <li><a href="">About</a></li>
-        </ul>
-    </div>
+	<div id="topbar">
+		<ul>
+			<li><a href="">Play</a></li>
+			<li><a href="">Doc</a></li>
+			<li><a href="">Fork</a></li>
+			<li><a href="">About</a></li>
+		</ul>
+	</div>
 	<header>
 		<h1>modul.io</h1>
 	</header>
 	<div class="modul-create">
-		<h2>Create a new modul</h2>
-		<form method="post" action="" onsubmit="this.action='<%- site_url %>'+ document.getElementById('create-modul-name').value;">
-			<input placeholder="Name" name="" id="create-modul-name" />
+		<h2>Create a new modul:</h2>
+		<form method="post" action="" onsubmit="this.action='<%- site_url %>'+ document.getElementById('create-owner').value + '/' + document.getElementById('create-modul').value;">
+			<input placeholder="Owner name" name="" id="create-owner" /> /
+			<input placeholder="Modul name" name="" id="create-modul" />
 			<button type="submit">Create</button>
 		</form>
 	</div>

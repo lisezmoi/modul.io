@@ -123,15 +123,18 @@ input {
   box-shadow: inset 0 0 40px 0 #bbb;
   border: 1px solid #ececec;
 }
+.modul-create {
+  font: 25px "Inconsolata", courier new, monospace;
+}
 .modul-create input {
   height: 60px;
-  width: 420px;
+  width: 190px;
 }
 .modul-create button {
+  float: right;
   font-size: 25px;
   width: 120px;
   height: 62px;
-  margin: 0 0 0 20px;
 }
 div.modul-create.only h2 {
   text-align: center;
