@@ -12,6 +12,8 @@ You should be interested if:
 - You ♥ one of these: NodeJS, WebSockets, Canvas
 - You are an AI nerd
 
+![Screenshot](http://modul.io/media/GitShotSmall.png)
+
 ## Installation
 
 See [doc/install.md](https://github.com/bpierre/modul.io/blob/master/doc/install.md)
