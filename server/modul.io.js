@@ -1,5 +1,4 @@
-var sys = require('sys'),
-    sio = require('socket.io'),
+var sio = require('socket.io'),
     logger = require('./lib/logger'),
     web = require('./lib/web'),
     getDataManager = require('./lib/data-manager').getDataManager,

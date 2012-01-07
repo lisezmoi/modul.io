@@ -102,10 +102,10 @@ exports.start = function(port, hostname) {
         if (!world.getModul(modulId)) {
             var dManager = require('./data-manager').getDataManager();
             dManager.createDefaultModul(modulId, function(modul) {
-                res.redirect('/'+modulId);
+                res.redirect('/' + modulId);
             });
         } else {
-            next();
+            res.redirect('/' + modulId);
         }
     });
     
