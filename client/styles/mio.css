@@ -100,6 +100,15 @@ html {
   color: #dbe3e2;
   cursor: pointer;
 }
+.panel h1:-moz-any-link:focus {
+  background: transparent;
+}
+.panel h1::selection {
+  background: transparenttransparent;
+}
+.panel h1::-moz-selection {
+  background: transparent;
+}
 .panel button.close {
   width: 302px;
   height: 32px;
@@ -137,7 +146,14 @@ html {
   border-top: 1px solid #dbe3e2;
 }
 #panel-codepad .ace_gutter {
-  background-color: #dbe3e2;
+  background-color: #081321;
+  color: #1d354d;
+}
+#panel-codepad .ace-twilight .ace_scroller {
+  background: #050d18;
+}
+#panel-codepad .ace-twilight .ace_text-layer {
+  color: #aaa;
 }
 #panel-codepad {
   width: 604px;
@@ -190,32 +206,25 @@ button.pressed {
 #panel-console button,
 #panel-codepad button {
   position: absolute;
-  width: 29px;
   height: 23px;
+  width: auto;
+  top: 6px;
+  right: 0px;
   margin: 0;
-  padding: 0 0 4px 0;
-  font-size: 28px;
-  line-height: 20px;
-  color: #dbe3e2;
-  background: none;
-  border: 0;
+  font-size: 16px;
+  padding: 1px 7px;
+  color: #24c768;
+  background: rgba(0,5,20,0.50);
+  border: solid 1px #0b3517;
   cursor: pointer;
 }
 #panel-console button:hover,
 #panel-codepad button:hover {
-  color: #398d69;
+  color: #dbe3e2;
 }
 #panel-console button:active,
 #panel-codepad button:active {
-  color: #dbe3e2;
-}
-#panel-console button {
-  top: 32px;
-  right: -30px;
-}
-#panel-codepad button {
-  top: 32px;
-  left: -30px;
+  color: #3d4f71;
 }
 #panel-Actions button {
   white-space: pre;

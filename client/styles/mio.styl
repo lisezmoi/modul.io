@@ -25,6 +25,8 @@ bone = #dbe3e2
 innactiveBone = #3D4F71
 light = #2D3741
 green = #398D69
+active = rgba(255, 255, 255, 0.05)
+panelcontent = rgba(0, 5, 20, 0.5)
 
 // Grid
 cell = 145px
@@ -93,6 +95,9 @@ body, html
     line-height 32px
     color bone
     cursor pointer
+    &:-moz-any-link:focus {background:transparent;}
+    &::selection {background:transparenttransparent;}
+    &::-moz-selection {background:transparent;}
 
 .panel button.close
     width cell*2 + gutter*3
@@ -111,7 +116,7 @@ body, html
 
 .panel .content
     overflow auto
-    background rgba(0, 5, 20, 0.5)
+    background panelcontent
 
 .panel-position-tr, .panel-position-tl
     border-bottom 1px solid bone
@@ -125,8 +130,15 @@ body, html
     border-top 1px solid bone
 
 // Codepad
-#panel-codepad .ace_gutter
-    background-color bone
+#panel-codepad
+    .ace_gutter
+        background-color #081321
+        color #1D354D
+    .ace-twilight
+        .ace_scroller
+            background #050D18
+        .ace_text-layer
+            color #AAA
 #panel-codepad
     width panelw * 2
 
@@ -145,13 +157,12 @@ body, html
         color bone
         font medium mono
         color #75787F
-
 .modul-info
     position absolute
     width 200px
     height 250px
     color #dbe3e2
-    background rgba(0, 5, 20, 0.5)
+    background panelcontent
 
 // Buttons
 button
@@ -165,7 +176,7 @@ button
     &:hover
         border-color bone
     &:active, &.pressed
-        background rgba(255, 255, 255, 0.05)
+        background active
         border-color #32395A
 
 .panel button
@@ -174,29 +185,25 @@ button
         margin-right 0
 #panel-console button, #panel-codepad button
     position absolute
-    width 29px
     height 23px
+    width auto
+    top 6px
+    right 0px
     margin 0
-    padding 0 0 gutter 0
-    font-size 28px
-    line-height 20px
-    color bone
-    background none
-    border 0
+    font-size 16px
+    padding 1px 7px
+    color #24C768
+    background panelcontent
+    border solid 1px #0B3517
     cursor pointer
 #panel-console button:hover, #panel-codepad button:hover
-    color green
-#panel-console button:active, #panel-codepad button:active
     color bone
-#panel-console button
-    top 32px
-    right -30px
-#panel-codepad button
-    top 32px
-    left -30px
+#panel-console button:active, #panel-codepad button:active
+    color innactiveBone
 #panel-Actions button
     white-space pre
 
 #playground button.key-active
     color #fff
     border solid 1px #fff
+
