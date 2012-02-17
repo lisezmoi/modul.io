@@ -102,12 +102,15 @@ html {
 }
 .panel h1:-moz-any-link:focus {
   background: transparent;
+  color: inherit;
 }
 .panel h1::selection {
   background: transparenttransparent;
+  color: inherit;
 }
 .panel h1::-moz-selection {
   background: transparent;
+  color: inherit;
 }
 .panel button.close {
   width: 302px;
@@ -203,13 +206,17 @@ button.pressed {
 .panel button:nth-child(2n+1) {
   margin-right: 0;
 }
-#panel-console button,
-#panel-codepad button {
+#playground button.key-active {
+  color: #fff;
+  border: solid 1px #fff;
+}
+#btn-clear,
+#btn-save,
+#codeSearch {
   position: absolute;
   height: 23px;
   width: auto;
   top: 6px;
-  right: 0px;
   margin: 0;
   font-size: 16px;
   padding: 1px 7px;
@@ -217,6 +224,18 @@ button.pressed {
   background: rgba(0,5,20,0.50);
   border: solid 1px #0b3517;
   cursor: pointer;
+}
+#btn-clear {
+  right: 0px;
+}
+#btn-save {
+  right: 121px;
+}
+#codeSearch {
+  right: 0px;
+  height: 19px;
+  width: 100px;
+  font-size: 14px;
 }
 #panel-console button:hover,
 #panel-codepad button:hover {
@@ -229,7 +248,15 @@ button.pressed {
 #panel-Actions button {
   white-space: pre;
 }
-#playground button.key-active {
-  color: #fff;
-  border: solid 1px #fff;
+:-moz-any-link:focus {
+  background: #398d69;
+  color: #4580b3;
+}
+::selection {
+  background: #4580b3;
+  color: #000;
+}
+::-moz-selection {
+  background: #4580b3;
+  color: #000;
 }

@@ -24,9 +24,22 @@
                     mio.socket.emit('code', editor.getSession().getValue());
                 }
             }});
+            button.id = 'btn-save';
             buttonContainer.appendChild(button);
             panel.contentElt.appendChild(buttonContainer);
             
+            // Code search input
+            var codeSearch = mio.util.createElt('input', {events: {
+                focus: function() {
+                    if (codeSearch.value === 'search'){
+                        codeSearch.value = '';
+                    }
+                }
+            }});
+            codeSearch.id = 'codeSearch';
+            codeSearch.value = 'search';
+            buttonContainer.appendChild(codeSearch);
+
             // JS editor
             editorPre = mio.util.createElt('pre');
             editorPre.id = 'ace-editor';

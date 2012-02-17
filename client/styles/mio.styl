@@ -95,10 +95,10 @@ body, html
     line-height 32px
     color bone
     cursor pointer
-    &:-moz-any-link:focus {background:transparent;}
-    &::selection {background:transparenttransparent;}
-    &::-moz-selection {background:transparent;}
-
+    &:-moz-any-link:focus {background:transparent; color:inherit;}
+    &::selection {background:transparenttransparent; color:inherit;}
+    &::-moz-selection {background:transparent; color:inherit;}
+    
 .panel button.close
     width cell*2 + gutter*3
     height 32px
@@ -141,10 +141,8 @@ body, html
             color #AAA
 #panel-codepad
     width panelw * 2
-
 #panel-codepad .content
     background none
-
 #ace-editor
     position relative
     width panelw*2
@@ -183,12 +181,15 @@ button
     margin gutter gutter 0 gutter
     &:nth-child(2n+1)
         margin-right 0
-#panel-console button, #panel-codepad button
+#playground button.key-active
+    color #fff
+    border solid 1px #fff
+
+#btn-clear, #btn-save, #codeSearch
     position absolute
     height 23px
     width auto
     top 6px
-    right 0px
     margin 0
     font-size 16px
     padding 1px 7px
@@ -196,6 +197,16 @@ button
     background panelcontent
     border solid 1px #0B3517
     cursor pointer
+#btn-clear
+    right 0px
+#btn-save
+    right 121px
+#codeSearch
+    right 0px
+    height 19px
+    width 100px
+    font-size 14px
+    
 #panel-console button:hover, #panel-codepad button:hover
     color bone
 #panel-console button:active, #panel-codepad button:active
@@ -203,7 +214,6 @@ button
 #panel-Actions button
     white-space pre
 
-#playground button.key-active
-    color #fff
-    border solid 1px #fff
-
+:-moz-any-link:focus {background:green; color:#4580B3;}
+::selection {background:#4580B3; color:#000;}
+::-moz-selection {background:#4580B3; color:#000;}

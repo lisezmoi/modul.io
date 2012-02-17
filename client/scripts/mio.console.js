@@ -15,6 +15,7 @@
             var button = mio.util.createElt("button", {content: "Clear", events: {
                 click: pub.clear
             }});
+            button.id = 'btn-clear';
             buttonContainer.appendChild(button);
             panel.contentElt.appendChild(buttonContainer);
 
