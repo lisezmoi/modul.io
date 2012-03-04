@@ -13,17 +13,17 @@
         "url": "git://github.com/bpierre/modul.io.git"
     },
     "engines": {
-        "node": "~0.4.8"
+        "node": "~0.6.6"
     },
     "dependencies": {
-        "canvas": "~0.8",
-        "ejs": "~0.4",
+        "canvas": "~0.10",
+        "ejs": "~0.6",
         "express": "~2.5",
-        "socket.io": "~0.8",
-        "underscore": "~1.2"
+        "socket.io": "~0.9",
+        "underscore": "~1.3"
     },
     "devDependencies": {
-        "stylus": "~0.19"
+        "stylus": "~0.24"
     },
     "bin" : {
         "modul.io" : "./bin/modul.io.js"
