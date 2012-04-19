@@ -18,7 +18,7 @@ See [doc/install.md](https://github.com/bpierre/modul.io/blob/master/doc/install
 
 ## Preview
 
-![Video](http://modul.io/media/demo2.ogv)
+[Video](http://modul.io/media/demo2.ogv)
 
 Current status:
 
