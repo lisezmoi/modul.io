@@ -12,11 +12,21 @@ You should be interested if:
 - You ♥ one of these: NodeJS, WebSockets, Canvas
 - You are an AI nerd
 
-![Screenshot](http://modul.io/media/GitShotSmall.png)
-
 ## Installation
 
 See [doc/install.md](https://github.com/bpierre/modul.io/blob/master/doc/install.md)
+
+## Preview
+
+![Video](http://modul.io/media/demo2.ogv)
+
+Current status:
+
+![Screenshot](http://modul.io/media/GitShotSmall.png)
+
+Mockup:
+
+![Expected status](http://modul.io/media/modul.io.expected-status.jpg)
 
 ## Contact
 
