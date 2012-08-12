@@ -3,13 +3,13 @@ Install modul.io
 
 ## Instructions
 
-### Create a directory
-
-    mkdir modul.io && cd modul.io
-
 ### Clone the repository
 
     git clone git://github.com/bpierre/modul.io.git
+
+### Install cairo if needed (node-canvas dependency)
+
+See instructions here: https://github.com/LearnBoost/node-canvas/wiki/_pages
 
 ### Install dependencies
 
