@@ -28,3 +28,5 @@ Or NPM:
 Or with the command, if it was installed with `npm install -g`:
 
     modul.io
+
+In a browser, open the adress given by the last command. Eg: `http://127.0.0.1:3000/`.
