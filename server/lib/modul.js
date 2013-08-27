@@ -1,11 +1,11 @@
-var EventEmitter = require('events').EventEmitter,
-    util = require('util'),
-    vm = require('vm'),
-    Canvas = require('canvas'),
-    crypto = require('crypto'),
-    _ = require('underscore')._,
-    ClientDisplay = require('./client-display').ClientDisplay,
-    ZONE_SIZE = [11, 11];
+var EventEmitter = require('events').EventEmitter;
+var util = require('util');
+var vm = require('vm');
+var Canvas = require('canvas');
+var crypto = require('crypto');
+var _ = require('underscore')._;
+var ClientDisplay = require('./client-display').ClientDisplay;
+var ZONE_SIZE = [11, 11];
 
 // Modul Class
 function Modul(id) {
