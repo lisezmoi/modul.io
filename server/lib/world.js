@@ -1,8 +1,8 @@
-var EventEmitter = require('events').EventEmitter,
-    util = require('util'),
-    Ground = require('./ground').Ground,
-    curWorld = null,
-    borderWidth = 1;
+var EventEmitter = require('events').EventEmitter;
+var util = require('util');
+var Ground = require('./ground').Ground;
+var curWorld = null;
+var borderWidth = 1;
 
 function initInterval(interval) {
     var self = this;
