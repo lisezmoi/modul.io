@@ -11,9 +11,9 @@ function start(cb) {
 
   if (isStarted && cb) cb();
 
-  // 'prod' is the default environment
+  // 'dev' is the default environment
   if (!ENV) {
-    ENV = process.env.NODE_ENV = 'prod';
+    ENV = process.env.NODE_ENV = 'dev';
   }
 
   // Init data manager
