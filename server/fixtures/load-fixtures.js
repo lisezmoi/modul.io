@@ -35,11 +35,11 @@ loadFixture('raphael', 'default', 30, 20);
 // loadFixture('caroline', 'default', 29, 19);
 // loadFixture('aude', 'default', 29, 20);
 loadFixture('pierre', 'default', 5, 5);
-
-var apiTestModul = loadFixture('pierre', 'api', 10, 10);
+loadFixture('pierre', 'api', 10, 10);
 loadFixture('pierre', 'api2', 12, 12);
 
 
+// var apiTestModul = loadFixture('pierre', 'api', 10, 10);
 // var zoneBlocks = apiTestModul.getZoneBlocks();
 //
 // function eachBlock(blocks, callback) {
@@ -78,5 +78,5 @@ loadFixture('pierre', 'api2', 12, 12);
 // });
 // console.log(output);
 
-
 loadDefaults(100);
+
