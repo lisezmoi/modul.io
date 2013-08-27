@@ -38,6 +38,5 @@
   "scripts": {
     "start": "scripts/start.js",
     "stop": "scripts/stop.js"
-  },
-  "private": true
+  }
 }
