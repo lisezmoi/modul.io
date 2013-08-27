@@ -202,9 +202,7 @@ function getEnv() {
       if (structuredStack[i].getFileName() === 'modulCode') {
         stack += '  at';
         var fnName = structuredStack[i].getFunctionName();
-        if (fnName.length > 0) {
-          stack += ' ' + fnName;
-        }
+        if (fnName) stack += ' ' + fnName;
         stack += ' line ' + (structuredStack[i].getLineNumber() - curModul.preScript.length);
         stack += ' col ' + structuredStack[i].getColumnNumber();
         stack += '\n';
