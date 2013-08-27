@@ -1,37 +1,43 @@
 {
-    "author": "Pierre Bertet <bonjour@pierrebertet.net> (http://www.pierrebertet.net)",
-    "name": "modul.io",
-    "description": "modul.io is a multiplayer sandbox which allows to easily setup AI-controlled entities.",
-    "version": "0.1.0",
-    "homepage": "http://modul.io/",
-    "contributors": [
-      { "name": "Raphaël Bastide", "email": "bonjour@raphaelbastide.com" },
-      { "name": "Pierre Bertet", "email": "bonjour@pierrebertet.net" }
-    ],
-    "repository": {
-        "type": "git",
-        "url": "git://github.com/lisezmoi/modul.io.git"
+  "author": "Pierre Bertet <bonjour@pierrebertet.net> (http://www.pierrebertet.net)",
+  "name": "modul.io",
+  "description": "modul.io is a multiplayer sandbox which allows to easily setup AI-controlled entities.",
+  "version": "0.2.0",
+  "homepage": "http://modul.io/",
+  "contributors": [
+    {
+      "name": "Raphaël Bastide",
+      "email": "bonjour@raphaelbastide.com"
     },
-    "engines": {
-        "node": "~0.10"
-    },
-    "dependencies": {
-        "canvas": "~1.1.0",
-        "ejs": "~0.8",
-        "express": "~3.3",
-        "socket.io": "~0.9",
-        "underscore": "~1.5",
-        "uglify-js": "~2.3"
-    },
-    "devDependencies": {
-        "stylus": "~0.37"
-    },
-    "bin" : {
-        "modul.io" : "./bin/modul.io.js"
-    },
-    "scripts" : {
-        "start": "scripts/start.js",
-        "stop": "scripts/stop.js"
-    },
-    "private": true
+    {
+      "name": "Pierre Bertet",
+      "email": "bonjour@pierrebertet.net"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/lisezmoi/modul.io.git"
+  },
+  "engines": {
+    "node": "~0.10"
+  },
+  "dependencies": {
+    "canvas": "~1.1.0",
+    "ejs": "~0.8",
+    "express": "~3.3",
+    "socket.io": "~0.9",
+    "underscore": "~1.5",
+    "uglify-js": "~2.3"
+  },
+  "devDependencies": {
+    "stylus": "~0.37"
+  },
+  "bin": {
+    "modul.io": "./bin/modul.io.js"
+  },
+  "scripts": {
+    "start": "scripts/start.js",
+    "stop": "scripts/stop.js"
+  },
+  "private": true
 }
