@@ -4,7 +4,6 @@ var vm = require('vm');
 var Canvas = require('canvas');
 var crypto = require('crypto');
 var _ = require('underscore')._;
-var ClientDisplay = require('./client-display').ClientDisplay;
 var ZONE_SIZE = [11, 11];
 
 // Modul Class
@@ -28,7 +27,6 @@ function Modul(id) {
   this.connectedAt = false;
 }
 util.inherits(Modul, EventEmitter);
-exports.Modul = Modul;
 
 function compileScript() {
   this.panels = {};
@@ -105,6 +103,7 @@ function getEnv() {
   var Modul = function(){
     EventEmitter.call(this);
     this.context = curModul.ctx;
+    this.id = curModul.id;
   };
   util.inherits(Modul, EventEmitter);
   Modul.prototype.say = function(text) {
@@ -181,17 +180,18 @@ function getEnv() {
 
   /* Exports the public API */
   var env = {};
-  env.ui = {};
-  env.ui.consolePanel = function(name) {
-    return new ConsolePanel(name);
+  env.ui = {
+    consolePanel: function(name) {
+      return new ConsolePanel(name);
+    },
+    buttonsPanel: function(name, buttons) {
+      return new ButtonsPanel(name, buttons);
+    },
+    button: function(label, callback) {
+      return new Button(label, callback);
+    },
+    log: log
   };
-  env.ui.buttonsPanel = function(name, buttons) {
-    return new ButtonsPanel(name, buttons);
-  };
-  env.ui.button = function(label, callback){
-    return new Button(label, callback);
-  };
-  env.ui.log = log;
   env.modul = new Modul();
   env.world = new World();
 
@@ -211,6 +211,12 @@ function getEnv() {
     return stack;
   };
 
+  // Freeze everything
+  Object.freeze(env.ui);
+  Object.freeze(env.modul);
+  Object.freeze(env.world);
+  Object.freeze(env);
+
   return env;
 }
 
@@ -221,15 +227,20 @@ Modul.prototype.getZoneBlocks = function() {
 
 Modul.prototype.getExternalModul = function(fromModul) {
   var curModul = this;
-  return {
+  var externalModul = {
     id: curModul.id,
     send: function(msg) {
       curModul.env.modul.emit('message', fromModul.getExternalModul(curModul), msg);
     },
     image: function() {
       return curModul.ctx.getImageData(0, 0, 50, 50);
+    },
+    coordinates: function() {
+      return [curModul.position.x, curModul.position.y];
     }
   };
+  Object.freeze(externalModul);
+  return externalModul;
 };
 
 Modul.prototype.updateCode = function(modulCode, callback) {
@@ -279,6 +290,7 @@ Modul.prototype.getCode = function() {
 };
 Modul.prototype.execAction = function(panel, action, params, callback) {
   // Search for the action in the buttons list
+  if (!this.panels[panel]) return;
   var panelButtons = this.panels[panel].buttons;
   var curAction = null;
   for (var i=0; i < panelButtons.length; i++) {
@@ -286,16 +298,15 @@ Modul.prototype.execAction = function(panel, action, params, callback) {
       curAction = panelButtons[i].callback;
     }
   }
-  // If an action is found, try to execute it
-  if (typeof curAction === 'function') {
-    var imgData = this.canvas.toDataURL('image/png');
-    try {
-      curAction.apply(this, params); // execute action
-    } catch (e) {
-      this.emit('codeError', e);
-    }
-    emitSkinChanges.call(this, imgData);
+  if (typeof curAction !== 'function') return;
+  // Try to execute the action
+  var imgData = this.canvas.toDataURL('image/png');
+  try {
+    curAction.apply(this, params); // execute action
+  } catch (e) {
+    this.emit('codeError', e);
   }
+  emitSkinChanges.call(this, imgData);
 };
 Modul.prototype.execIntervals = function(currentDate) {
   var curModul = this,
@@ -305,3 +316,9 @@ Modul.prototype.execIntervals = function(currentDate) {
     emitSkinChanges.call(curModul, imgData);
   }, 100);
 };
+
+module.exports = function(id) {
+  return new Modul(id);
+};
+module.exports.Modul = Modul;
+

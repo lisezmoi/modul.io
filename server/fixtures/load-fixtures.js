@@ -38,6 +38,9 @@ loadFixture('pierre', 'default', 5, 5);
 loadFixture('pierre', 'api', 10, 10);
 loadFixture('pierre', 'api2', 12, 12);
 
+loadFixture('test', 'com', 30, 12);
+loadFixture('test', 'com2', 31, 12);
+
 
 // var apiTestModul = loadFixture('pierre', 'api', 10, 10);
 // var zoneBlocks = apiTestModul.getZoneBlocks();
@@ -78,5 +81,5 @@ loadFixture('pierre', 'api2', 12, 12);
 // });
 // console.log(output);
 
-loadDefaults(100);
+//loadDefaults(100);
 

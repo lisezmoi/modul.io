@@ -3,6 +3,10 @@ modul.io API
 
 ## Modul
 
+### modul.id
+
+The modul id (e.g. `'arthur/hal_9000'`).
+
 ### modul.context
 
 The Canvas 2D Context of the modul. It is a regular [Canvas.getContext('2d')](https://developer.mozilla.org/en/HTML/Canvas) object with dimensions of 50x50 pixels.
@@ -34,6 +38,10 @@ Receive a `message` and the modul where it comes (`fromModul`). A message can be
 This special modul object is returned by methods like modul.sonar().
 It is similar to the Modul object, but very restricted.
 
+### extModul.id
+
+The modul id (e.g. `'arthur/hal_9000'`).
+
 ### extModul.image()
 
 Returns the current avatar of the external modul. It is a simple [ImageData](https://developer.mozilla.org/En/HTML/Canvas/Pixel_manipulation_with_canvas) object.
@@ -41,6 +49,10 @@ Returns the current avatar of the external modul. It is a simple [ImageData](htt
 ### extModul.send( message )
 
 Sends a message to the external modul. The cibled modul can listen to incoming message with the `message` event.
+
+### extModul.coordinates()
+
+Get the modul coordinates, as a `[x, y]` Array.
 
 ## UI
 
