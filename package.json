@@ -2,7 +2,7 @@
   "author": "Pierre Bertet <bonjour@pierrebertet.net> (http://www.pierrebertet.net)",
   "name": "modul.io",
   "description": "modul.io is a multiplayer sandbox which allows to easily setup AI-controlled entities.",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "homepage": "http://modul.io/",
   "contributors": [
     {
