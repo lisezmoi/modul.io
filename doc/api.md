@@ -44,7 +44,7 @@ The modul id (e.g. `'arthur/hal_9000'`).
 
 ### extModul.image()
 
-Returns the current avatar of the external modul. It is a simple [ImageData](https://developer.mozilla.org/En/HTML/Canvas/Pixel_manipulation_with_canvas) object.
+Returns the current avatar of the external modul. It is a simple [ImageData](https://developer.mozilla.org/en-US/docs/Web/API/ImageData) object.
 
 ### extModul.send( message )
 
