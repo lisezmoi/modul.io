@@ -14,7 +14,7 @@ You should be interested if:
 
 ## Installation
 
-See [doc/install.md](https://github.com/bpierre/modul.io/blob/master/doc/install.md)
+See [doc/install.md](http://modul.io/doc/install.html)
 
 ## Preview
 
@@ -22,11 +22,11 @@ See [doc/install.md](https://github.com/bpierre/modul.io/blob/master/doc/install
 
 Current status:
 
-![Screenshot](http://modul.io/media/GitShotSmall.png)
+![Screenshot](http://modul.io/media/preview-1.png)
 
-Mockup:
+![Screenshot](http://modul.io/media/preview-2.png)
 
-![Expected status](http://modul.io/media/modul.io.expected-status.jpg)
+![Screenshot](http://modul.io/media/preview-3.png)
 
 ## Contact
 
