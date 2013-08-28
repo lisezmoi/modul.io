@@ -48,7 +48,7 @@ Returns the current avatar of the external modul. It is a simple [ImageData](htt
 
 ### extModul.send( message )
 
-Sends a message to the external modul. The cibled modul can listen to incoming message with the `message` event.
+Sends a message to the external modul. The targetted modul can listen to incoming message with the `message` event.
 
 ### extModul.coordinates()
 
