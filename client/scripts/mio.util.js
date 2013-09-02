@@ -1,85 +1,85 @@
 (function(){
-    var mio = window.mio = window.mio || {};
+  var mio = window.mio = window.mio || {};
 
-    mio.util = (function(){
-        var pub = {},
-            loadImageCallbacks = {};
+  mio.util = (function(){
+    var pub = {};
+    var loadImageCallbacks = {};
 
-        window.d = pub.d = function() {
-            if (typeof console !== "undefined") {
-                try {
-                    console.log.apply(this, arguments);
-                } catch (e) {
-                    if (e.name === "TypeError") {
-                        console.log(arguments);
-                    }
-                }
-            }
+    window.d = pub.d = function() {
+      if (typeof console !== "undefined") {
+        try {
+          console.log.apply(this, arguments);
+        } catch (e) {
+          if (e.name === "TypeError") {
+            console.log(arguments);
+          }
+        }
+      }
+    };
+
+    pub.gid = function(eId) {
+      return document.getElementById(eId);
+    };
+
+    pub.loadImage = function(url, callback) {
+      if (!loadImageCallbacks[url]) {
+        loadImageCallbacks[url] = [];
+
+        var image = new Image();
+        image.onload = function() {
+          for (var i in loadImageCallbacks[url]) {
+            loadImageCallbacks[url][i](image);
+          }
+          delete loadImageCallbacks[url]; // Delete URL from loadActions
         };
+        image.src = url;
+      }
+      // Call each callback for this URL
+      loadImageCallbacks[url].push(callback);
+    };
 
-        pub.gid = function(eId) {
-            return document.getElementById(eId);
-        };
+    pub.createElt = function(tagName, opts) {
+      var opts = opts || {};
+      var elt = document.createElement(tagName);
 
-        pub.loadImage = function(url, callback) {
-            if (!loadImageCallbacks[url]) {
-                loadImageCallbacks[url] = [];
+      // InnerHTML / textContent
+      if (opts.htmlContent) {
+        elt.innerHTML = opts.htmlContent;
 
-                var image = new Image();
-                image.onload = function() {
-                    for (var i in loadImageCallbacks[url]) {
-                        loadImageCallbacks[url][i](image);
-                    }
-                    delete loadImageCallbacks[url]; // Delete URL from loadActions
-                };
-                image.src = url;
-            }
-            // Call each callback for this URL
-            loadImageCallbacks[url].push(callback);
-        };
+      } else if (opts.content) {
+        if (typeof opts.content === 'string') {
+          elt.innerHTML = opts.content;
+        } else if (opts.content.nodeType == 1) {
+          elt.appendChild(opts.content);
+        }
+      }
 
-        pub.createElt = function(tagName, opts) {
-            var opts = opts || {},
-                elt = document.createElement(tagName);
+      // Events
+      if (!!opts.events) {
+        for (var eventName in opts.events) {
+          elt.addEventListener(eventName, opts.events[eventName], false);
+        }
+      }
 
-            // InnerHTML / textContent
-            if (opts.htmlContent) {
-                elt.innerHTML = opts.htmlContent;
+      // Id
+      if (!!opts.id) {
+        elt.id = opts.id;
+      }
 
-            } else if (opts.content) {
-                if (typeof opts.content === 'string') {
-                  elt.innerHTML = opts.content;
-                } else if (opts.content.nodeType == 1) {
-                  elt.appendChild(opts.content);
-                }
-            }
+      // Attributes
+      if (!!opts.attributes) {
+        for (var attr in opts.attributes) {
+          elt.setAttribute(attr, opts.attributes[attr]);
+        }
+      }
 
-            // Events
-            if (!!opts.events) {
-                for (var eventName in opts.events) {
-                    elt.addEventListener(eventName, opts.events[eventName], false);
-                }
-            }
+      return elt;
+    };
 
-            // Id
-            if (!!opts.id) {
-                elt.id = opts.id;
-            }
+    pub.getSprite = function(img, callback) {
+      callback(img);
+    };
 
-            // Attributes
-            if (!!opts.attributes) {
-                for (var attr in opts.attributes) {
-                    elt.setAttribute(attr, opts.attributes[attr]);
-                }
-            }
-
-            return elt;
-        };
-
-        pub.getSprite = function(img, callback) {
-            callback(img);
-        };
-
-        return pub;
-    })();
+    return pub;
+  })();
 })();
