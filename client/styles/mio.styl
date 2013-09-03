@@ -131,21 +131,20 @@ body, html
 
 // Codepad
 #panel-codepad
+    width panelw * 2
     .ace_gutter
         background-color #081321
         color #1D354D
     .ace-twilight
         .ace_scroller
             background #050D18
+            overflow-x auto
         .ace_text-layer
             color #AAA
-#panel-codepad
-    width panelw * 2
-#panel-codepad .content
-    background none
-#ace-editor
-    position relative
-    width panelw*2
+    .content
+        background none
+    #ace-editor
+        position relative
 
 // Console
 #panel-console

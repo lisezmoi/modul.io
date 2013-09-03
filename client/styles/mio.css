@@ -120,17 +120,17 @@ html {
   font-size: 16px;
   text-align: right;
   color: #3d4f71;
-  background: rgba(0,5,20,0.50);
+  background: rgba(0,5,20,0.5);
   border: 0;
   cursor: pointer;
 }
 .panel button.close:hover {
-  background: rgba(0,5,20,0.80);
+  background: rgba(0,5,20,0.8);
   color: #dbe3e2;
 }
 .panel .content {
   overflow: auto;
-  background: rgba(0,5,20,0.50);
+  background: rgba(0,5,20,0.5);
 }
 .panel-position-tr,
 .panel-position-tl {
@@ -148,25 +148,25 @@ html {
 .panel-position-br {
   border-top: 1px solid #dbe3e2;
 }
+#panel-codepad {
+  width: 604px;
+}
 #panel-codepad .ace_gutter {
   background-color: #081321;
   color: #1d354d;
 }
 #panel-codepad .ace-twilight .ace_scroller {
   background: #050d18;
+  overflow-x: auto;
 }
 #panel-codepad .ace-twilight .ace_text-layer {
   color: #aaa;
 }
-#panel-codepad {
-  width: 604px;
-}
 #panel-codepad .content {
   background: none;
 }
-#ace-editor {
+#panel-codepad #ace-editor {
   position: relative;
-  width: 604px;
 }
 #panel-console {
   position: relative;
@@ -181,12 +181,12 @@ html {
   width: 200px;
   height: 250px;
   color: #dbe3e2;
-  background: rgba(0,5,20,0.50);
+  background: rgba(0,5,20,0.5);
 }
 button {
   color: #dbe3e2;
   border: solid 1px #435165;
-  background: rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.1);
   cursor: pointer;
   width: 145px;
   padding: 2px 0;
@@ -221,7 +221,7 @@ button.pressed {
   font-size: 16px;
   padding: 1px 7px;
   color: #24c768;
-  background: rgba(0,5,20,0.50);
+  background: rgba(0,5,20,0.5);
   border: solid 1px #0b3517;
   cursor: pointer;
 }
