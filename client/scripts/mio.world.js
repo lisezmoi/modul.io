@@ -69,27 +69,31 @@
     };
 
     // Draw a single ground
-    var drawGround = function(gid, x, y) {
+    var drawGround = function(box, x, y) {
 
       // Ground ids loaded?
-      if (!!grounds) {
+      if (grounds.length == 0) return;
 
-        var draw = function (groundSprite) {
-          ctx.drawImage(groundSprite, grounds.indexOf(gid)*50, 0, 50, 50, x, y, 50, 50);
-          // ctx.fillStyle = '#ffffff';
-          // ctx.font = 'bold 9px Arial';
-          // ctx.fillText(grid[y/50][x/50].x+','+grid[y/50][x/50].y, x, y+10);
-        };
+      var draw = function(groundSprite) {
+        var spriteX = (box.x * modulWidth) % groundSprite.width;
+        var spriteY = (box.y * modulHeight) % groundSprite.height;
+        ctx.drawImage(groundSprite,
+                      spriteX, spriteY, modulWidth, modulHeight,
+                      x*modulWidth, y*modulHeight, modulWidth, modulHeight);
+        //ctx.drawImage(groundSprite, grounds.indexOf(gid)*50, 0, 50, 50, x, y, 50, 50);
+        // ctx.fillStyle = '#ffffff';
+        // ctx.font = 'bold 9px Arial';
+        // ctx.fillText(grid[y/50][x/50].x+','+grid[y/50][x/50].y, x, y+10);
+      };
 
-        // Grounds sprite loaded?
-        if (!!groundSprite) {
+      // Grounds sprite loaded?
+      if (!!groundSprite) {
+        draw(groundSprite);
+      } else {
+        mio.util.loadImage('http://scri.ch/ji9.png', function(image) {
+          groundSprite = image;
           draw(groundSprite);
-        } else {
-          mio.util.loadImage(mio.conf.url + 'get/ground', function(image) {
-            groundSprite = image;
-            draw(groundSprite);
-          });
-        }
+        });
       }
     };
 
@@ -236,32 +240,32 @@
     pub.draw = function() {
       var self = this;
       // moduls = {}; // reset moduls references
-      if (ctx) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height); // clear canvas
-        self.currentBorders = [];
-        eachBox.call(self, function(box, x, y) {
+      if (!ctx) return;
 
-          // Check border side
-          var borderSide = getBorderSide.call(self, box, x, y);
-          if (!!borderSide && self.currentBorders.indexOf(borderSide) === -1) {
-            self.currentBorders.push(borderSide);
+      ctx.clearRect(0, 0, canvas.width, canvas.height); // clear canvas
+      self.currentBorders = [];
+      eachBox.call(self, function(box, x, y) {
+
+        // Check border side
+        var borderSide = getBorderSide.call(self, box, x, y);
+        if (!!borderSide && self.currentBorders.indexOf(borderSide) === -1) {
+          self.currentBorders.push(borderSide);
+        }
+
+        // Draw ground
+        drawGround.call(self, box, x, y);
+
+        // Add / draw modul
+        if (typeof box.modul === 'string') {
+          if (!moduls[box.modul]) {
+            addModul.call(self, box.modul, x, y);
+          } else {
+            pub.moveModul.call(self, box.modul, {x: x, y: y});
           }
-
-          // Draw ground
-          drawGround.call(self, box.ground, x*50, y*50);
-
-          // Add / draw modul
-          if (typeof box.modul === 'string') {
-            if (!moduls[box.modul]) {
-              addModul.call(self, box.modul, x, y);
-            } else {
-              pub.moveModul.call(self, box.modul, {x: x, y: y});
-            }
-          }
-        });
-        // Reposition canvas if borders are displayed
-        stickToBorder.call(this);
-      }
+        }
+      });
+      // Reposition canvas if borders are displayed
+      stickToBorder.call(this);
     };
 
     // Returns grid size
