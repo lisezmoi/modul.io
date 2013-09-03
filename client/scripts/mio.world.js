@@ -90,7 +90,7 @@
       if (!!groundSprite) {
         draw(groundSprite);
       } else {
-        mio.util.loadImage('http://scri.ch/ji9.png', function(image) {
+        mio.util.loadImage('/styles/i/ground.png', function(image) {
           groundSprite = image;
           draw(groundSprite);
         });
