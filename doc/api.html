@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8" />
+	<title>api - modul.io documentation</title>
+	<link type="image/x-icon" rel="icon" href="/favicon.ico" />
+	<link type="image/x-icon" rel="shortcut icon" href="/favicon.ico" />
+	<link rel="stylesheet" href="assets/doc.css" type="text/css" media="all" />
+</head>
+<body>
+	<div id="container">
+		<header>
+			<h1>modul.io documentation</h1>
+			<div id="gtoc">
+				<p><a href="./">Index</a></p>
+			</div>
+			<hr />
+		</header>
+		<div id="toc"><h2>Table Of Contents</h2><ul><li><a href="#modul">Modul</a><ul><li><a href="#modul.id">modul.id</a></li><li><a href="#modul.context">modul.context</a></li><li><a href="#modul.move">modul.move( direction )</a></li><li><a href="#modul.coordinates">modul.coordinates()</a></li><li><a href="#modul.dimensions">modul.dimensions()</a></li><li><a href="#modul.uptime">modul.uptime()</a></li></ul></li><li><a href="#modul_events">Modul events</a><ul><li><a href="#modul.on_">modul.on( 'message', function( fromModul, message ) )</a></li></ul></li><li><a href="#external_Modul">External Modul</a><ul><li><a href="#extModul.id">extModul.id</a></li><li><a href="#extModul.image">extModul.image()</a></li><li><a href="#extModul.send">extModul.send( message )</a></li><li><a href="#extModul.coordinates">extModul.coordinates()</a></li></ul></li><li><a href="#uI">UI</a><ul><li><a href="#ui.button">ui.button( name, action )</a><ul><li><a href="#button_button.label">Button: button.label( [label] )</a></li></ul></li><li><a href="#ui.buttonsPanel">ui.buttonsPanel( name, [buttons] )</a></li><li><a href="#ui.log">ui.log( message )</a></li></ul></li><li><a href="#world">World</a><ul><li><a href="#world.dimensions">world.dimensions()</a></li></ul></li><li><a href="#world_events">World events</a><ul><li><a href="#world.on_">world.on( 'interval', function( date ) )</a></li></ul></li></ul><hr /></div>
+<h1>modul.io API</h1>
+
+<h2 id="modul">Modul</h2>
+
+<h3 id="modul.id">modul.id <a href="#modul.id">#</a></h3>
+
+<p>The modul id (e.g. <code>'arthur/hal_9000'</code>).</p>
+
+<h3 id="modul.context">modul.context <a href="#modul.context">#</a></h3>
+
+<p>The Canvas 2D Context of the modul. It is a regular <a href="https://developer.mozilla.org/en/HTML/Canvas">Canvas.getContext('2d')</a> object with dimensions of 50x50 pixels.</p>
+
+<h3 id="modul.move">modul.move( direction ) <a href="#modul.move">#</a></h3>
+
+<p>Move the modul in a direction. Direction must be one of these: <code>"top"</code>, <code>"right"</code>, <code>"bottom"</code>, <code>"left"</code>.</p>
+
+<h3 id="modul.coordinates">modul.coordinates() <a href="#modul.coordinates">#</a></h3>
+
+<p>Get the modul coordinates, as a <code>[x, y]</code> Array.</p>
+
+<h3 id="modul.dimensions">modul.dimensions() <a href="#modul.dimensions">#</a></h3>
+
+<p>Returns the modul dimensions, as a <code>[width, height]</code> Array.</p>
+
+<h3 id="modul.uptime">modul.uptime() <a href="#modul.uptime">#</a></h3>
+
+<p>Returns the number of milliseconds since the modul has been connected to the world, or <code>false</code> if the modul is not connected.</p>
+
+<h2 id="modul_events">Modul events</h2>
+
+<h3 id="modul.on_">modul.on( 'message', function( fromModul, message ) ) <a href="#modul.on_">#</a></h3>
+
+<p>Receive a <code>message</code> and the modul where it comes (<code>fromModul</code>). A message can be any JavaScript object.</p>
+
+<h2 id="external_Modul">External Modul</h2>
+
+<p>This special modul object is returned by methods like modul.sonar().
+It is similar to the Modul object, but very restricted.</p>
+
+<h3 id="extModul.id">extModul.id <a href="#extModul.id">#</a></h3>
+
+<p>The modul id (e.g. <code>'arthur/hal_9000'</code>).</p>
+
+<h3 id="extModul.image">extModul.image() <a href="#extModul.image">#</a></h3>
+
+<p>Returns the current avatar of the external modul. It is a simple <a href="https://developer.mozilla.org/en-US/docs/Web/API/ImageData">ImageData</a> object.</p>
+
+<h3 id="extModul.send">extModul.send( message ) <a href="#extModul.send">#</a></h3>
+
+<p>Sends a message to the external modul. The targetted modul can listen to incoming message with the <code>message</code> event.</p>
+
+<h3 id="extModul.coordinates">extModul.coordinates() <a href="#extModul.coordinates">#</a></h3>
+
+<p>Get the modul coordinates, as a <code>[x, y]</code> Array.</p>
+
+<h2 id="uI">UI</h2>
+
+<h3 id="ui.button">ui.button( name, action ) <a href="#ui.button">#</a></h3>
+
+<p>Creates and returns a <code>Button</code> object. You need to add it to a <code>ButtonsPanel</code>.</p>
+
+<p>The <code>name</code> (<code>string</code>) is used for the button label.</p>
+
+<p>The <code>action</code> (<code>function</code>) is triggered when the button is clicked. If the function takes params, they will be requested to the user when he clicks (a simple <code>window.prompt()</code>), and passed as <code>string</code> to the function.</p>
+
+<h4 id="button_button.label">Button: button.label( [label] ) <a href="#button_button.label">#</a></h4>
+
+<p>Change the label of a button if a <code>label</code> is provided, otherwise returns the current label.</p>
+
+<h3 id="ui.buttonsPanel">ui.buttonsPanel( name, [buttons] ) <a href="#ui.buttonsPanel">#</a></h3>
+
+<p>Creates and returns a <code>ButtonsPanel</code> object, which is a container for buttons. When called, the new panel is automatically added on the interface.</p>
+
+<p>The <code>name</code> (<code>string</code>) parameter is used for the panel label.</p>
+
+<p>The <code>buttons</code> Array is optional, and could contain a list of <code>Button</code>s.</p>
+
+<p>The returned <code>ButtonsPanel</code> object has a <code>add(button)</code> method wich can be used to add a button after its creation.</p>
+
+<h3 id="ui.log">ui.log( message ) <a href="#ui.log">#</a></h3>
+
+<p>Log a message in the main Console panel.</p>
+
+<h2 id="world">World</h2>
+
+<h3 id="world.dimensions">world.dimensions() <a href="#world.dimensions">#</a></h3>
+
+<p>Returns the world dimensions, as a <code>[width, height]</code> Array.</p>
+
+<h2 id="world_events">World events</h2>
+
+<h3 id="world.on_">world.on( 'interval', function( date ) ) <a href="#world.on_">#</a></h3>
+
+<p>The world <code>interval</code> event is triggered once per second. The parameter is a <code>Date</code> object of the current world time.</p>
+	</div>
+</body>
+</html>
